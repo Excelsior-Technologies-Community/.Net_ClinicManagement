@@ -106,8 +106,8 @@
         <a asp-controller="Admin" asp-action="ManageDoctor">
             <i class="fas fa-user-doctor"></i> Doctor
         </a>
-        <a href="#"><i class="fas fa-users"></i> Patient</a>
-        <a href="#"><i class="fas fa-calendar-check"></i> Appointment</a>
+        <a asp-controller="Admin" asp-action="ManagePatient"><i class="fas fa-users"></i> Patient</a>
+        <a asp-controller="Admin" asp-action="ManageAppointment"><i class="fas fa-calendar-check"></i> Appointment</a>
         <a href="#"><i class="fas fa-file-prescription"></i> Prescription</a>
         <a href="#"><i class="fas fa-capsules"></i> Medicine</a>
         <a href="#"><i class="fas fa-file-invoice-dollar"></i> Billing</a>

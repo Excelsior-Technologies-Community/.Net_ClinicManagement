@@ -1,0 +1,124 @@
+﻿@model ClinicManagementSystem.Models.DoctorModel
+@using Microsoft.AspNetCore.Mvc.Rendering
+@{
+    ViewData["Title"] = "Add Doctor";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+
+<div class="container-fluid">
+    <div class="card shadow border-0">
+        <div class="card-header bg-primary text-white d-flex justify-content-between">
+            <h4><i class="fa-solid fa-user-doctor"></i> Add Doctor</h4>
+            <a asp-action="ManageDoctor" class="btn btn-light btn-sm"><i class="fa fa-arrow-left"></i> Back</a>
+        </div>
+
+        <div class="card-body">
+            <form asp-action="AddDoctor" method="post" enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
+
+                <div class="row">
+
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="DepartmentId" class="form-label"></label>
+                        <select asp-for="DepartmentId" asp-items="@(ViewBag.DepartmentList as List<SelectListItem>)" class="form-select"></select>
+                        <span asp-validation-for="DepartmentId" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="DoctorName" class="form-label"></label>
+                        <input asp-for="DoctorName" class="form-control" />
+                        <span asp-validation-for="DoctorName" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Qualification"></label>
+                        <input asp-for="Qualification" class="form-control" />
+                        <span asp-validation-for="Qualification" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Specialization"></label>
+                        <input asp-for="Specialization" class="form-control" />
+                        <span asp-validation-for="Specialization" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="Experience"></label>
+                        <input asp-for="Experience" class="form-control" />
+                        <span asp-validation-for="Experience" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="ConsultationFee"></label>
+                        <input asp-for="ConsultationFee" class="form-control" />
+                        <span asp-validation-for="ConsultationFee" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="Gender"></label>
+                        <select asp-for="Gender" class="form-select">
+                            <option value="">-- Select Gender --</option>
+                            <option>Male</option>
+                            <option>Female</option>
+                            <option>Other</option>
+                        </select>
+                        <span asp-validation-for="Gender" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="MobileNo"></label>
+                        <input asp-for="MobileNo" class="form-control" />
+                        <span asp-validation-for="MobileNo" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Email"></label>
+                        <input asp-for="Email" class="form-control" />
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="AvailableFrom"></label>
+                        <input asp-for="AvailableFrom" type="time" class="form-control" />
+                        <span asp-validation-for="AvailableFrom" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="AvailableTo"></label>
+                        <input asp-for="AvailableTo" type="time" class="form-control" />
+                        <span asp-validation-for="AvailableTo" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-8 mb-3">
+                        <label asp-for="Description"></label>
+<textarea asp-for="Description" class="form-control" rows="4"></textarea>
+                    </div>
+
+                    <div class="col-md-4 mb-3 text-center">
+                        <label class="form-label d-block">Doctor Photo</label>
+                        <img id="preview" src="~/Admin/images/no-image.png" style="width:170px;height:170px;border-radius:10px;border:1px solid #ddd;object-fit:cover" />
+                        <input asp-for="ImageFile" type="file" accept="image/*" class="form-control mt-2" onchange="previewImage(event)" />
+                    </div>
+
+                </div>
+
+                <hr />
+
+                <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> Save Doctor</button>
+                <button type="reset" class="btn btn-secondary"><i class="fa fa-rotate"></i> Reset</button>
+                <a asp-action="ManageDoctor" class="btn btn-danger"><i class="fa fa-times"></i> Cancel</a>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+<partial name="_ValidationScriptsPartial" />
+
+<script>
+    function previewImage(e){
+     const f=e.target.files[0];
+     if(f){document.getElementById('preview').src=URL.createObjectURL(f);}
+    }
+</script>

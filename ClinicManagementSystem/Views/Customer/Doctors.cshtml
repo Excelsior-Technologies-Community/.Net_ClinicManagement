@@ -1,0 +1,383 @@
+﻿@model List<ClinicManagementSystem.Models.DoctorModel>
+
+@{
+    ViewData["Title"] = "Doctors";
+    Layout = "~/Views/Shared/_CustomerLayout.cshtml";
+}
+
+<div class="container py-4">
+
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-lg-12">
+            <div class="bg-primary text-white rounded-4 p-4 shadow">
+                <h2 class="fw-bold mb-2">
+                    <i class="fa-solid fa-user-doctor me-2"></i>
+                    Find a Doctor
+                </h2>
+
+                <p class="mb-0">
+                    Search doctors, filter by department and book your appointment online.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search & Filter -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-body">
+
+            <form method="get" asp-action="Doctors">
+
+                <div class="row">
+
+                    <div class="col-md-5 mb-3">
+
+                        <label class="fw-semibold mb-2">
+                            Search Doctor
+                        </label>
+
+                        <input type="text"
+                               name="search"
+                               value="@ViewBag.Search"
+                               class="form-control"
+                               placeholder="Search by doctor name or specialization" />
+
+                    </div>
+
+                    <div class="col-md-5 mb-3">
+
+                        <label class="fw-semibold mb-2">
+                            Department
+                        </label>
+
+                        <select name="departmentId" class="form-select">
+
+                            <option value="0">
+                                -- All Departments --
+                            </option>
+
+                            @foreach (var dept in ViewBag.DepartmentList)
+                            {
+                                if (ViewBag.DepartmentId == dept.DepartmentId)
+                                {
+                                    <option value="@dept.DepartmentId" selected>
+                                        @dept.DepartmentName
+                                    </option>
+                                }
+                                else
+                                {
+                                    <option value="@dept.DepartmentId">
+                                        @dept.DepartmentName
+                                    </option>
+                                }
+                            }
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-md-2 d-grid align-self-end mb-3">
+
+                        <button class="btn btn-primary">
+
+                            <i class="fa fa-search me-1"></i>
+
+                            Search
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+    <!-- Doctor List -->
+    <div class="row">
+        @if (Model != null && Model.Count > 0)
+        {
+            foreach (var item in Model)
+            {
+                <div class="col-lg-4 col-md-6 mb-4">
+
+                    <div class="card border-0 shadow-sm rounded-4 h-100 doctor-card">
+
+                        <div class="text-center pt-4">
+
+                            @if (!string.IsNullOrEmpty(item.DoctorImage))
+                            {
+                                <img src="~/Department/@item.DoctorImage"
+                                     class="rounded-circle border border-3 border-primary"
+                                     width="130"
+                                     height="130"
+                                     style="object-fit:cover;" />
+                            }
+                            else
+                            {
+                                <img src="https://cdn-icons-png.flaticon.com/512/387/387561.png"
+                                     class="rounded-circle border border-3 border-primary"
+                                     width="130"
+                                     height="130"
+                                     style="object-fit:cover;" />
+                            }
+
+                        </div>
+
+                        <div class="card-body">
+
+                            <h4 class="fw-bold text-center mt-2">
+                                @item.DoctorName
+                            </h4>
+
+                            <div class="text-center mb-3">
+
+                                <span class="badge bg-primary">
+                                    @item.DepartmentName
+                                </span>
+
+                            </div>
+
+                            <table class="table table-borderless table-sm">
+
+                                <tr>
+                                    <th width="40%">
+                                        Qualification
+                                    </th>
+
+                                    <td>
+                                        @item.Qualification
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <th>
+                                        Specialization
+                                    </th>
+
+                                    <td>
+                                        @item.Specialization
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <th>
+                                        Experience
+                                    </th>
+
+                                    <td>
+                                        @item.Experience Years
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <th>
+                                        Fee
+                                    </th>
+
+                                    <td class="text-success fw-bold">
+                                        ₹@item.ConsultationFee
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <th>
+                                        Available
+                                    </th>
+
+                                    <td>
+                                        @item.AvailableFrom -
+                                        @item.AvailableTo
+                                    </td>
+                                </tr>
+
+                            </table>
+
+                        </div>
+
+                        <div class="card-footer bg-white border-0 pb-4">
+
+                            <div class="d-grid gap-2">
+
+                                <a asp-action="DoctorDetails"
+                                   asp-route-id="@item.DoctorId"
+                                   class="btn btn-outline-primary">
+
+                                    <i class="fa fa-eye me-2"></i>
+
+                                    View Profile
+
+                                </a>
+
+                                <a asp-action="BookAppointment"
+                                   asp-route-doctorId="@item.DoctorId"
+                                   class="btn btn-primary">
+
+                                    <i class="fa fa-calendar-check me-2"></i>
+
+                                    Book Appointment
+
+                                </a>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-lg-12">
+
+                <div class="alert alert-warning text-center rounded-4">
+
+                    <h4 class="mb-2">
+
+                        <i class="fa fa-user-doctor me-2"></i>
+
+                        No Doctors Found
+
+                    </h4>
+
+                    <p class="mb-0">
+
+                        No doctor is available for the selected search criteria.
+
+                    </p>
+
+                </div>
+
+            </div>
+        }
+
+    </div>
+
+</div>
+@section Styles {
+
+    <style>
+
+        .doctor-card {
+            transition: 0.35s;
+            overflow: hidden;
+        }
+
+            .doctor-card:hover {
+                transform: translateY(-8px);
+                box-shadow: 0 15px 35px rgba(0,0,0,.15) !important;
+            }
+
+            .doctor-card img {
+                transition: .4s;
+            }
+
+            .doctor-card:hover img {
+                transform: scale(1.05);
+            }
+
+        .card-header-title {
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .table th {
+            color: #0d6efd;
+            font-weight: 600;
+            width: 40%;
+        }
+
+        .table td {
+            color: #555;
+        }
+
+        .badge {
+            font-size: 14px;
+            padding: 8px 15px;
+        }
+
+        .btn {
+            border-radius: 10px;
+            font-weight: 600;
+        }
+
+        .btn-primary {
+            background: #0d6efd;
+            border: none;
+        }
+
+            .btn-primary:hover {
+                background: #0b5ed7;
+            }
+
+        .btn-outline-primary:hover {
+            color: #fff;
+        }
+
+        .card {
+            border-radius: 18px;
+        }
+
+        .form-control,
+        .form-select {
+            border-radius: 10px;
+        }
+
+            .form-control:focus,
+            .form-select:focus {
+                box-shadow: none;
+                border-color: #0d6efd;
+            }
+
+        .alert {
+            border-radius: 15px;
+        }
+
+        @@media(max-width:991px) {
+
+            .doctor-card {
+                margin-bottom: 20px;
+            }
+        }
+
+        @@media(max-width:768px) {
+
+            .table th,
+            .table td {
+                font-size: 14px;
+            }
+
+            .doctor-card img {
+                width: 110px;
+                height: 110px;
+            }
+
+            h2 {
+                font-size: 26px;
+            }
+        }
+
+        @@media(max-width:576px) {
+
+            .doctor-card img {
+                width: 90px;
+                height: 90px;
+            }
+
+            .btn {
+                font-size: 14px;
+            }
+
+            h2 {
+                font-size: 22px;
+            }
+        }
+
+    </style>
+
+}

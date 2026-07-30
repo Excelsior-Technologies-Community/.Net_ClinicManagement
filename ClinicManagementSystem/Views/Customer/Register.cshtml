@@ -1,0 +1,240 @@
+@model ClinicManagementSystem.Models.CustomerModel
+@{
+    ViewData["Title"] = "Patient Registration";
+    Layout = "~/Views/Shared/_CustomerLayout.cshtml";
+}
+
+<div class="row justify-content-center my-3">
+    <div class="col-lg-10 col-xl-9">
+        <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="card-header bg-gradient text-white p-4" style="background: linear-gradient(135deg, #0284c7 0%, #0f766e 100%);">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <h3 class="fw-bold mb-1"><i class="fa-solid fa-user-plus me-2"></i>Patient Registration</h3>
+                        <p class="mb-0 text-white-50 fs-6">Create your health account to access clinic services & medical records</p>
+                    </div>
+                    <span class="badge bg-white text-primary px-3 py-2 rounded-pill fw-semibold shadow-sm d-none d-md-inline-block">
+                        <i class="fa-solid fa-shield-heart me-1"></i> Quick & Secure
+                    </span>
+                </div>
+            </div>
+
+            <div class="card-body p-4 p-md-5 bg-white">
+                @if (ViewBag.Error != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show rounded-3 mb-4" role="alert">
+                        <i class="fa-solid fa-circle-xmark me-2"></i> @ViewBag.Error
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+
+                <form asp-action="Register" method="post" enctype="multipart/form-data" class="needs-validation">
+                    @Html.AntiForgeryToken()
+
+                    <div class="text-secondary fw-bold text-uppercase fs-7 tracking-wide mb-3 border-bottom pb-2">
+                        <i class="fa-solid fa-id-card me-1 text-primary"></i> Personal Information
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <!-- Full Name -->
+                        <div class="col-md-6">
+                            <label asp-for="FullName" class="form-label fw-semibold text-dark"></label> <span class="text-danger">*</span>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light text-muted border-end-0"><i class="fa-solid fa-user"></i></span>
+                                <input asp-for="FullName" class="form-control border-start-0 ps-0" placeholder="e.g. John Doe" />
+                            </div>
+                            <span asp-validation-for="FullName" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Gender -->
+                        <div class="col-md-6">
+                            <label asp-for="Gender" class="form-label fw-semibold text-dark"></label> <span class="text-danger">*</span>
+                            <div class="d-flex gap-4 pt-2 ms-1">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" asp-for="Gender" value="Male" id="genderMale" checked />
+                                    <label class="form-check-label fw-medium" for="genderMale"><i class="fa-solid fa-mars text-primary me-1"></i> Male</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" asp-for="Gender" value="Female" id="genderFemale" />
+                                    <label class="form-check-label fw-medium" for="genderFemale"><i class="fa-solid fa-venus text-danger me-1"></i> Female</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" asp-for="Gender" value="Other" id="genderOther" />
+                                    <label class="form-check-label fw-medium" for="genderOther"><i class="fa-solid fa-genderless text-warning me-1"></i> Other</label>
+                                </div>
+                            </div>
+                            <span asp-validation-for="Gender" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Date of Birth -->
+                        <div class="col-md-6">
+                            <label asp-for="DateOfBirth" class="form-label fw-semibold text-dark"></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light text-muted border-end-0"><i class="fa-solid fa-calendar-days"></i></span>
+                                <input asp-for="DateOfBirth" type="date" class="form-control border-start-0 ps-0" />
+                            </div>
+                            <span asp-validation-for="DateOfBirth" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Blood Group -->
+                        <div class="col-md-6">
+                            <label asp-for="BloodGroup" class="form-label fw-semibold text-dark"></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light text-muted border-end-0"><i class="fa-solid fa-droplet text-danger"></i></span>
+                                <select asp-for="BloodGroup" class="form-select border-start-0 ps-0">
+                                    <option value="">-- Select Blood Group --</option>
+                                    <option value="A+">A+</option>
+                                    <option value="A-">A-</option>
+                                    <option value="B+">B+</option>
+                                    <option value="B-">B-</option>
+                                    <option value="O+">O+</option>
+                                    <option value="O-">O-</option>
+                                    <option value="AB+">AB+</option>
+                                    <option value="AB-">AB-</option>
+                                </select>
+                            </div>
+                            <span asp-validation-for="BloodGroup" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="text-secondary fw-bold text-uppercase fs-7 tracking-wide mb-3 border-bottom pb-2">
+                        <i class="fa-solid fa-lock me-1 text-primary"></i> Account Credentials
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <!-- Email -->
+                        <div class="col-md-6">
+                            <label asp-for="Email" class="form-label fw-semibold text-dark"></label> <span class="text-danger">*</span>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light text-muted border-end-0"><i class="fa-solid fa-envelope"></i></span>
+                                <input asp-for="Email" type="email" class="form-control border-start-0 ps-0" placeholder="name@example.com" />
+                            </div>
+                            <span asp-validation-for="Email" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Mobile Number -->
+                        <div class="col-md-6">
+                            <label asp-for="MobileNo" class="form-label fw-semibold text-dark"></label> <span class="text-danger">*</span>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light text-muted border-end-0"><i class="fa-solid fa-phone"></i></span>
+                                <input asp-for="MobileNo" class="form-control border-start-0 ps-0" placeholder="10-digit phone number" maxLength="10" />
+                            </div>
+                            <span asp-validation-for="MobileNo" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Password -->
+                        <div class="col-md-6">
+                            <label asp-for="Password" class="form-label fw-semibold text-dark"></label> <span class="text-danger">*</span>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light text-muted border-end-0"><i class="fa-solid fa-key"></i></span>
+                                <input asp-for="Password" id="regPassword" type="password" class="form-control border-start-0 border-end-0 ps-0" placeholder="Minimum 6 characters" />
+                                <button class="btn btn-outline-secondary border-start-0 bg-light text-muted" type="button" id="toggleRegPassword">
+                                    <i class="fa-solid fa-eye" id="regEyeIcon"></i>
+                                </button>
+                            </div>
+                            <span asp-validation-for="Password" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Confirm Password -->
+                        <div class="col-md-6">
+                            <label asp-for="ConfirmPassword" class="form-label fw-semibold text-dark"></label> <span class="text-danger">*</span>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light text-muted border-end-0"><i class="fa-solid fa-lock"></i></span>
+                                <input asp-for="ConfirmPassword" type="password" class="form-control border-start-0 ps-0" placeholder="Repeat your password" />
+                            </div>
+                            <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="text-secondary fw-bold text-uppercase fs-7 tracking-wide mb-3 border-bottom pb-2">
+                        <i class="fa-solid fa-location-dot me-1 text-primary"></i> Address & Profile Details
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <!-- Address -->
+                        <div class="col-md-12">
+                            <label asp-for="Address" class="form-label fw-semibold text-dark"></label>
+                            <textarea asp-for="Address" class="form-control" rows="2" placeholder="Street address, apartment, suite..."></textarea>
+                            <span asp-validation-for="Address" class="text-danger small"></span>
+                        </div>
+
+                        <!-- City -->
+                        <div class="col-md-4">
+                            <label asp-for="City" class="form-label fw-semibold text-dark"></label>
+                            <input asp-for="City" class="form-control" placeholder="City" />
+                            <span asp-validation-for="City" class="text-danger small"></span>
+                        </div>
+
+                        <!-- State -->
+                        <div class="col-md-4">
+                            <label asp-for="State" class="form-label fw-semibold text-dark"></label>
+                            <input asp-for="State" class="form-control" placeholder="State" />
+                            <span asp-validation-for="State" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Pincode -->
+                        <div class="col-md-4">
+                            <label asp-for="Pincode" class="form-label fw-semibold text-dark"></label>
+                            <input asp-for="Pincode" class="form-control" placeholder="6-digit Pincode" maxLength="6" />
+                            <span asp-validation-for="Pincode" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Profile Image Upload -->
+                        <div class="col-md-12">
+                            <label class="form-label fw-semibold text-dark">Profile Picture</label>
+                            <div class="d-flex align-items-center gap-3">
+                                <div id="previewContainer" class="border rounded-circle p-1 bg-light text-center" style="width: 75px; height: 75px;">
+                                    <img id="imgPreview" src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Preview" class="rounded-circle w-100 h-100 object-fit-cover" />
+                                </div>
+                                <div class="flex-grow-1">
+                                    <input asp-for="ImageFile" type="file" accept="image/*" class="form-control" id="profileImageInput" onchange="previewImage(this);" />
+                                    <small class="text-muted">Upload JPG, PNG or WEBP (Max 5MB)</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="d-grid gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg rounded-pill fw-bold shadow-sm" style="background: linear-gradient(135deg, #0284c7 0%, #0d9488 100%); border: none;">
+                            <i class="fa-solid fa-user-check me-2"></i> Register Account
+                        </button>
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <p class="text-muted mb-0">Already registered? 
+                            <a asp-action="Login" class="text-primary fw-bold text-decoration-none">Sign In Here</a>
+                        </p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function previewImage(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    $('#imgPreview').attr('src', e.target.result);
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        $('#toggleRegPassword').on('click', function () {
+            const passInput = $('#regPassword');
+            const eyeIcon = $('#regEyeIcon');
+            if (passInput.attr('type') === 'password') {
+                passInput.attr('type', 'text');
+                eyeIcon.removeClass('fa-eye').addClass('fa-eye-slash');
+            } else {
+                passInput.attr('type', 'password');
+                eyeIcon.removeClass('fa-eye-slash').addClass('fa-eye');
+            }
+        });
+    </script>
+}
