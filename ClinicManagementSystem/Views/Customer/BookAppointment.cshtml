@@ -1,0 +1,465 @@
+﻿@model ClinicManagementSystem.Models.AppointmentModel
+
+@{
+    ViewData["Title"] = "Book Appointment";
+    Layout = "~/Views/Shared/_CustomerLayout.cshtml";
+}
+
+<div class="container py-4">
+
+    <!-- Page Header -->
+    <div class="row mb-4">
+
+        <div class="col-lg-12">
+
+            <div class="bg-primary text-white rounded-4 shadow p-4">
+
+                <h2 class="fw-bold mb-2">
+                    <i class="fa-solid fa-calendar-check me-2"></i>
+                    Book Appointment
+                </h2>
+
+                <p class="mb-0">
+                    Fill the appointment details below to confirm your booking.
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <form asp-action="BookAppointment" method="post">
+
+        @Html.AntiForgeryToken()
+
+        <input asp-for="DoctorId" type="hidden" />
+        <input asp-for="Department" type="hidden" />
+        <input asp-for="ConsultationFee" type="hidden" />
+
+        <div class="row">
+
+            <!-- Doctor Information -->
+            <div class="col-lg-4 mb-4">
+
+                <div class="card border-0 shadow rounded-4">
+
+                    <div class="card-header bg-primary text-white rounded-top-4">
+
+                        <h5 class="mb-0">
+                            <i class="fa-solid fa-user-doctor me-2"></i>
+                            Doctor Information
+                        </h5>
+
+                    </div>
+
+                    <div class="card-body">
+
+                        <div class="text-center mb-4">
+
+                            @if (!string.IsNullOrEmpty(Model.DoctorImage))
+                            {
+                                <img src="~/DoctorImage/@Model.DoctorImage"
+                                     class="doctor-img" />
+                            }
+                            else
+                            {
+                                <img src="https://cdn-icons-png.flaticon.com/512/387/387561.png"
+                                     class="doctor-img" />
+                            }
+
+                        </div>
+
+                        <table class="table table-borderless">
+
+                            <tr>
+                                <th>Doctor</th>
+                                <td>@Model.DoctorName</td>
+                            </tr>
+
+                            <tr>
+                                <th>Department</th>
+                                <td>@Model.Department</td>
+                            </tr>
+
+                            <tr>
+                                <th>Consultation Fee</th>
+                                <td class="text-success fw-bold">
+                                    ₹@Model.ConsultationFee
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <th>Available</th>
+                                <td>
+                                    @Model.AvailableFrom -
+                                    @Model.AvailableTo
+                                </td>
+                            </tr>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Appointment Form -->
+            <div class="col-lg-8">
+
+                <div class="card border-0 shadow rounded-4">
+
+                    <div class="card-header bg-success text-white rounded-top-4">
+
+                        <h5 class="mb-0">
+                            <i class="fa-solid fa-notes-medical me-2"></i>
+                            Appointment Details
+                        </h5>
+
+                    </div>
+
+                    <div class="card-body">
+
+                        <div asp-validation-summary="ModelOnly"
+                             class="text-danger mb-3">
+                        </div>
+
+                        <div class="row">
+
+                            <div class="col-md-6 mb-3">
+
+                                <label asp-for="AppointmentDate"
+                                       class="form-label fw-semibold">
+                                </label>
+
+                                <input asp-for="AppointmentDate"
+                                       type="date"
+                                       class="form-control" />
+
+                                <span asp-validation-for="AppointmentDate"
+                                      class="text-danger">
+                                </span>
+
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+
+                                <label asp-for="AppointmentTime"
+                                       class="form-label fw-semibold">
+                                </label>
+
+                                <input asp-for="AppointmentTime"
+                                       type="time"
+                                       class="form-control" />
+
+                                <span asp-validation-for="AppointmentTime"
+                                      class="text-danger">
+                                </span>
+
+                            </div>
+                            <div class="col-md-12 mb-3">
+
+                                <label asp-for="Symptoms"
+                                       class="form-label fw-semibold">
+                                    Symptoms / Problem
+                                </label>
+
+                                <textarea asp-for="Symptoms"
+                                          class="form-control"
+                                          rows="5"
+                                          placeholder="Describe your symptoms here..."></textarea>
+
+                                <span asp-validation-for="Symptoms"
+                                      class="text-danger"></span>
+
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+
+                                <label class="form-label fw-semibold">
+                                    Consultation Fee
+                                </label>
+
+                                <input type="text"
+                                       class="form-control"
+                                       value="₹@Model.ConsultationFee"
+                                       readonly />
+
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+
+                                <label class="form-label fw-semibold">
+                                    Appointment Status
+                                </label>
+
+                                <input type="text"
+                                       class="form-control"
+                                       value="Pending"
+                                       readonly />
+
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+
+                                <label class="form-label fw-semibold">
+                                    Payment Status
+                                </label>
+
+                                <input type="text"
+                                       class="form-control"
+                                       value="Pending"
+                                       readonly />
+
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+
+                                <label class="form-label fw-semibold">
+                                    Booking Date
+                                </label>
+
+                                <input type="text"
+                                       class="form-control"
+                                       value="@DateTime.Now.ToString("dd MMM yyyy")"
+                                       readonly />
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="card-footer bg-white">
+
+                        <div class="d-flex justify-content-end">
+
+                            <a asp-action="Doctors"
+                               class="btn btn-outline-secondary me-2">
+
+                                <i class="fa-solid fa-arrow-left me-2"></i>
+
+                                Back
+
+                            </a>
+
+                            <button type="submit"
+                                    class="btn btn-success">
+
+                                <i class="fa-solid fa-calendar-check me-2"></i>
+
+                                Confirm Appointment
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </form>
+
+</div>
+@section Styles {
+
+    <style>
+
+        body {
+            background: #f8f9fa;
+        }
+
+        .card {
+            border-radius: 20px;
+            overflow: hidden;
+            transition: .35s;
+        }
+
+            .card:hover {
+                transform: translateY(-4px);
+                box-shadow: 0 15px 35px rgba(0,0,0,.12) !important;
+            }
+
+        .card-header {
+            border: none;
+            padding: 18px 25px;
+        }
+
+        .bg-primary {
+            background: linear-gradient(135deg,#0d6efd,#3b82f6) !important;
+        }
+
+        .bg-success {
+            background: linear-gradient(135deg,#198754,#20c997) !important;
+        }
+
+        .doctor-img {
+            width: 170px;
+            height: 170px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 5px solid #0d6efd;
+            transition: .4s;
+        }
+
+            .doctor-img:hover {
+                transform: scale(1.05);
+                box-shadow: 0 12px 30px rgba(13,110,253,.35);
+            }
+
+        .table th {
+            width: 42%;
+            color: #0d6efd;
+            font-weight: 600;
+        }
+
+        .table td {
+            color: #555;
+        }
+
+        .table tr {
+            vertical-align: middle;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #444;
+        }
+
+        .form-control {
+            border-radius: 10px;
+            min-height: 45px;
+        }
+
+        textarea.form-control {
+            resize: none;
+        }
+
+        .form-control:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 .15rem rgba(13,110,253,.15);
+        }
+
+        .btn {
+            border-radius: 10px;
+            font-weight: 600;
+            padding: 10px 25px;
+            transition: .3s;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-outline-secondary:hover {
+            transform: translateY(-2px);
+        }
+
+        .card-footer {
+            padding: 20px;
+        }
+
+        .text-success {
+            font-size: 18px;
+        }
+
+        input[readonly] {
+            background: #f8f9fa;
+        }
+
+        .validation-summary-errors {
+            color: red;
+            margin-bottom: 15px;
+        }
+
+        .field-validation-error {
+            font-size: 14px;
+        }
+
+        @@media(max-width:991px) {
+
+            .doctor-img {
+                width: 140px;
+                height: 140px;
+            }
+
+            .card {
+                margin-bottom: 20px;
+            }
+        }
+
+        @@media(max-width:768px) {
+
+            .doctor-img {
+                width: 120px;
+                height: 120px;
+            }
+
+            .table th,
+            .table td {
+                font-size: 14px;
+            }
+
+            .btn {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+
+            .d-flex {
+                flex-direction: column;
+            }
+        }
+
+        @@media(max-width:576px) {
+
+            h2 {
+                font-size: 24px;
+            }
+
+            h5 {
+                font-size: 18px;
+            }
+
+            .doctor-img {
+                width: 100px;
+                height: 100px;
+            }
+
+            .form-control {
+                font-size: 14px;
+            }
+
+            .btn {
+                font-size: 14px;
+            }
+        }
+
+    </style>
+
+}
+
+@section Scripts {
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+
+        // Prevent selecting a past date
+        document.addEventListener("DOMContentLoaded", function () {
+
+            var today = new Date().toISOString().split('T')[0];
+
+            document.getElementById("AppointmentDate").setAttribute("min", today);
+
+        });
+
+    </script>
+
+}

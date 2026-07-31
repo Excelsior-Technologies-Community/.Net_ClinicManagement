@@ -60,5 +60,19 @@ namespace ClinicManagementSystem.Models
         public string? DoctorImage { get; set; }
 
         public string? DepartmentName { get; set; }
+        public string Qualification { get; set; }
+
+        public string Specialization { get; set; }
+
+        
+
+        public string MobileNo { get; set; }
+        public TimeSpan? AvailableFrom { get; set; }
+
+        public TimeSpan? AvailableTo { get; set; }
+        public string Experience { get; set; }
+
+
+        public string Email { get; set; }
     }
 }

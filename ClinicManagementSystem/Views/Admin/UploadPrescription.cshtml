@@ -1,0 +1,544 @@
+﻿@model ClinicManagementSystem.Models.AppointmentModel
+
+@{
+    ViewData["Title"] = "Upload Prescription";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid py-4">
+
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+
+            <div class="card shadow border-0">
+
+                <div class="card-body bg-primary text-white rounded">
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <div>
+
+                            <h2 class="fw-bold mb-1">
+                                <i class="fa-solid fa-file-medical me-2"></i>
+                                Upload Prescription
+                            </h2>
+
+                            <p class="mb-0">
+                                Upload doctor's prescription for this appointment.
+                            </p>
+
+                        </div>
+
+                        <a asp-action="ManageAppointments"
+                           class="btn btn-light">
+
+                            <i class="fa fa-arrow-left me-2"></i>
+
+                            Back
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <form asp-action="UploadPrescription"
+          method="post"
+          enctype="multipart/form-data">
+
+        @Html.AntiForgeryToken()
+
+        <input asp-for="AppointmentId" type="hidden" />
+
+        <div class="row">
+
+            <!-- Doctor Card -->
+
+            <div class="col-lg-4 mb-4">
+
+                <div class="card shadow border-0 h-100">
+
+                    <div class="card-header bg-success text-white">
+
+                        <h5 class="mb-0">
+
+                            <i class="fa-solid fa-user-doctor me-2"></i>
+
+                            Doctor Information
+
+                        </h5>
+
+                    </div>
+
+                    <div class="card-body text-center">
+
+                        @if (!string.IsNullOrEmpty(Model.DoctorImage))
+                        {
+                            <img src="~/DoctorImages/@Model.DoctorImage"
+                                 class="rounded-circle shadow doctor-img mb-3"
+                                 style="width:170px;height:170px;object-fit:cover;" />
+                        }
+                        else
+                        {
+                            <img src="~/images/no-image.png"
+                                 class="rounded-circle shadow doctor-img mb-3"
+                                 style="width:170px;height:170px;object-fit:cover;" />
+                        }
+
+                        <h4 class="fw-bold text-primary">
+                            Dr. @Model.DoctorName
+                        </h4>
+
+                        <hr />
+
+                        <table class="table table-borderless mb-0">
+
+                            <tr>
+                                <th width="40%">Department</th>
+                                <td>@Model.DepartmentName</td>
+                            </tr>
+
+                            <tr>
+                                <th>Appointment No</th>
+                                <td>@Model.AppointmentNo</td>
+                            </tr>
+
+                            <tr>
+                                <th>Status</th>
+                                <td>
+                                    <span class="badge bg-success">
+                                        @Model.AppointmentStatus
+                                    </span>
+                                </td>
+                            </tr>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Customer & Upload Card -->
+
+            <div class="col-lg-8">
+
+                <div class="card shadow border-0">
+
+                    <div class="card-header bg-info text-white">
+
+                        <h5 class="mb-0">
+
+                            <i class="fa-solid fa-user me-2"></i>
+
+                            Customer & Appointment Information
+
+                        </h5>
+
+                    </div>
+
+                    <div class="card-body">
+
+                        <div class="row">
+
+                            <div class="col-md-6 mb-3">
+
+                                <label class="form-label fw-bold">
+                                    Customer Name
+                                </label>
+
+                                <input class="form-control"
+                                       value="@Model.CustomerName"
+                                       readonly />
+
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+
+                                <label class="form-label fw-bold">
+                                    Appointment Number
+                                </label>
+
+                                <input class="form-control"
+                                       value="@Model.AppointmentNo"
+                                       readonly />
+
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+
+                                <label class="form-label fw-bold">
+                                    Appointment Date
+                                </label>
+
+                                <input class="form-control"
+                                       value="@(Model.AppointmentDate?.ToString("dd MMM yyyy"))"
+                                       readonly />
+
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+
+                                <label class="form-label fw-bold">
+                                    Appointment Time
+                                </label>
+
+                                <input class="form-control"
+                                       value="@(Model.AppointmentTime?.ToString(@"hh\:mm"))"
+                                       readonly />
+
+                            </div>
+
+                            <hr class="my-3" />
+
+                            <h5 class="text-primary mb-3">
+
+                                <i class="fa-solid fa-file-arrow-up me-2"></i>
+
+                                Prescription Upload
+
+                            </h5>
+
+                            <!-- Part-2 Starts Here -->
+                            @if (!string.IsNullOrEmpty(Model.PrescriptionFile))
+                            {
+                                <div class="col-12 mb-4">
+
+                                    <div class="alert alert-success">
+
+                                        <h6 class="fw-bold mb-3">
+
+                                            <i class="fa-solid fa-file-circle-check me-2"></i>
+
+                                            Existing Prescription
+
+                                        </h6>
+
+                                        <a href="~/Prescription/@Model.PrescriptionFile"
+                                           target="_blank"
+                                           class="btn btn-success">
+
+                                            <i class="fa-solid fa-download me-2"></i>
+
+                                            Download Current Prescription
+
+                                        </a>
+
+                                    </div>
+
+                                </div>
+                            }
+
+                            <!-- Upload Prescription -->
+
+                            <div class="col-12 mb-3">
+
+                                <label asp-for="Prescription"
+                                       class="form-label fw-bold">
+
+                                    Select Prescription File
+
+                                </label>
+
+                                <input asp-for="Prescription"
+                                       type="file"
+                                       class="form-control"
+                                       id="PrescriptionFile"
+                                       accept=".pdf,.jpg,.jpeg,.png" />
+
+                                <span asp-validation-for="Prescription"
+                                      class="text-danger"></span>
+
+                                <small class="text-muted">
+
+                                    Allowed file types:
+                                    PDF, JPG, JPEG, PNG
+                                    (Maximum Size : 5 MB)
+
+                                </small>
+
+                            </div>
+
+                            <!-- Preview -->
+
+                            <div class="col-12 mb-4">
+
+                                <div id="previewArea"
+                                     class="d-none">
+
+                                    <label class="fw-bold mb-2">
+
+                                        Selected File
+
+                                    </label>
+
+                                    <div class="card border">
+
+                                        <div class="card-body">
+
+                                            <div class="d-flex align-items-center">
+
+                                                <i class="fa-solid fa-file-lines
+                                                          fa-3x
+                                                          text-primary
+                                                          me-3"></i>
+
+                                                <div>
+
+                                                    <h6 id="fileName"
+                                                        class="mb-1">
+                                                    </h6>
+
+                                                    <small class="text-muted">
+
+                                                        Ready to upload
+
+                                                    </small>
+
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                            <!-- Upload Guidelines -->
+
+                            <div class="col-12 mb-4">
+
+                                <div class="card border-warning">
+
+                                    <div class="card-header bg-warning">
+
+                                        <h6 class="mb-0">
+
+                                            <i class="fa-solid fa-circle-info me-2"></i>
+
+                                            Upload Guidelines
+
+                                        </h6>
+
+                                    </div>
+
+                                    <div class="card-body">
+
+                                        <ul class="mb-0">
+
+                                            <li>Only PDF, JPG, JPEG and PNG files are allowed.</li>
+
+                                            <li>Maximum allowed file size is 5 MB.</li>
+
+                                            <li>Prescription should be clear and readable.</li>
+
+                                            <li>Include medicines, dosage and doctor's instructions.</li>
+
+                                            <li>After upload, the customer can download the prescription.</li>
+
+                                        </ul>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div> <!-- row -->
+
+                    </div> <!-- card-body -->
+
+                </div> <!-- card -->
+
+            </div> <!-- col-lg-8 -->
+
+        </div> <!-- row -->
+        <!-- Part-3 Starts Here -->
+        <div class="text-center mt-4">
+
+            <button type="submit"
+                    class="btn btn-success px-5 me-2">
+
+                <i class="fa-solid fa-cloud-arrow-up me-2"></i>
+
+                Upload Prescription
+
+            </button>
+
+            <a asp-action="ManageAppointments"
+               class="btn btn-secondary px-5">
+
+                <i class="fa-solid fa-arrow-left me-2"></i>
+
+                Cancel
+
+            </a>
+
+        </div>
+
+    </form>
+
+</div>
+
+@section Styles {
+
+    <style>
+
+        body {
+            background: #f5f7fb;
+        }
+
+        .card {
+            border: none;
+            border-radius: 18px;
+            overflow: hidden;
+            transition: .3s;
+        }
+
+            .card:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 15px 35px rgba(0,0,0,.12) !important;
+            }
+
+        .bg-primary {
+            background: linear-gradient(135deg,#0d6efd,#4f8cff) !important;
+        }
+
+        .bg-success {
+            background: linear-gradient(135deg,#198754,#20c997) !important;
+        }
+
+        .bg-info {
+            background: linear-gradient(135deg,#0dcaf0,#3dbdf5) !important;
+        }
+
+        .doctor-img {
+            border: 5px solid #fff;
+            transition: .3s;
+        }
+
+            .doctor-img:hover {
+                transform: scale(1.05);
+            }
+
+        .form-control {
+            border-radius: 10px;
+            min-height: 45px;
+        }
+
+            .form-control:focus {
+                border-color: #0d6efd;
+                box-shadow: 0 0 0 .2rem rgba(13,110,253,.15);
+            }
+
+        .btn {
+            border-radius: 10px;
+            transition: .3s;
+        }
+
+            .btn:hover {
+                transform: translateY(-2px);
+            }
+
+        .alert {
+            border-radius: 12px;
+        }
+
+        #previewArea {
+            animation: fadeIn .4s ease-in-out;
+        }
+
+        @@keyframes fadeIn {
+
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @@media(max-width:768px) {
+
+            .btn {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+
+            .doctor-img {
+                width: 140px !important;
+                height: 140px !important;
+            }
+        }
+
+    </style>
+
+}
+
+@section Scripts {
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+
+        $(function () {
+
+            $("#PrescriptionFile").change(function () {
+
+                var file = this.files[0];
+
+                if (!file)
+                    return;
+
+                if (file.size > 5 * 1024 * 1024) {
+
+                    alert("Maximum file size is 5 MB.");
+
+                    $(this).val("");
+
+                    $("#previewArea").addClass("d-none");
+
+                    return;
+                }
+
+                var extension = file.name.split('.').pop().toLowerCase();
+
+                var allowed = ["pdf","jpg","jpeg","png"];
+
+                if ($.inArray(extension, allowed) == -1) {
+
+                    alert("Only PDF, JPG, JPEG and PNG files are allowed.");
+
+                    $(this).val("");
+
+                    $("#previewArea").addClass("d-none");
+
+                    return;
+                }
+
+                $("#fileName").text(file.name);
+
+                $("#previewArea").removeClass("d-none");
+
+            });
+
+        });
+
+    </script>
+
+}

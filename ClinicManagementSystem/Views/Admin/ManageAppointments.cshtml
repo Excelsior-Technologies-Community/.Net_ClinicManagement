@@ -1,0 +1,580 @@
+﻿@model List<ClinicManagementSystem.Models.AppointmentModel>
+
+@{
+    ViewData["Title"] = "Manage Appointments";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid py-4">
+
+    <!-- Page Header -->
+    <div class="row mb-4">
+
+        <div class="col-lg-12">
+
+            <div class="bg-primary text-white rounded-4 shadow p-4">
+
+                <h2 class="fw-bold mb-2">
+                    <i class="fa-solid fa-calendar-check me-2"></i>
+                    Manage Appointments
+                </h2>
+
+                <p class="mb-0">
+                    View, approve, reject and manage all customer appointments.
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Success Message -->
+@if (TempData["Success"] != null)
+{
+        <div class="alert alert-success alert-dismissible fade show">
+
+            <i class="fa-solid fa-circle-check me-2"></i>
+
+            @TempData["Success"]
+
+            <button class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+}
+
+    <!-- Error Message -->
+@if (TempData["Error"] != null)
+{
+        <div class="alert alert-danger alert-dismissible fade show">
+
+            <i class="fa-solid fa-circle-xmark me-2"></i>
+
+            @TempData["Error"]
+
+            <button class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+}
+
+    <!-- Search & Filter -->
+
+    <div class="card border-0 shadow rounded-4 mb-4">
+
+        <div class="card-body">
+
+            <form method="get"
+                  asp-action="ManageAppointments">
+
+                <div class="row">
+
+                    <div class="col-lg-5 mb-3">
+
+                        <label class="form-label fw-semibold">
+
+                            Search
+
+                        </label>
+
+                        <input type="text"
+                               name="search"
+                               value="@ViewBag.Search"
+                               class="form-control"
+                               placeholder="Appointment No / Customer / Doctor" />
+
+                    </div>
+
+                    <div class="col-lg-4 mb-3">
+
+                        <label class="form-label fw-semibold">
+
+                            Appointment Status
+
+                        </label>
+
+                        <select name="status"
+                                class="form-select">
+
+                            <option value="">All Status</option>
+
+                            <option value="Pending"
+                                    selected="@(ViewBag.Status == "Pending")">
+                                Pending
+                            </option>
+
+                            <option value="Approved"
+                                    selected="@(ViewBag.Status == "Approved")">
+                                Approved
+                            </option>
+
+                            <option value="Confirmed"
+                                    selected="@(ViewBag.Status == "Confirmed")">
+                                Confirmed
+                            </option>
+
+                            <option value="Completed"
+                                    selected="@(ViewBag.Status == "Completed")">
+                                Completed
+                            </option>
+
+                            <option value="Cancelled"
+                                    selected="@(ViewBag.Status == "Cancelled")">
+                                Cancelled
+                            </option>
+
+                            <option value="Rejected"
+                                    selected="@(ViewBag.Status == "Rejected")">
+                                Rejected
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-lg-3 mb-3 d-grid">
+
+                        <label>&nbsp;</label>
+
+                        <button class="btn btn-primary">
+
+                            <i class="fa fa-search me-2"></i>
+
+                            Search
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+    <!-- Appointment List -->
+
+    <div class="card border-0 shadow rounded-4">
+
+        <div class="card-header bg-success text-white">
+
+            <h5 class="mb-0">
+
+                <i class="fa-solid fa-list me-2"></i>
+
+                Appointment List
+
+            </h5>
+
+        </div>
+
+        <div class="card-body p-0">
+
+            <div class="table-responsive">
+
+                <table class="table table-hover table-bordered align-middle mb-0">
+
+                    <thead class="table-primary">
+
+                        <tr>
+
+                            <th>Appointment No</th>
+
+                            <th>Customer</th>
+
+                            <th>Mobile</th>
+
+                            <th>Doctor</th>
+
+                            <th>Department</th>
+
+                            <th>Date</th>
+
+                          
+
+                            <th>Fee</th>
+
+                            <th>Status</th>
+
+                            <th>Payment</th>
+
+                            <th width="280">
+                                Action
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+                        @if (Model != null && Model.Count > 0)
+                        {
+                            foreach (var item in Model)
+                            {
+                                <tr>
+
+                                    <!-- Appointment No -->
+                                    <td>
+                                        <span class="fw-bold text-primary">
+                                            @item.AppointmentNo
+                                        </span>
+                                    </td>
+
+                                    <!-- Customer -->
+                                    <td>
+                                        @item.CustomerName
+                                    </td>
+
+                                    <!-- Mobile -->
+                                    <td>
+                                        @item.MobileNo
+                                    </td>
+
+                                    <!-- Doctor -->
+                                    <td>
+                                        @item.DoctorName
+                                    </td>
+
+                                    <!-- Department -->
+                                    <td>
+                                        @item.Department
+                                    </td>
+
+                                    <!-- Appointment Date -->
+                                    <td>
+                                        @(item.AppointmentDate.HasValue
+                                                                        ? item.AppointmentDate.Value.ToString("dd MMM yyyy")
+                                                                        : "-")
+                                                                          </td>
+
+                                
+                                   
+                                 
+                                    <td class="text-success fw-bold">
+                                        ₹@item.ConsultationFee
+                                    </td>
+
+                                    
+                                    <td>
+
+                                @switch (item.AppointmentStatus)
+                                        {
+                                            case "Pending":
+                                                <span class="badge bg-warning text-dark">Pending</span>
+                                                break;
+
+                                            case "Approved":
+                                                <span class="badge bg-info">Approved</span>
+                                                break;
+
+                                            case "Confirmed":
+                                                <span class="badge bg-primary">Confirmed</span>
+                                                break;
+
+                                            case "Completed":
+                                                <span class="badge bg-success">Completed</span>
+                                                break;
+
+                                            case "Rejected":
+                                                <span class="badge bg-danger">Rejected</span>
+                                                break;
+
+                                            default:
+                                                <span class="badge bg-secondary">Cancelled</span>
+                                                break;
+                                        }
+
+                                    </td>
+
+                                    
+                                    <td>
+
+                                        @switch (item.PaymentStatus)
+                                        {
+                                            case "Pending":
+                                                <span class="badge bg-warning text-dark">Pending</span>
+                                                break;
+
+                                            case "Paid":
+                                                <span class="badge bg-success">Paid</span>
+                                                break;
+
+                                            case "Failed":
+                                                <span class="badge bg-danger">Failed</span>
+                                                break;
+
+                                            default:
+                                                <span class="badge bg-secondary">
+                                                    @item.PaymentStatus
+                                                </span>
+                                                break;
+                                        }
+
+                                    </td>
+
+                                 
+                                    <td>
+
+                                      
+                                        <a asp-action="ViewAppointment"
+                                           asp-route-id="@item.AppointmentId"
+                                           class="btn btn-sm btn-primary mb-1">
+
+                                            <i class="fa fa-eye"></i>
+
+                                        </a>
+
+                                     
+                                        <a asp-action="EditAppointment"
+                                           asp-route-id="@item.AppointmentId"
+                                           class="btn btn-sm btn-warning mb-1">
+
+                                            <i class="fa fa-edit"></i>
+
+                                        </a>
+
+                                        @if (item.AppointmentStatus == "Pending")
+                                        {
+                                         
+                                            <a asp-action="ApproveAppointment"
+                                               asp-route-id="@item.AppointmentId"
+                                               class="btn btn-sm btn-success mb-1"
+                                               onclick="return confirm('Approve this appointment?');">
+
+                                                <i class="fa fa-check"></i>
+
+                                            </a>
+
+                                          
+                                            <a asp-action="RejectAppointment"
+                                               asp-route-id="@item.AppointmentId"
+                                               class="btn btn-sm btn-danger mb-1"
+                                               onclick="return confirm('Reject this appointment?');">
+
+                                                <i class="fa fa-times"></i>
+
+                                            </a>
+                                        }
+
+                                        @if (item.AppointmentStatus == "Approved")
+                                        {
+                                         
+                                            <a asp-action="CompleteAppointment"
+                                               asp-route-id="@item.AppointmentId"
+                                               class="btn btn-sm btn-dark mb-1"
+                                               onclick="return confirm('Complete this appointment?');">
+
+                                                <i class="fa fa-check-double"></i>
+
+                                            </a>
+
+                                           
+                                            <a asp-action="UploadPrescription"
+                                               asp-route-id="@item.AppointmentId"
+                                               class="btn btn-sm btn-info mb-1">
+
+                                                <i class="fa fa-upload"></i>
+
+                                            </a>
+                                        }
+
+                                    </td>
+
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+
+                                <td colspan="11" class="text-center py-5">
+
+                                    <i class="fa-solid fa-calendar-xmark fa-4x text-muted mb-3"></i>
+
+                                    <h4 class="text-muted">
+                                        No Appointments Found
+                                    </h4>
+
+                                    <p class="text-muted mb-0">
+                                        There are no appointments available.
+                                    </p>
+
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+@section Styles {
+
+    <style>
+
+        body {
+            background: #f8f9fa;
+        }
+
+    
+
+        .card {
+            border: none;
+            border-radius: 18px;
+            overflow: hidden;
+            transition: .35s;
+        }
+
+            .card:hover {
+                box-shadow: 0 15px 35px rgba(0,0,0,.10) !important;
+            }
+
+
+        .bg-primary {
+            background: linear-gradient(135deg,#0d6efd,#4f8cff) !important;
+        }
+
+        .bg-success {
+            background: linear-gradient(135deg,#198754,#20c997) !important;
+        }
+
+
+        .table {
+            margin-bottom: 0;
+        }
+
+            .table th {
+                text-align: center;
+                vertical-align: middle;
+                white-space: nowrap;
+                font-weight: 600;
+            }
+
+            .table td {
+                vertical-align: middle;
+            }
+
+        .table-hover tbody tr:hover {
+            background: #f1f8ff;
+            transition: .3s;
+        }
+
+        
+
+        .text-primary {
+            font-weight: 700;
+        }
+
+       
+
+        .badge {
+            font-size: 13px;
+            padding: 8px 14px;
+            border-radius: 30px;
+            font-weight: 600;
+        }
+
+      
+
+        .btn {
+            border-radius: 8px;
+            transition: .3s;
+        }
+
+        .btn-sm {
+            padding: 6px 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+     
+
+        .form-control,
+        .form-select {
+            border-radius: 10px;
+        }
+
+            .form-control:focus,
+            .form-select:focus {
+                border-color: #0d6efd;
+                box-shadow: 0 0 0 .15rem rgba(13,110,253,.15);
+            }
+
+    
+
+        .alert {
+            border-radius: 12px;
+        }
+
+      
+
+        @@media(max-width:1200px) {
+
+            .table {
+                min-width: 1350px;
+            }
+        }
+
+        @@media(max-width:768px) {
+
+            h2 {
+                font-size: 24px;
+            }
+
+            .btn-sm {
+                margin-bottom: 4px;
+            }
+        }
+
+        @@media(max-width:576px) {
+
+            h2 {
+                font-size: 22px;
+            }
+
+            .card-header h5 {
+                font-size: 18px;
+            }
+        }
+
+    </style>
+
+}
+
+@section Scripts {
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+
+     
+
+        window.setTimeout(function () {
+
+            $(".alert").fadeTo(500,0).slideUp(500,function(){
+
+                $(this).remove();
+
+            });
+
+        },3000);
+
+    </script>
+
+}

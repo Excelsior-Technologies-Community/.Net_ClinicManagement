@@ -1,0 +1,569 @@
+﻿@model ClinicManagementSystem.Models.AppointmentModel
+
+@{
+    ViewData["Title"] = "Edit Appointment";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid py-4">
+
+    <!-- Page Header -->
+
+    <div class="row mb-4">
+
+        <div class="col-12">
+
+            <div class="card border-0 shadow">
+
+                <div class="card-body bg-primary text-white rounded">
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <div>
+
+                            <h2 class="fw-bold mb-1">
+
+                                <i class="fa-solid fa-pen-to-square me-2"></i>
+
+                                Edit Appointment
+
+                            </h2>
+
+                            <p class="mb-0">
+
+                                Update appointment details, remarks and status.
+
+                            </p>
+
+                        </div>
+
+                        <a asp-action="ManageAppointments"
+                           class="btn btn-light">
+
+                            <i class="fa fa-arrow-left me-2"></i>
+
+                            Back
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <form asp-action="EditAppointment"
+          method="post">
+
+        <input asp-for="AppointmentId" type="hidden" />
+        <input asp-for="CustomerId" type="hidden" />
+        <input asp-for="DoctorId" type="hidden" />
+        <input asp-for="AppointmentNo" type="hidden" />
+
+        <div class="row">
+
+            <!-- Doctor Information -->
+
+            <div class="col-lg-4 mb-4">
+
+                <div class="card shadow border-0 h-100">
+
+                    <div class="card-header bg-success text-white">
+
+                        <h5 class="mb-0">
+
+                            <i class="fa-solid fa-user-doctor me-2"></i>
+
+                            Doctor Information
+
+                        </h5>
+
+                    </div>
+
+                    <div class="card-body text-center">
+
+                        @if (!string.IsNullOrEmpty(Model.DoctorImage))
+                        {
+                            <img src="~/Department/@Model.DoctorImage"
+                                 class="rounded-circle shadow doctor-img mb-3"
+                                 style="width:170px;height:170px;object-fit:cover;" />
+                        }
+                        else
+                        {
+                            <img src="~/images/no-image.png"
+                                 class="rounded-circle shadow doctor-img mb-3"
+                                 style="width:170px;height:170px;object-fit:cover;" />
+                        }
+
+                        <h4 class="fw-bold text-primary">
+
+                            Dr. @Model.DoctorName
+
+                        </h4>
+
+                        <hr />
+
+                        <table class="table table-borderless mb-0">
+
+                            <tr>
+
+                                <th width="40%">Department</th>
+
+                                <td>@Model.DepartmentName</td>
+
+                            </tr>
+
+                            <tr>
+
+                                <th>Qualification</th>
+
+                                <td>@Model.Qualification</td>
+
+                            </tr>
+
+                            <tr>
+
+                                <th>Specialization</th>
+
+                                <td>@Model.Specialization</td>
+
+                            </tr>
+
+                            <tr>
+
+                                <th>Experience</th>
+
+                                <td>@Model.Experience Years</td>
+
+                            </tr>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Customer Information -->
+
+            <div class="col-lg-8 mb-4">
+
+                <div class="card border-0 shadow">
+
+                    <div class="card-header bg-info text-white">
+
+                        <h5 class="mb-0">
+
+                            <i class="fa-solid fa-user me-2"></i>
+
+                            Customer Information
+
+                        </h5>
+
+                    </div>
+
+                    <div class="card-body">
+
+                        <div class="row">
+
+                            <div class="col-md-6 mb-3">
+
+                                <label class="fw-bold">
+
+                                    Customer Name
+
+                                </label>
+
+                                <input class="form-control"
+                                       value="@Model.CustomerName"
+                                       readonly />
+
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+
+                                <label class="fw-bold">
+
+                                    Mobile Number
+
+                                </label>
+
+                                <input class="form-control"
+                                       value="@Model.MobileNo"
+                                       readonly />
+
+                            </div>
+
+                            <div class="col-md-12">
+
+                                <label class="fw-bold">
+
+                                    Email Address
+
+                                </label>
+
+                                <input class="form-control"
+                                       value="@Model.Email"
+                                       readonly />
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Appointment Edit -->
+
+        <div class="card border-0 shadow">
+
+            <div class="card-header bg-dark text-white">
+
+                <h5 class="mb-0">
+
+                    <i class="fa-solid fa-calendar-check me-2"></i>
+
+                    Edit Appointment Details
+
+                </h5>
+
+            </div>
+
+            <div class="card-body">
+
+                <div class="row">
+                    <!-- Appointment Number -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label class="form-label fw-bold">
+
+                            Appointment Number
+
+                        </label>
+
+                        <input class="form-control"
+                               value="@Model.AppointmentNo"
+                               readonly />
+
+                    </div>
+
+                    <!-- Appointment Date -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="AppointmentDate"
+                               class="form-label fw-bold"></label>
+
+                        <input asp-for="AppointmentDate"
+                               type="date"
+                               class="form-control" />
+
+                        <span asp-validation-for="AppointmentDate"
+                              class="text-danger"></span>
+
+                    </div>
+
+                    <!-- Appointment Time -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="AppointmentTime"
+                               class="form-label fw-bold"></label>
+
+                        <input asp-for="AppointmentTime"
+                               type="time"
+                               class="form-control" />
+
+                        <span asp-validation-for="AppointmentTime"
+                              class="text-danger"></span>
+
+                    </div>
+
+                    <!-- Consultation Fee -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="ConsultationFee"
+                               class="form-label fw-bold"></label>
+
+                        <input asp-for="ConsultationFee"
+                               class="form-control" />
+
+                        <span asp-validation-for="ConsultationFee"
+                              class="text-danger"></span>
+
+                    </div>
+
+                    <!-- Appointment Status -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="AppointmentStatus"
+                               class="form-label fw-bold">
+
+                            Appointment Status
+
+                        </label>
+
+                        <select asp-for="AppointmentStatus"
+                                asp-items="ViewBag.StatusList"
+                                class="form-select">
+                        </select>
+
+                        <span asp-validation-for="AppointmentStatus"
+                              class="text-danger"></span>
+
+                    </div>
+
+                    <!-- Payment Status -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label class="form-label fw-bold">
+
+                            Payment Status
+
+                        </label>
+
+                        <input class="form-control"
+                               value="@Model.PaymentStatus"
+                               readonly />
+
+                    </div>
+
+                    <!-- Symptoms -->
+
+                    <div class="col-md-12 mb-3">
+
+                        <label class="form-label fw-bold">
+
+                            Symptoms
+
+                        </label>
+
+                        <textarea class="form-control"
+                                  rows="4"
+                                  readonly>@Model.Symptoms</textarea>
+
+                    </div>
+
+                    <!-- Customer Remark -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label class="form-label fw-bold">
+
+                            Customer Remark
+
+                        </label>
+
+                        <textarea class="form-control"
+                                  rows="5"
+                                  readonly>@Model.CustomerRemark</textarea>
+
+                    </div>
+
+                    <!-- Admin Remark -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="AdminRemark"
+                               class="form-label fw-bold">
+
+                            Admin Remark
+
+                        </label>
+
+                        <textarea asp-for="AdminRemark"
+                                  rows="5"
+                                  class="form-control"
+                                  placeholder="Enter admin remark here..."></textarea>
+
+                        <span asp-validation-for="AdminRemark"
+                              class="text-danger"></span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+        <!-- Action Buttons -->
+
+        <div class="text-center mt-4 mb-2">
+
+            <button type="submit"
+                    class="btn btn-success px-5 me-2">
+
+                <i class="fa-solid fa-floppy-disk me-2"></i>
+
+                Save Changes
+
+            </button>
+
+            <a asp-action="ManageAppointments"
+               class="btn btn-secondary px-5">
+
+                <i class="fa-solid fa-arrow-left me-2"></i>
+
+                Cancel
+
+            </a>
+
+        </div>
+
+    </form>
+
+</div>
+
+@section Styles {
+
+    <style>
+
+        body {
+            background: #f4f7fc;
+        }
+
+        /* Card */
+
+        .card {
+            border: none;
+            border-radius: 18px;
+            overflow: hidden;
+            transition: .35s;
+        }
+
+            .card:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 15px 35px rgba(0,0,0,.10) !important;
+            }
+
+        /* Header Gradient */
+
+        .bg-primary {
+            background: linear-gradient(135deg,#0d6efd,#3b82f6) !important;
+        }
+
+        .bg-success {
+            background: linear-gradient(135deg,#198754,#20c997) !important;
+        }
+
+        .bg-info {
+            background: linear-gradient(135deg,#0dcaf0,#4dd0e1) !important;
+        }
+
+        .bg-dark {
+            background: linear-gradient(135deg,#343a40,#495057) !important;
+        }
+
+        /* Doctor Image */
+
+        .doctor-img {
+            border: 5px solid #fff;
+            transition: .35s;
+        }
+
+            .doctor-img:hover {
+                transform: scale(1.08);
+            }
+
+        /* Table */
+
+        .table th {
+            color: #555;
+            font-weight: 600;
+        }
+
+        /* Form */
+
+        .form-control,
+        .form-select {
+            border-radius: 10px;
+            min-height: 45px;
+        }
+
+            .form-control:focus,
+            .form-select:focus {
+                border-color: #0d6efd;
+                box-shadow: 0 0 0 .15rem rgba(13,110,253,.20);
+            }
+
+        textarea {
+            resize: none;
+        }
+
+        /* Buttons */
+
+        .btn {
+            border-radius: 10px;
+            transition: .3s;
+        }
+
+            .btn:hover {
+                transform: translateY(-2px);
+            }
+
+        /* Validation */
+
+        .text-danger {
+            font-size: 14px;
+        }
+
+        /* Responsive */
+
+        @@media(max-width:992px) {
+
+            .doctor-img {
+                width: 140px !important;
+                height: 140px !important;
+            }
+        }
+
+        @@media(max-width:768px) {
+
+            .btn {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+
+            .d-flex {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+
+    </style>
+
+}
+
+@section Scripts {
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+
+        $(function () {
+
+            var today = new Date().toISOString().split('T')[0];
+
+            $("#AppointmentDate").attr("min", today);
+
+        });
+
+    </script>
+
+}

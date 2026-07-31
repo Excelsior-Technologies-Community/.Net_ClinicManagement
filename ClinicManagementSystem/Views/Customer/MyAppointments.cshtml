@@ -1,0 +1,521 @@
+﻿@model List<ClinicManagementSystem.Models.AppointmentModel>
+
+@{
+    ViewData["Title"] = "My Appointments";
+    Layout = "~/Views/Shared/_CustomerLayout.cshtml";
+}
+
+<div class="container py-4">
+
+    <!-- Page Header -->
+    <div class="row mb-4">
+
+        <div class="col-lg-12">
+
+            <div class="bg-primary text-white rounded-4 shadow p-4">
+
+                <h2 class="fw-bold mb-2">
+                    <i class="fa-solid fa-calendar-check me-2"></i>
+                    My Appointments
+                </h2>
+
+                <p class="mb-0">
+                    View and manage all your booked appointments.
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Success Message -->
+@if (TempData["Success"] != null)
+{
+        <div class="alert alert-success alert-dismissible fade show">
+
+            <i class="fa-solid fa-circle-check me-2"></i>
+
+            @TempData["Success"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+}
+
+    <!-- Error Message -->
+@if (TempData["Error"] != null)
+{
+        <div class="alert alert-danger alert-dismissible fade show">
+
+            <i class="fa-solid fa-circle-xmark me-2"></i>
+
+            @TempData["Error"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+}
+
+    <!-- Search Card -->
+    <div class="card border-0 shadow rounded-4 mb-4">
+
+        <div class="card-body">
+
+            <form method="get" asp-action="MyAppointments">
+
+                <div class="row align-items-end">
+
+                    <div class="col-md-10">
+
+                        <label class="form-label fw-semibold">
+                            Search Appointment
+                        </label>
+
+                        <input type="text"
+                               name="search"
+                               value="@ViewBag.Search"
+                               class="form-control"
+                               placeholder="Appointment No / Doctor Name / Status" />
+
+                    </div>
+
+                    <div class="col-md-2 d-grid">
+
+                        <button class="btn btn-primary">
+
+                            <i class="fa fa-search me-2"></i>
+
+                            Search
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+    <!-- Appointment Table -->
+    <div class="card border-0 shadow rounded-4">
+
+        <div class="card-header bg-success text-white">
+
+            <h5 class="mb-0">
+
+                <i class="fa-solid fa-list me-2"></i>
+
+                Appointment List
+
+            </h5>
+
+        </div>
+
+        <div class="card-body p-0">
+
+            <div class="table-responsive">
+
+                <table class="table table-hover table-bordered align-middle mb-0">
+
+                    <thead class="table-primary">
+
+                        <tr>
+
+                            <th width="70">Image</th>
+
+                            <th>Appointment No</th>
+
+                            <th>Doctor</th>
+
+                            <th>Department</th>
+
+                            <th>Date</th>
+
+                            <th>Time</th>
+
+                            <th>Fee</th>
+
+                            <th>Status</th>
+
+                            <th>Payment</th>
+
+                            <th width="220">Action</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+                        @if (Model != null && Model.Count > 0)
+                        {
+                            foreach (var item in Model)
+                            {
+                                <tr>
+
+                                    <!-- Doctor Image -->
+                                    <td class="text-center">
+
+                                        @if (!string.IsNullOrEmpty(item.DoctorImage))
+                                        {
+                                            <img src="~/Department/@item.DoctorImage"
+                                                 class="doctor-img" />
+                                        }
+                                        else
+                                        {
+                                            <img src="https://cdn-icons-png.flaticon.com/512/387/387561.png"
+                                                 class="doctor-img" />
+                                        }
+
+                                    </td>
+
+                                    <!-- Appointment No -->
+                                    <td>
+                                        <span class="fw-bold text-primary">
+                                            @item.AppointmentNo
+                                        </span>
+                                    </td>
+
+                                    <!-- Doctor Name -->
+                                    <td>
+                                        @item.DoctorName
+                                    </td>
+
+                                    <!-- Department -->
+                                    <td>
+                                        @item.Department
+                                    </td>
+
+                            <!-- Appointment Date -->
+                            <td>
+                                @(item.AppointmentDate.HasValue
+                                                                ? item.AppointmentDate.Value.ToString("dd MMM yyyy")
+                                                                : "-")
+                                                                  </td>
+
+                            <!-- Appointment Time -->
+                            <td>
+                                @(item.AppointmentTime.HasValue
+                                                                ? item.AppointmentTime.Value.ToString(@"hh\:mm")
+                                                                : "-")
+                            </td>
+
+                                    <!-- Consultation Fee -->
+                                    <td class="text-success fw-bold">
+                                        ₹@item.ConsultationFee
+                                    </td>
+
+                                    <!-- Appointment Status -->
+                                    <td>
+
+                                        @if (item.AppointmentStatus == "Pending")
+                                        {
+                                            <span class="badge bg-warning text-dark">
+                                                Pending
+                                            </span>
+                                        }
+                                        else if (item.AppointmentStatus == "Approved")
+                                        {
+                                            <span class="badge bg-info">
+                                                Approved
+                                            </span>
+                                        }
+                                        else if (item.AppointmentStatus == "Confirmed")
+                                        {
+                                            <span class="badge bg-primary">
+                                                Confirmed
+                                            </span>
+                                        }
+                                        else if (item.AppointmentStatus == "Completed")
+                                        {
+                                            <span class="badge bg-success">
+                                                Completed
+                                            </span>
+                                        }
+                                        else if (item.AppointmentStatus == "Rejected")
+                                        {
+                                            <span class="badge bg-danger">
+                                                Rejected
+                                            </span>
+                                        }
+                                        else if (item.AppointmentStatus == "Cancelled")
+                                        {
+                                            <span class="badge bg-secondary">
+                                                Cancelled
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                    <!-- Payment Status -->
+                                    <td>
+
+                                        @if (item.PaymentStatus == "Pending")
+                                        {
+                                            <span class="badge bg-warning text-dark">
+                                                Pending
+                                            </span>
+                                        }
+                                        else if (item.PaymentStatus == "Paid")
+                                        {
+                                            <span class="badge bg-success">
+                                                Paid
+                                            </span>
+                                        }
+                                        else if (item.PaymentStatus == "Failed")
+                                        {
+                                            <span class="badge bg-danger">
+                                                Failed
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">
+                                                @item.PaymentStatus
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                    <!-- Actions -->
+                                    <td>
+
+                                        <a asp-action="AppointmentDetails"
+                                           asp-route-id="@item.AppointmentId"
+                                           class="btn btn-sm btn-primary mb-1">
+
+                                            <i class="fa-solid fa-eye"></i>
+
+                                            View
+
+                                        </a>
+
+                                        @if (item.AppointmentStatus == "Pending" ||
+                                                                        item.AppointmentStatus == "Approved")
+                                        {
+                                            <a asp-action="CancelAppointment"
+                                               asp-route-id="@item.AppointmentId"
+                                               class="btn btn-sm btn-danger mb-1"
+                                               onclick="return confirm('Are you sure you want to cancel this appointment?');">
+
+                                                <i class="fa-solid fa-xmark"></i>
+
+                                                Cancel
+
+                                            </a>
+                                        }
+
+                                        @if (!string.IsNullOrEmpty(item.PrescriptionFile))
+                                        {
+                                            <a href="~/Prescription/@item.PrescriptionFile"
+                                               target="_blank"
+                                               class="btn btn-sm btn-success mb-1">
+
+                                                <i class="fa-solid fa-download"></i>
+
+                                                Prescription
+
+                                            </a>
+                                        }
+
+                                    </td>
+
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+
+                                <td colspan="10" class="text-center py-5">
+
+                                    <i class="fa-solid fa-calendar-xmark fa-4x text-muted mb-3"></i>
+
+                                    <h4 class="text-muted">
+                                        No Appointments Found
+                                    </h4>
+
+                                    <p class="text-muted">
+                                        You haven't booked any appointments yet.
+                                    </p>
+
+                                    <a asp-action="Doctors"
+                                       class="btn btn-primary">
+
+                                        <i class="fa-solid fa-user-doctor me-2"></i>
+
+                                        Book Your First Appointment
+
+                                    </a>
+
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+@section Styles {
+
+    <style>
+
+        body {
+            background: #f8f9fa;
+        }
+
+        .card {
+            border-radius: 18px;
+            overflow: hidden;
+            transition: .3s;
+        }
+
+            .card:hover {
+                box-shadow: 0 15px 35px rgba(0,0,0,.12) !important;
+            }
+
+        .bg-primary {
+            background: linear-gradient(135deg,#0d6efd,#3b82f6) !important;
+        }
+
+        .bg-success {
+            background: linear-gradient(135deg,#198754,#20c997) !important;
+        }
+
+        .table th {
+            white-space: nowrap;
+            text-align: center;
+            vertical-align: middle;
+            font-weight: 600;
+        }
+
+        .table td {
+            vertical-align: middle;
+        }
+
+        .table tbody tr:hover {
+            background: #f8fbff;
+        }
+
+        .doctor-img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #0d6efd;
+            transition: .3s;
+        }
+
+            .doctor-img:hover {
+                transform: scale(1.1);
+            }
+
+        .badge {
+            font-size: 13px;
+            padding: 8px 12px;
+            border-radius: 20px;
+        }
+
+        .btn {
+            border-radius: 8px;
+            font-size: 14px;
+            transition: .3s;
+        }
+
+            .btn:hover {
+                transform: translateY(-2px);
+            }
+
+        .form-control {
+            border-radius: 10px;
+        }
+
+            .form-control:focus {
+                border-color: #0d6efd;
+                box-shadow: 0 0 0 .15rem rgba(13,110,253,.15);
+            }
+
+        .alert {
+            border-radius: 12px;
+        }
+
+        .text-success {
+            font-size: 15px;
+        }
+
+        .table-responsive {
+            border-radius: 0 0 18px 18px;
+        }
+
+        @@media(max-width:991px) {
+
+            .table {
+                min-width: 1100px;
+            }
+        }
+
+        @@media(max-width:768px) {
+
+            h2 {
+                font-size: 24px;
+            }
+
+            .doctor-img {
+                width: 50px;
+                height: 50px;
+            }
+
+            .btn {
+                font-size: 13px;
+                padding: 6px 10px;
+            }
+
+            .badge {
+                font-size: 12px;
+            }
+        }
+
+        @@media(max-width:576px) {
+
+            h2 {
+                font-size: 22px;
+            }
+
+            .doctor-img {
+                width: 45px;
+                height: 45px;
+            }
+
+            .card-header h5 {
+                font-size: 17px;
+            }
+        }
+
+    </style>
+
+}
+
+@section Scripts {
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+}

@@ -1,0 +1,560 @@
+﻿@model ClinicManagementSystem.Models.AppointmentModel
+
+@{
+    ViewData["Title"] = "Appointment Details";
+    Layout = "~/Views/Shared/_CustomerLayout.cshtml";
+}
+
+<div class="container py-4">
+
+    <!-- Page Header -->
+    <div class="row mb-4">
+
+        <div class="col-lg-12">
+
+            <div class="bg-primary text-white rounded-4 shadow p-4">
+
+                <h2 class="fw-bold mb-2">
+
+                    <i class="fa-solid fa-file-medical me-2"></i>
+
+                    Appointment Details
+
+                </h2>
+
+                <p class="mb-0">
+
+                    View complete details of your booked appointment.
+
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="row">
+
+        <!-- Doctor Information -->
+        <div class="col-lg-4 mb-4">
+
+            <div class="card border-0 shadow rounded-4">
+
+                <div class="card-header bg-primary text-white">
+
+                    <h5 class="mb-0">
+
+                        <i class="fa-solid fa-user-doctor me-2"></i>
+
+                        Doctor Information
+
+                    </h5>
+
+                </div>
+
+                <div class="card-body text-center">
+
+                    @if (!string.IsNullOrEmpty(Model.DoctorImage))
+                    {
+                        <img src="~/Department/@Model.DoctorImage"
+                             class="doctor-img mb-3" />
+                    }
+                    else
+                    {
+                        <img src="https://cdn-icons-png.flaticon.com/512/387/387561.png"
+                             class="doctor-img mb-3" />
+                    }
+
+                    <h4 class="fw-bold">
+
+                        @Model.DoctorName
+
+                    </h4>
+
+                    <span class="badge bg-success">
+
+                        @Model.Department
+
+                    </span>
+
+                    <hr />
+
+                    <table class="table table-borderless">
+
+                        <tr>
+
+                            <th>Qualification</th>
+
+                            <td>@Model.Qualification</td>
+
+                        </tr>
+
+                        <tr>
+
+                            <th>Specialization</th>
+
+                            <td>@Model.Specialization</td>
+
+                        </tr>
+
+                        <tr>
+
+                            <th>Consultation Fee</th>
+
+                            <td class="text-success fw-bold">
+
+                                ₹@Model.ConsultationFee
+
+                            </td>
+
+                        </tr>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Appointment Information -->
+        <div class="col-lg-8 mb-4">
+
+            <div class="card border-0 shadow rounded-4">
+
+                <div class="card-header bg-success text-white">
+
+                    <h5 class="mb-0">
+
+                        <i class="fa-solid fa-calendar-check me-2"></i>
+
+                        Appointment Information
+
+                    </h5>
+
+                </div>
+
+                <div class="card-body">
+
+                    <div class="row">
+
+                        <div class="col-md-6 mb-3">
+
+                            <label class="fw-semibold">
+                                Appointment No
+                            </label>
+
+                            <input type="text"
+                                   class="form-control"
+                                   value="@Model.AppointmentNo"
+                                   readonly />
+
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+
+                            <label class="fw-semibold">
+                                Appointment Date
+                            </label>
+
+                            <input type="text"
+                                   class="form-control"
+                                   value="@(Model.AppointmentDate.HasValue? Model.AppointmentDate.Value.ToString("dd MMM yyyy") : "-")"
+                                   readonly />
+
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+
+                            <label class="fw-semibold">
+                                Appointment Time
+                            </label>
+
+                            <input type="text"
+                                   class="form-control"
+                                   value="@(Model.AppointmentTime.HasValue? Model.AppointmentTime.Value.ToString(@"hh\:mm") : "-")"
+                                   readonly />
+
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+
+                            <label class="fw-semibold">
+                                Booking Date
+                            </label>
+
+                            <input type="text"
+                                   class="form-control"
+                                   value="@Model.CreatedDate.ToString("dd MMM yyyy")"
+                                   readonly />
+
+                        </div>
+                        <div class="col-12 mb-3">
+
+                            <label class="fw-semibold">
+                                Symptoms / Problem
+                            </label>
+
+                            <textarea class="form-control"
+                                      rows="4"
+                                      readonly>@Model.Symptoms</textarea>
+
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+
+                            <label class="fw-semibold">
+                                Appointment Status
+                            </label>
+
+                            <div>
+
+                                @if (Model.AppointmentStatus == "Pending")
+                                {
+                                    <span class="badge bg-warning text-dark fs-6 px-3 py-2">
+                                        Pending
+                                    </span>
+                                }
+                                else if (Model.AppointmentStatus == "Approved")
+                                {
+                                    <span class="badge bg-info fs-6 px-3 py-2">
+                                        Approved
+                                    </span>
+                                }
+                                else if (Model.AppointmentStatus == "Confirmed")
+                                {
+                                    <span class="badge bg-primary fs-6 px-3 py-2">
+                                        Confirmed
+                                    </span>
+                                }
+                                else if (Model.AppointmentStatus == "Completed")
+                                {
+                                    <span class="badge bg-success fs-6 px-3 py-2">
+                                        Completed
+                                    </span>
+                                }
+                                else if (Model.AppointmentStatus == "Rejected")
+                                {
+                                    <span class="badge bg-danger fs-6 px-3 py-2">
+                                        Rejected
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary fs-6 px-3 py-2">
+                                        Cancelled
+                                    </span>
+                                }
+
+                            </div>
+
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+
+                            <label class="fw-semibold">
+                                Payment Status
+                            </label>
+
+                            <div>
+
+                                @if (Model.PaymentStatus == "Pending")
+                                {
+                                    <span class="badge bg-warning text-dark fs-6 px-3 py-2">
+                                        Pending
+                                    </span>
+                                }
+                                else if (Model.PaymentStatus == "Paid")
+                                {
+                                    <span class="badge bg-success fs-6 px-3 py-2">
+                                        Paid
+                                    </span>
+                                }
+                                else if (Model.PaymentStatus == "Failed")
+                                {
+                                    <span class="badge bg-danger fs-6 px-3 py-2">
+                                        Failed
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary fs-6 px-3 py-2">
+                                        @Model.PaymentStatus
+                                    </span>
+                                }
+
+                            </div>
+
+                        </div>
+
+                        <div class="col-12 mb-3">
+
+                            <label class="fw-semibold">
+                                Admin Remark
+                            </label>
+
+                            <textarea class="form-control"
+                                      rows="3"
+                                      readonly>@(!string.IsNullOrWhiteSpace(Model.AdminRemark) ? Model.AdminRemark : "No remark available.")</textarea>
+
+                        </div>
+
+                        <div class="col-12 mb-3">
+
+                            <label class="fw-semibold">
+                                Customer Remark
+                            </label>
+
+                            <textarea class="form-control"
+                                      rows="3"
+                                      readonly>@(!string.IsNullOrWhiteSpace(Model.CustomerRemark) ? Model.CustomerRemark : "No remark available.")</textarea>
+
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(Model.PrescriptionFile))
+                        {
+                            <div class="col-12 mb-4">
+
+                                <label class="fw-semibold">
+                                    Prescription
+                                </label>
+
+                                <div>
+
+                                    <a href="~/Prescription/@Model.PrescriptionFile"
+                                       target="_blank"
+                                       class="btn btn-success">
+
+                                        <i class="fa-solid fa-download me-2"></i>
+
+                                        Download Prescription
+
+                                    </a>
+
+                                </div>
+
+                            </div>
+                        }
+
+                    </div>
+
+                </div>
+
+                <div class="card-footer bg-white">
+
+                    <a asp-action="MyAppointments"
+                       class="btn btn-secondary">
+
+                        <i class="fa-solid fa-arrow-left me-2"></i>
+
+                        Back
+
+                    </a>
+
+                    @if (Model.AppointmentStatus == "Pending" ||
+                                        Model.AppointmentStatus == "Approved")
+                    {
+                        <a asp-action="CancelAppointment"
+                           asp-route-id="@Model.AppointmentId"
+                           class="btn btn-danger float-end"
+                           onclick="return confirm('Are you sure you want to cancel this appointment?');">
+
+                            <i class="fa-solid fa-xmark me-2"></i>
+
+                            Cancel Appointment
+
+                        </a>
+                    }
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+@section Styles {
+
+    <style>
+
+        body {
+            background: #f8f9fa;
+        }
+
+        /* Card */
+
+        .card {
+            border-radius: 18px;
+            overflow: hidden;
+            transition: .35s;
+        }
+
+            .card:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 15px 35px rgba(0,0,0,.12) !important;
+            }
+
+        /* Header */
+
+        .bg-primary {
+            background: linear-gradient(135deg,#0d6efd,#3b82f6) !important;
+        }
+
+        .bg-success {
+            background: linear-gradient(135deg,#198754,#20c997) !important;
+        }
+
+        /* Doctor Image */
+
+        .doctor-img {
+            width: 170px;
+            height: 170px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 5px solid #0d6efd;
+            transition: .4s;
+        }
+
+            .doctor-img:hover {
+                transform: scale(1.06);
+                box-shadow: 0 12px 30px rgba(13,110,253,.35);
+            }
+
+        /* Table */
+
+        .table th {
+            width: 45%;
+            color: #0d6efd;
+            font-weight: 600;
+        }
+
+        .table td {
+            color: #555;
+        }
+
+        .table tr {
+            vertical-align: middle;
+        }
+
+        /* Form */
+
+        .form-control {
+            border-radius: 10px;
+            min-height: 45px;
+            background: #fff;
+        }
+
+            .form-control:focus {
+                border-color: #0d6efd;
+                box-shadow: 0 0 0 .15rem rgba(13,110,253,.15);
+            }
+
+        textarea.form-control {
+            resize: none;
+        }
+
+        /* Badge */
+
+        .badge {
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        /* Button */
+
+        .btn {
+            border-radius: 10px;
+            font-weight: 600;
+            padding: 10px 22px;
+            transition: .3s;
+        }
+
+            .btn:hover {
+                transform: translateY(-2px);
+            }
+
+        /* Card Header */
+
+        .card-header {
+            padding: 18px 25px;
+        }
+
+        /* Card Footer */
+
+        .card-footer {
+            padding: 18px 25px;
+        }
+
+        /* Responsive */
+
+        @@media(max-width:991px) {
+
+            .doctor-img {
+                width: 140px;
+                height: 140px;
+            }
+        }
+
+        @@media(max-width:768px) {
+
+            h2 {
+                font-size: 24px;
+            }
+
+            .doctor-img {
+                width: 120px;
+                height: 120px;
+            }
+
+            .btn {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+
+            .float-end {
+                float: none !important;
+            }
+        }
+
+        @@media(max-width:576px) {
+
+            h2 {
+                font-size: 22px;
+            }
+
+            h4 {
+                font-size: 20px;
+            }
+
+            h5 {
+                font-size: 17px;
+            }
+
+            .doctor-img {
+                width: 100px;
+                height: 100px;
+            }
+
+            .badge {
+                font-size: 13px !important;
+            }
+
+            .form-control {
+                font-size: 14px;
+            }
+        }
+
+    </style>
+
+}
+
+@section Scripts {
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+}
