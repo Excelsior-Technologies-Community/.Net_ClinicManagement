@@ -3,6 +3,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Data;
 using System.Data.SqlClient;
+using QuestPDF.Fluent;
+using QuestPDF.Helpers;
+using QuestPDF.Infrastructure;
 
 namespace ClinicManagementSystem.Controllers
 {
@@ -30,7 +33,7 @@ namespace ClinicManagementSystem.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Login(AdminModel model)
         {
-            // Login માટે જરૂરી ન હોય તેવા fields ની validation remove કરો
+            
             ModelState.Remove("FullName");
             ModelState.Remove("ConfirmPassword");
             ModelState.Remove("MobileNo");
@@ -170,7 +173,7 @@ namespace ClinicManagementSystem.Controllers
                 {
                     con.Open();
 
-                    // Duplicate Department Check
+                 
                     SqlCommand checkCmd = new SqlCommand(
                         "SELECT COUNT(*) FROM tbl_Department WHERE DepartmentName=@DepartmentName AND IsDeleted=0",
                         con);
@@ -210,7 +213,6 @@ namespace ClinicManagementSystem.Controllers
                         }
                     }
 
-                    // Insert Department
                     SqlCommand cmd = new SqlCommand(@"
             INSERT INTO tbl_Department
             (
@@ -308,7 +310,7 @@ namespace ClinicManagementSystem.Controllers
                 {
                     con.Open();
 
-                    // Duplicate Department Name Check
+                   
                     SqlCommand checkCmd = new SqlCommand(
                         @"SELECT COUNT(*) FROM tbl_Department
                   WHERE DepartmentName=@DepartmentName
@@ -326,7 +328,6 @@ namespace ClinicManagementSystem.Controllers
                         return View(model);
                     }
 
-                    // Get Old Image
                     string oldImage = "";
 
                     SqlCommand imgCmd = new SqlCommand(
@@ -518,7 +519,6 @@ namespace ClinicManagementSystem.Controllers
                 {
                     con.Open();
 
-                    // Get Current Status
                     SqlCommand checkCmd = new SqlCommand(
                         "SELECT IsActive FROM tbl_Department WHERE DepartmentId=@DepartmentId AND IsDeleted=0",
                         con);
@@ -536,7 +536,7 @@ namespace ClinicManagementSystem.Controllers
                     bool currentStatus = Convert.ToBoolean(result);
                     bool newStatus = !currentStatus;
 
-                    // Update Status
+                   
                     SqlCommand cmd = new SqlCommand(@"
                 UPDATE tbl_Department
                 SET IsActive=@IsActive,
@@ -577,7 +577,7 @@ namespace ClinicManagementSystem.Controllers
             {
                 con.Open();
 
-                // Load Department Dropdown
+           
                 SqlCommand deptCmd = new SqlCommand(
                     "SELECT DepartmentId, DepartmentName FROM tbl_Department WHERE IsDeleted = 0 AND IsActive = 1 ORDER BY DepartmentName",
                     con);
@@ -732,7 +732,7 @@ namespace ClinicManagementSystem.Controllers
                 return RedirectToAction("Login");
             }
 
-            // Reload Department Dropdown
+          
             List<SelectListItem> departmentList = new List<SelectListItem>();
 
             using (SqlConnection con = new SqlConnection(cs))
@@ -905,7 +905,7 @@ namespace ClinicManagementSystem.Controllers
             {
                 con.Open();
 
-                // Load Department Dropdown
+           
                 SqlCommand deptCmd = new SqlCommand(@"
      SELECT DepartmentId, DepartmentName
      FROM tbl_Department
@@ -1268,7 +1268,6 @@ namespace ClinicManagementSystem.Controllers
                         return RedirectToAction("ManageDoctor");
                     }
 
-                    // Soft Delete
                     SqlCommand cmd = new SqlCommand(@"
          UPDATE tbl_Doctor
          SET
@@ -1324,7 +1323,6 @@ namespace ClinicManagementSystem.Controllers
                     bool currentStatus = Convert.ToBoolean(result);
                     bool newStatus = !currentStatus;
 
-                    // Update Status
                     SqlCommand cmd = new SqlCommand(@"
          UPDATE tbl_Doctor
          SET
@@ -1354,9 +1352,7 @@ namespace ClinicManagementSystem.Controllers
 
             return RedirectToAction("ManageDoctor");
         }
-        // ==========================================
-        // Manage Patients (Admin)
-        // ==========================================
+      
         [HttpGet]
         public IActionResult ManagePatient(string search = "")
         {
@@ -1409,9 +1405,6 @@ namespace ClinicManagementSystem.Controllers
             return View(patientList);
         }
 
-        // ==========================================
-        // View Patient Details (Admin)
-        // ==========================================
         [HttpGet]
         public IActionResult ViewPatient(long id)
         {
@@ -1462,9 +1455,6 @@ namespace ClinicManagementSystem.Controllers
             return View(model);
         }
 
-        // ==========================================
-        // Delete Patient (Admin - Soft Delete)
-        // ==========================================
         [HttpGet]
         public IActionResult DeletePatient(long id)
         {
@@ -1504,9 +1494,6 @@ namespace ClinicManagementSystem.Controllers
             return RedirectToAction("ManagePatient");
         }
 
-        // ==========================================
-        // Change Patient Status (Active / Inactive)
-        // ==========================================
         [HttpGet]
         public IActionResult ChangePatientStatus(long id)
         {
@@ -1548,9 +1535,7 @@ namespace ClinicManagementSystem.Controllers
 
             return RedirectToAction("ManagePatient");
         }
-        // ==========================================
-        // GET : Manage Appointments
-        // ==========================================
+   
         [HttpGet]
         public IActionResult ManageAppointments(string search = "", string status = "")
         {
@@ -1659,13 +1644,10 @@ a.CreatedDate DESC";
 
             return View(list);
         }
-        // ==========================================
-        // GET : View Appointment
-        // ==========================================
+   
         [HttpGet]
         public IActionResult ViewAppointment(long id)
         {
-            // Admin Login Check
             if (HttpContext.Session.GetString("AdminId") == null)
             {
                 return RedirectToAction("Login");
@@ -1779,13 +1761,10 @@ AND a.IsDeleted = 0";
 
             return View(model);
         }
-        // ==========================================
-        // GET : Edit Appointment
-        // ==========================================
+        
         [HttpGet]
         public IActionResult EditAppointment(long id)
         {
-            // Admin Login Check
             if (HttpContext.Session.GetString("AdminId") == null)
             {
                 return RedirectToAction("Login");
@@ -1893,7 +1872,7 @@ AND a.IsDeleted = 0";
                 return RedirectToAction("ManageAppointments");
             }
 
-            // Status Dropdown
+           
             ViewBag.StatusList = new List<SelectListItem>()
     {
         new SelectListItem(){ Text="Pending", Value="Pending"},
@@ -1906,9 +1885,7 @@ AND a.IsDeleted = 0";
 
             return View(model);
         }
-        // ==========================================
-        // POST : Edit Appointment
-        // ==========================================
+       
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult EditAppointment(AppointmentModel model)
@@ -1918,7 +1895,7 @@ AND a.IsDeleted = 0";
                 return RedirectToAction("Login");
             }
 
-            // Remove unwanted validation
+          
             ModelState.Remove("CustomerName");
             ModelState.Remove("DoctorName");
             ModelState.Remove("Department");
@@ -2034,7 +2011,7 @@ AND a.IsDeleted = 0";
             {
                 con.Open();
 
-                // Check Appointment Status
+              
                 string checkQuery = @"
         SELECT AppointmentStatus
         FROM tbl_Appointment
@@ -2462,6 +2439,414 @@ AND a.IsDeleted = 0";
             }
 
             return RedirectToAction("ManageAppointments");
+        }
+       
+        [HttpGet]
+        public IActionResult ManagePayments(string search = "", string status = "")
+        {
+      
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            List<PaymentModel> list = new List<PaymentModel>();
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+                string query = @"
+SELECT
+
+    p.PaymentId,
+    p.AppointmentId,
+    p.CustomerId,
+    p.Amount,
+    p.PaymentMethod,
+    p.TransactionId,
+    p.PaymentStatus,
+    p.PaymentDate,
+    p.CreatedDate,
+
+    a.AppointmentNo,
+
+    c.FullName,
+
+    d.DoctorName,
+
+    dep.DepartmentName
+
+FROM tbl_Payment p
+
+INNER JOIN tbl_Appointment a
+    ON p.AppointmentId = a.AppointmentId
+
+INNER JOIN tbl_Customer c
+    ON p.CustomerId = c.CustomerId
+
+INNER JOIN tbl_Doctor d
+    ON a.DoctorId = d.DoctorId
+
+INNER JOIN tbl_Department dep
+    ON d.DepartmentId = dep.DepartmentId
+
+WHERE
+(
+    @Status=''
+    OR
+    p.PaymentStatus=@Status
+)
+
+AND
+(
+    a.AppointmentNo LIKE @Search
+    OR
+    c.FullName LIKE @Search
+    OR
+    d.DoctorName LIKE @Search
+    OR
+    ISNULL(p.TransactionId,'') LIKE @Search
+)
+
+ORDER BY p.CreatedDate DESC";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+
+                cmd.Parameters.AddWithValue("@Search", "%" + search + "%");
+                cmd.Parameters.AddWithValue("@Status", status ?? "");
+
+                SqlDataReader dr = cmd.ExecuteReader();
+
+                while (dr.Read())
+                {
+                    PaymentModel model = new PaymentModel();
+
+                    model.PaymentId = Convert.ToInt64(dr["PaymentId"]);
+
+                    model.AppointmentId = Convert.ToInt64(dr["AppointmentId"]);
+
+                    model.CustomerId = Convert.ToInt64(dr["CustomerId"]);
+
+                    model.AppointmentNo = dr["AppointmentNo"].ToString();
+
+                    model.CustomerName = dr["FullName"].ToString();
+
+                    model.DoctorName = dr["DoctorName"].ToString();
+
+                    model.DepartmentName = dr["DepartmentName"].ToString();
+
+                    model.Amount = Convert.ToDecimal(dr["Amount"]);
+
+                    model.PaymentMethod = dr["PaymentMethod"].ToString();
+
+                    model.TransactionId = dr["TransactionId"].ToString();
+
+                    model.PaymentStatus = dr["PaymentStatus"].ToString();
+
+                    if (dr["PaymentDate"] != DBNull.Value)
+                        model.PaymentDate = Convert.ToDateTime(dr["PaymentDate"]);
+
+                    model.CreatedDate = Convert.ToDateTime(dr["CreatedDate"]);
+
+                    list.Add(model);
+                }
+
+                dr.Close();
+            }
+
+            ViewBag.Search = search;
+            ViewBag.Status = status;
+
+            return View(list);
+        }
+      
+        [HttpGet]
+        public IActionResult ViewPayment(long id)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            PaymentModel model = new PaymentModel();
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+                string query = @"
+SELECT
+
+    p.PaymentId,
+    p.AppointmentId,
+    p.CustomerId,
+    p.Amount,
+    p.PaymentMethod,
+    p.TransactionId,
+    p.PaymentStatus,
+    p.PaymentDate,
+    p.CreatedDate,
+    p.UpdatedDate,
+
+    a.AppointmentNo,
+    a.AppointmentDate,
+    a.AppointmentTime,
+
+    c.FullName,
+    c.MobileNo,
+    c.Email,
+
+    d.DoctorName,
+    d.DoctorImage,
+
+    dep.DepartmentName
+
+FROM tbl_Payment p
+
+INNER JOIN tbl_Appointment a
+    ON p.AppointmentId = a.AppointmentId
+
+INNER JOIN tbl_Customer c
+    ON p.CustomerId = c.CustomerId
+
+INNER JOIN tbl_Doctor d
+    ON a.DoctorId = d.DoctorId
+
+INNER JOIN tbl_Department dep
+    ON d.DepartmentId = dep.DepartmentId
+
+WHERE p.PaymentId=@PaymentId";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+
+                cmd.Parameters.AddWithValue("@PaymentId", id);
+
+                SqlDataReader dr = cmd.ExecuteReader();
+
+                if (dr.Read())
+                {
+                    model.PaymentId = Convert.ToInt64(dr["PaymentId"]);
+
+                    model.AppointmentId = Convert.ToInt64(dr["AppointmentId"]);
+
+                    model.CustomerId = Convert.ToInt64(dr["CustomerId"]);
+
+                    model.AppointmentNo = dr["AppointmentNo"].ToString();
+
+                    model.CustomerName = dr["FullName"].ToString();
+
+                    model.MobileNo = dr["MobileNo"].ToString();
+
+                    model.Email = dr["Email"].ToString();
+
+                    model.DoctorName = dr["DoctorName"].ToString();
+
+                    model.DoctorImage = dr["DoctorImage"].ToString();
+
+                    model.DepartmentName = dr["DepartmentName"].ToString();
+
+                    model.Amount = Convert.ToDecimal(dr["Amount"]);
+
+                    model.PaymentMethod = dr["PaymentMethod"].ToString();
+
+                    model.TransactionId = dr["TransactionId"].ToString();
+
+                    model.PaymentStatus = dr["PaymentStatus"].ToString();
+
+                    if (dr["AppointmentDate"] != DBNull.Value)
+                        model.AppointmentDate = Convert.ToDateTime(dr["AppointmentDate"]);
+
+                    if (dr["AppointmentTime"] != DBNull.Value)
+                        model.AppointmentTime = (TimeSpan)dr["AppointmentTime"];
+
+                    if (dr["PaymentDate"] != DBNull.Value)
+                        model.PaymentDate = Convert.ToDateTime(dr["PaymentDate"]);
+
+                    model.CreatedDate = Convert.ToDateTime(dr["CreatedDate"]);
+
+                    if (dr["UpdatedDate"] != DBNull.Value)
+                        model.UpdatedDate = Convert.ToDateTime(dr["UpdatedDate"]);
+                }
+
+                dr.Close();
+            }
+
+            if (model.PaymentId == 0)
+            {
+                TempData["Error"] = "Payment record not found.";
+
+                return RedirectToAction("ManagePayments");
+            }
+
+            return View(model);
+        }
+        [HttpGet]
+        public IActionResult DownloadReceipt(long id)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            PaymentModel model = new PaymentModel();
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+                string query = @"
+SELECT
+
+    p.PaymentId,
+    p.AppointmentId,
+    p.CustomerId,
+    p.Amount,
+    p.PaymentMethod,
+    p.TransactionId,
+    p.PaymentStatus,
+    p.PaymentDate,
+    p.CreatedDate,
+
+    a.AppointmentNo,
+    a.AppointmentDate,
+    a.AppointmentTime,
+
+    c.FullName,
+    c.MobileNo,
+    c.Email,
+
+    d.DoctorName,
+
+    dep.DepartmentName
+
+FROM tbl_Payment p
+
+INNER JOIN tbl_Appointment a
+ON p.AppointmentId = a.AppointmentId
+
+INNER JOIN tbl_Customer c
+ON p.CustomerId = c.CustomerId
+
+INNER JOIN tbl_Doctor d
+ON a.DoctorId = d.DoctorId
+
+INNER JOIN tbl_Department dep
+ON d.DepartmentId = dep.DepartmentId
+
+WHERE p.PaymentId=@PaymentId";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+
+                cmd.Parameters.AddWithValue("@PaymentId", id);
+
+                SqlDataReader dr = cmd.ExecuteReader();
+
+                if (dr.Read())
+                {
+                    model.PaymentId = Convert.ToInt64(dr["PaymentId"]);
+                    model.AppointmentNo = dr["AppointmentNo"].ToString();
+
+                    model.CustomerName = dr["FullName"].ToString();
+                    model.MobileNo = dr["MobileNo"].ToString();
+                    model.Email = dr["Email"].ToString();
+
+                    model.DoctorName = dr["DoctorName"].ToString();
+                    model.DepartmentName = dr["DepartmentName"].ToString();
+
+                    model.Amount = Convert.ToDecimal(dr["Amount"]);
+
+                    model.PaymentMethod = dr["PaymentMethod"].ToString();
+                    model.TransactionId = dr["TransactionId"].ToString();
+                    model.PaymentStatus = dr["PaymentStatus"].ToString();
+
+                    if (dr["AppointmentDate"] != DBNull.Value)
+                        model.AppointmentDate = Convert.ToDateTime(dr["AppointmentDate"]);
+
+                    if (dr["AppointmentTime"] != DBNull.Value)
+                        model.AppointmentTime = (TimeSpan)dr["AppointmentTime"];
+
+                    if (dr["PaymentDate"] != DBNull.Value)
+                        model.PaymentDate = Convert.ToDateTime(dr["PaymentDate"]);
+                }
+
+                dr.Close();
+            }
+
+            if (model.PaymentId == 0)
+            {
+                TempData["Error"] = "Payment not found.";
+                return RedirectToAction("ManagePayments");
+            }
+
+            byte[] pdf = Document.Create(container =>
+            {
+                container.Page(page =>
+                {
+                    page.Margin(30);
+
+                    page.Header()
+                        .Column(col =>
+                        {
+                            col.Item().Text("CLINIC MANAGEMENT SYSTEM")
+                                .FontSize(24)
+                                .Bold()
+                                .FontColor(Colors.Blue.Darken2);
+
+                            col.Item().Text("PAYMENT RECEIPT")
+                                .FontSize(18)
+                                .Bold();
+
+                            col.Item().PaddingVertical(10);
+                        });
+
+                    page.Content().Column(col =>
+                    {
+                        col.Spacing(8);
+
+                        col.Item().Text($"Receipt No : {model.PaymentId}");
+                        col.Item().Text($"Appointment No : {model.AppointmentNo}");
+
+                        col.Item().Text($"Customer Name : {model.CustomerName}");
+                        col.Item().Text($"Mobile : {model.MobileNo}");
+                        col.Item().Text($"Email : {model.Email}");
+
+                        col.Item().Text($"Doctor : Dr. {model.DoctorName}");
+                        col.Item().Text($"Department : {model.DepartmentName}");
+
+                        col.Item().Text($"Appointment Date : {model.AppointmentDate:dd MMM yyyy}");
+                        col.Item().Text($"Appointment Time : {model.AppointmentTime}");
+
+                        col.Item().Text($"Amount Paid : ₹ {model.Amount:N2}");
+                        col.Item().Text($"Payment Method : {model.PaymentMethod}");
+                        col.Item().Text($"Transaction ID : {model.TransactionId}");
+                        col.Item().Text($"Payment Status : {model.PaymentStatus}");
+                        col.Item().Text($"Payment Date : {model.PaymentDate:dd MMM yyyy hh:mm tt}");
+
+                        col.Item().PaddingTop(20);
+
+                        col.Item().LineHorizontal(1);
+
+                        col.Item().PaddingTop(20);
+
+                        col.Item().AlignCenter().Text("Thank You")
+                            .Bold()
+                            .FontSize(18)
+                            .FontColor(Colors.Green.Darken2);
+
+                        col.Item().AlignCenter().Text("Clinic Management System");
+                    });
+
+                    page.Footer()
+                        .AlignCenter()
+                        .Text($"Generated On : {DateTime.Now:dd MMM yyyy hh:mm tt}");
+                });
+            }).GeneratePdf();
+
+            return File(
+                pdf,
+                "application/pdf",
+                "PaymentReceipt_" + model.PaymentId + ".pdf");
         }
         // ===========================
         // Logout

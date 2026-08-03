@@ -1,0 +1,441 @@
+﻿@model IEnumerable<ClinicManagementSystem.Models.PaymentModel>
+
+@{
+    ViewData["Title"] = "Payment History";
+    Layout = "~/Views/Shared/_CustomerLayout.cshtml";
+}
+
+<div class="container-fluid py-4">
+
+    <!-- Page Header -->
+
+    <div class="row mb-4">
+
+        <div class="col-12">
+
+            <div class="card border-0 shadow">
+
+                <div class="card-body bg-primary text-white rounded">
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <div>
+
+                            <h2 class="fw-bold mb-1">
+
+                                <i class="fa-solid fa-money-check-dollar me-2"></i>
+
+                                Payment History
+
+                            </h2>
+
+                            <p class="mb-0">
+
+                                View all your payment records.
+
+                            </p>
+
+                        </div>
+
+                        <a asp-action="MyAppointments"
+                           class="btn btn-light">
+
+                            <i class="fa-solid fa-arrow-left me-2"></i>
+
+                            Back
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Search Card -->
+
+    <div class="card shadow border-0 mb-4">
+
+        <div class="card-body">
+
+            <form method="get">
+
+                <div class="row align-items-end">
+
+                    <div class="col-md-10">
+
+                        <label class="form-label fw-bold">
+
+                            Search
+
+                        </label>
+
+                        <input type="text"
+                               name="search"
+                               value="@ViewBag.Search"
+                               class="form-control"
+                               placeholder="Appointment No / Doctor Name / Transaction Id" />
+
+                    </div>
+
+                    <div class="col-md-2 d-grid">
+
+                        <button type="submit"
+                                class="btn btn-primary">
+
+                            <i class="fa fa-search me-2"></i>
+
+                            Search
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+    <!-- Payment Table -->
+
+    <div class="card border-0 shadow">
+
+        <div class="card-header bg-success text-white">
+
+            <h5 class="mb-0">
+
+                <i class="fa-solid fa-clock-rotate-left me-2"></i>
+
+                Payment List
+
+            </h5>
+
+        </div>
+
+        <div class="card-body table-responsive">
+
+            <table class="table table-bordered table-hover align-middle">
+
+                <thead class="table-dark">
+
+                    <tr>
+
+                        <th>#</th>
+
+                        <th>Appointment No</th>
+
+                        <th>Doctor</th>
+
+                        <th>Department</th>
+
+                        <th>Amount</th>
+
+                        <th>Method</th>
+
+                        <th>Status</th>
+
+                        <th>Date</th>
+
+                        <th width="120">Action</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    @{
+                        int sr = 1;
+                    }
+
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+
+                            <td>
+
+                                @(sr++)
+
+                            </td>
+
+                            <td>
+
+                                @item.AppointmentNo
+
+                            </td>
+
+                            <td>
+
+                                Dr. @item.DoctorName
+
+                            </td>
+
+                            <td>
+
+                                @item.DepartmentName
+
+                            </td>
+
+                            <td>
+
+                                ₹ @item.Amount.ToString("N2")
+
+                            </td>
+                            <td>
+
+                                @switch (item.PaymentMethod)
+                                {
+                                    case "Cash":
+                                        <span class="badge bg-success px-3 py-2">
+                                            <i class="fa-solid fa-money-bill-wave me-1"></i>
+                                            Cash
+                                        </span>
+                                        break;
+
+                                    case "UPI":
+                                        <span class="badge bg-primary px-3 py-2">
+                                            <i class="fa-brands fa-google-pay me-1"></i>
+                                            UPI
+                                        </span>
+                                        break;
+
+                                    case "Card":
+                                        <span class="badge bg-info px-3 py-2">
+                                            <i class="fa-solid fa-credit-card me-1"></i>
+                                            Card
+                                        </span>
+                                        break;
+
+                                    case "Net Banking":
+                                        <span class="badge bg-warning text-dark px-3 py-2">
+                                            <i class="fa-solid fa-building-columns me-1"></i>
+                                            Net Banking
+                                        </span>
+                                        break;
+
+                                    default:
+                                        <span class="badge bg-secondary px-3 py-2">
+                                            @item.PaymentMethod
+                                        </span>
+                                        break;
+                                }
+
+                            </td>
+
+                            <td>
+
+                                @if (item.PaymentStatus == "Paid")
+                                {
+                                    <span class="badge bg-success px-3 py-2">
+                                        <i class="fa-solid fa-circle-check me-1"></i>
+                                        Paid
+                                    </span>
+                                }
+                                else if (item.PaymentStatus == "Pending")
+                                {
+                                    <span class="badge bg-warning text-dark px-3 py-2">
+                                        <i class="fa-solid fa-clock me-1"></i>
+                                        Pending
+                                    </span>
+                                }
+                                else if (item.PaymentStatus == "Failed")
+                                {
+                                    <span class="badge bg-danger px-3 py-2">
+                                        <i class="fa-solid fa-circle-xmark me-1"></i>
+                                        Failed
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary px-3 py-2">
+                                        @item.PaymentStatus
+                                    </span>
+                                }
+
+                            </td>
+
+                            <td>
+
+                                @(item.PaymentDate?.ToString("dd MMM yyyy hh:mm tt"))
+
+                            </td>
+
+                            <td>
+
+                                <a asp-action="ViewPayment"
+                                   asp-route-id="@item.PaymentId"
+                                   class="btn btn-primary btn-sm">
+
+                                    <i class="fa-solid fa-eye"></i>
+
+                                </a>
+
+                            </td>
+
+                        </tr>
+                    }
+
+                    @if (!Model.Any())
+                    {
+                        <tr>
+
+                            <td colspan="9" class="text-center py-5">
+
+                                <i class="fa-solid fa-circle-info fa-3x text-secondary mb-3"></i>
+
+                                <h5 class="text-muted">
+
+                                    No payment history found.
+
+                                </h5>
+
+                            </td>
+
+                        </tr>
+                    }
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+</div>
+
+</div>
+
+</div>
+
+@section Styles {
+
+    <style>
+
+        body {
+            background: #f5f7fb;
+        }
+
+        .card {
+            border: none;
+            border-radius: 16px;
+            overflow: hidden;
+            transition: .3s;
+        }
+
+            .card:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 12px 30px rgba(0,0,0,.10) !important;
+            }
+
+        .bg-primary {
+            background: linear-gradient(135deg,#0d6efd,#4f8cff) !important;
+        }
+
+        .bg-success {
+            background: linear-gradient(135deg,#198754,#20c997) !important;
+        }
+
+        .table thead th {
+            white-space: nowrap;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .table tbody td {
+            vertical-align: middle;
+        }
+
+        .table-hover tbody tr:hover {
+            background: #f8fbff;
+        }
+
+        .form-control {
+            height: 45px;
+            border-radius: 10px;
+        }
+
+            .form-control:focus {
+                box-shadow: 0 0 0 .2rem rgba(13,110,253,.15);
+            }
+
+        .btn {
+            border-radius: 10px;
+        }
+
+        .badge {
+            font-size: 13px;
+            padding: 8px 14px;
+        }
+
+        @@media(max-width:768px) {
+
+            .btn {
+                width: 100%;
+                margin-top: 10px;
+            }
+
+            h2 {
+                font-size: 22px;
+            }
+
+            .table {
+                font-size: 13px;
+            }
+        }
+
+    </style>
+
+}
+
+@section Scripts {
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    @if (TempData["Success"] != null)
+    {
+        <script>
+
+            Swal.fire({
+
+                icon: 'success',
+
+                title: 'Success',
+
+                text: '@TempData["Success"]',
+
+                confirmButtonColor:'#198754'
+
+            });
+
+        </script>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <script>
+
+            Swal.fire({
+
+                icon: 'error',
+
+                title: 'Error',
+
+                text: '@TempData["Error"]',
+
+                confirmButtonColor:'#dc3545'
+
+            });
+
+        </script>
+    }
+
+}

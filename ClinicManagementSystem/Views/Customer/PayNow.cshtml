@@ -1,0 +1,570 @@
+﻿@model ClinicManagementSystem.Models.PaymentModel
+
+@{
+    ViewData["Title"] = "Pay Now";
+    Layout = "~/Views/Shared/_CustomerLayout.cshtml";
+}
+
+<div class="container py-4">
+
+    <!-- Header -->
+
+    <div class="row mb-4">
+
+        <div class="col-lg-12">
+
+            <div class="card border-0 shadow">
+
+                <div class="card-body bg-primary text-white rounded">
+
+                    <h2 class="fw-bold mb-2">
+
+                        <i class="fa-solid fa-credit-card me-2"></i>
+
+                        Pay Appointment Fee
+
+                    </h2>
+
+                    <p class="mb-0">
+
+                        Complete your payment securely to confirm your appointment.
+
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <form asp-action="PayNow" method="post">
+
+        @Html.AntiForgeryToken()
+
+        <input asp-for="PaymentId" type="hidden" />
+
+        <input asp-for="AppointmentId" type="hidden" />
+
+        <input asp-for="CustomerId" type="hidden" />
+
+        <input asp-for="Amount" type="hidden" />
+
+        <!-- Doctor Information -->
+
+        <div class="row">
+
+            <div class="col-lg-4 mb-4">
+
+                <div class="card border-0 shadow h-100">
+
+                    <div class="card-header bg-success text-white">
+
+                        <h5 class="mb-0">
+
+                            <i class="fa-solid fa-user-doctor me-2"></i>
+
+                            Doctor Information
+
+                        </h5>
+
+                    </div>
+
+                    <div class="card-body text-center">
+
+                        @if (!string.IsNullOrEmpty(Model.DoctorImage))
+                        {
+                            <img src="~/Department/@Model.DoctorImage"
+                                 class="rounded-circle doctor-img mb-3" />
+                        }
+                        else
+                        {
+                            <img src="https://cdn-icons-png.flaticon.com/512/387/387561.png"
+                                 class="rounded-circle doctor-img mb-3" />
+                        }
+
+                        <h4 class="fw-bold text-primary">
+
+                            Dr. @Model.DoctorName
+
+                        </h4>
+
+                        <hr />
+
+                        <table class="table table-borderless">
+
+                            <tr>
+
+                                <th width="40%">Department</th>
+
+                                <td>@Model.DepartmentName</td>
+
+                            </tr>
+
+                            <tr>
+
+                                <th>Appointment</th>
+
+                                <td>@Model.AppointmentNo</td>
+
+                            </tr>
+
+                            <tr>
+
+                                <th>Date</th>
+
+                                <td>
+
+                                    @(Model.AppointmentDate?.ToString("dd MMM yyyy"))
+
+                                </td>
+
+                            </tr>
+
+                            <tr>
+
+                                <th>Time</th>
+
+                                <td>
+
+                                    @(Model.AppointmentTime?.ToString(@"hh\:mm"))
+
+                                </td>
+
+                            </tr>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Payment Details -->
+
+            <div class="col-lg-8">
+
+                <div class="card border-0 shadow">
+
+                    <div class="card-header bg-info text-white">
+
+                        <h5 class="mb-0">
+
+                            <i class="fa-solid fa-wallet me-2"></i>
+
+                            Payment Details
+
+                        </h5>
+
+                    </div>
+
+                    <div class="card-body">
+
+                        <div class="row">
+
+                            <div class="col-md-6 mb-3">
+
+                                <label asp-for="CustomerName"
+                                       class="form-label fw-bold">
+
+                                    Customer Name
+
+                                </label>
+
+                                <input asp-for="CustomerName"
+                                       class="form-control"
+                                       readonly />
+
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+
+                                <label asp-for="MobileNo"
+                                       class="form-label fw-bold">
+
+                                    Mobile Number
+
+                                </label>
+
+                                <input asp-for="MobileNo"
+                                       class="form-control"
+                                       readonly />
+
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+
+                                <label asp-for="Email"
+                                       class="form-label fw-bold">
+
+                                    Email
+
+                                </label>
+
+                                <input asp-for="Email"
+                                       class="form-control"
+                                       readonly />
+
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+
+                                <label class="form-label fw-bold">
+
+                                    Consultation Fee
+
+                                </label>
+
+                                <input class="form-control fw-bold text-success"
+                                       value="₹ @Model.Amount.ToString("N2")"
+                                       readonly />
+
+                            </div>
+                            <div class="col-md-6 mb-3">
+
+                                <label asp-for="PaymentMethod"
+                                       class="form-label fw-bold">
+
+                                    Payment Method
+
+                                </label>
+
+                                <select asp-for="PaymentMethod"
+                                        class="form-select">
+
+                                    <option value="">-- Select Payment Method --</option>
+
+                                    <option value="Cash">Cash</option>
+
+                                    <option value="UPI">UPI</option>
+
+                                    <option value="Card">Credit / Debit Card</option>
+
+                                    <option value="Net Banking">Net Banking</option>
+
+                                </select>
+
+                                <span asp-validation-for="PaymentMethod"
+                                      class="text-danger"></span>
+
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+
+                                <label asp-for="TransactionId"
+                                       class="form-label fw-bold">
+
+                                    Transaction ID
+
+                                </label>
+
+                                <input asp-for="TransactionId"
+                                       class="form-control"
+                                       placeholder="Enter Transaction ID" />
+
+                                <span asp-validation-for="TransactionId"
+                                      class="text-danger"></span>
+
+                            </div>
+
+                            <div class="col-12">
+
+                                <div class="card border-success shadow-sm mt-3">
+
+                                    <div class="card-header bg-success text-white">
+
+                                        <h5 class="mb-0">
+
+                                            <i class="fa-solid fa-file-invoice-dollar me-2"></i>
+
+                                            Payment Summary
+
+                                        </h5>
+
+                                    </div>
+
+                                    <div class="card-body">
+
+                                        <table class="table table-borderless mb-0">
+
+                                            <tr>
+
+                                                <th width="40%">
+
+                                                    Appointment No
+
+                                                </th>
+
+                                                <td>
+
+                                                    @Model.AppointmentNo
+
+                                                </td>
+
+                                            </tr>
+
+                                            <tr>
+
+                                                <th>
+
+                                                    Doctor
+
+                                                </th>
+
+                                                <td>
+
+                                                    Dr. @Model.DoctorName
+
+                                                </td>
+
+                                            </tr>
+
+                                            <tr>
+
+                                                <th>
+
+                                                    Department
+
+                                                </th>
+
+                                                <td>
+
+                                                    @Model.DepartmentName
+
+                                                </td>
+
+                                            </tr>
+
+                                            <tr>
+
+                                                <th>
+
+                                                    Consultation Fee
+
+                                                </th>
+
+                                                <td class="text-success fw-bold">
+
+                                                    ₹ @Model.Amount.ToString("N2")
+
+                                                </td>
+
+                                            </tr>
+
+                                            <tr class="table-success">
+
+                                                <th class="fs-5">
+
+                                                    Total Amount
+
+                                                </th>
+
+                                                <td class="fs-4 fw-bold text-success">
+
+                                                    ₹ @Model.Amount.ToString("N2")
+
+                                                </td>
+
+                                            </tr>
+
+                                        </table>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                            <div class="col-12 text-center mt-4">
+
+                                <a asp-action="MyAppointments"
+                                   class="btn btn-secondary px-5 me-2">
+
+                                    <i class="fa-solid fa-arrow-left me-2"></i>
+
+                                    Back
+
+                                </a>
+
+                                <button type="submit"
+                                        class="btn btn-success px-5">
+
+                                    <i class="fa-solid fa-credit-card me-2"></i>
+
+                                    Pay Now
+
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </form>
+
+</div>
+@section Styles {
+
+    <style>
+
+        body {
+            background: #f5f7fb;
+        }
+
+        .card {
+            border: none;
+            border-radius: 18px;
+            overflow: hidden;
+            transition: .35s;
+        }
+
+            .card:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 15px 35px rgba(0,0,0,.10) !important;
+            }
+
+        .bg-primary {
+            background: linear-gradient(135deg,#0d6efd,#4f8cff) !important;
+        }
+
+        .bg-success {
+            background: linear-gradient(135deg,#198754,#20c997) !important;
+        }
+
+        .bg-info {
+            background: linear-gradient(135deg,#0dcaf0,#3dbdf5) !important;
+        }
+
+        .doctor-img {
+            width: 170px;
+            height: 170px;
+            object-fit: cover;
+            border: 5px solid #fff;
+            transition: .35s;
+        }
+
+            .doctor-img:hover {
+                transform: scale(1.08);
+            }
+
+        .form-control,
+        .form-select {
+            min-height: 48px;
+            border-radius: 10px;
+        }
+
+            .form-control:focus,
+            .form-select:focus {
+                border-color: #0d6efd;
+                box-shadow: 0 0 0 .15rem rgba(13,110,253,.25);
+            }
+
+        .btn {
+            border-radius: 10px;
+            transition: .3s;
+        }
+
+            .btn:hover {
+                transform: translateY(-2px);
+            }
+
+        .table th {
+            width: 40%;
+            color: #555;
+        }
+
+        .table td {
+            font-weight: 500;
+        }
+
+        .text-success {
+            color: #198754 !important;
+        }
+
+        .validation-summary-errors ul {
+            margin-bottom: 0;
+        }
+
+        @@media(max-width:991px) {
+
+            .doctor-img {
+                width: 150px;
+                height: 150px;
+            }
+        }
+
+        @@media(max-width:768px) {
+
+            .doctor-img {
+                width: 130px;
+                height: 130px;
+            }
+
+            .btn {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+
+            h2 {
+                font-size: 24px;
+            }
+        }
+
+    </style>
+
+}
+
+@section Scripts {
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    @if (TempData["Success"] != null)
+    {
+        <script>
+
+            Swal.fire({
+
+                icon:'success',
+
+                title:'Success',
+
+                text:'@TempData["Success"]',
+
+                confirmButtonColor:'#198754'
+
+            });
+
+        </script>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <script>
+
+            Swal.fire({
+
+                icon:'error',
+
+                title:'Error',
+
+                text:'@TempData["Error"]',
+
+                confirmButtonColor:'#dc3545'
+
+            });
+
+        </script>
+    }
+
+}
