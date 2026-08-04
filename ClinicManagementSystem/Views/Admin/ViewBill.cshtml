@@ -1,0 +1,689 @@
+﻿@model ClinicManagementSystem.Models.BillingModel
+
+@{
+    ViewData["Title"] = "View Bill";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid py-4">
+
+    <!-- Header -->
+
+    <div class="card border-0 shadow-lg mb-4">
+
+        <div class="card-body text-white"
+             style="background:linear-gradient(135deg,#0d6efd,#4f8cff);">
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <div>
+
+                    <h2 class="fw-bold mb-1">
+
+                        <i class="fa-solid fa-file-invoice-dollar me-2"></i>
+
+                        View Medical Bill
+
+                    </h2>
+
+                    <p class="mb-0">
+
+                        Complete billing information.
+
+                    </p>
+
+                </div>
+
+                <div>
+
+                    <a asp-action="ManageBills"
+                       class="btn btn-light me-2">
+
+                        <i class="fa-solid fa-arrow-left me-2"></i>
+
+                        Back
+
+                    </a>
+
+                    <a asp-action="DownloadBillPDF"
+                       asp-route-id="@Model.BillingId"
+                       class="btn btn-danger">
+
+                        <i class="fa-solid fa-file-pdf me-2"></i>
+
+                        Download PDF
+
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="row">
+
+        <!-- Patient Information -->
+
+        <div class="col-lg-6 mb-4">
+
+            <div class="card shadow border-0 h-100">
+
+                <div class="card-header bg-success text-white">
+
+                    <h5 class="mb-0">
+
+                        <i class="fa-solid fa-user me-2"></i>
+
+                        Patient Information
+
+                    </h5>
+
+                </div>
+
+                <div class="card-body">
+
+                    <div class="mb-3">
+
+                        <label class="fw-bold">
+
+                            Bill Number
+
+                        </label>
+
+                        <input class="form-control"
+                               value="@Model.BillNo"
+                               readonly />
+
+                    </div>
+
+                    <div class="mb-3">
+
+                        <label class="fw-bold">
+
+                            Appointment Number
+
+                        </label>
+
+                        <input class="form-control"
+                               value="@Model.AppointmentNo"
+                               readonly />
+
+                    </div>
+
+                    <div class="mb-3">
+
+                        <label class="fw-bold">
+
+                            Patient Name
+
+                        </label>
+
+                        <input class="form-control"
+                               value="@Model.CustomerName"
+                               readonly />
+
+                    </div>
+
+                    <div class="mb-3">
+
+                        <label class="fw-bold">
+
+                            Mobile Number
+
+                        </label>
+
+                        <input class="form-control"
+                               value="@Model.MobileNo"
+                               readonly />
+
+                    </div>
+
+                    <div class="mb-3">
+
+                        <label class="fw-bold">
+
+                            Email Address
+
+                        </label>
+
+                        <input class="form-control"
+                               value="@Model.Email"
+                               readonly />
+
+                    </div>
+
+                    <div class="mb-3">
+
+                        <label class="fw-bold">
+
+                            Appointment Date
+
+                        </label>
+
+                        <input class="form-control"
+                               value="@Model.AppointmentDate?.ToString("dd MMM yyyy")"
+                               readonly />
+
+                    </div>
+
+                    <div class="mb-3">
+
+                        <label class="fw-bold">
+
+                            Appointment Time
+
+                        </label>
+
+                        <input class="form-control"
+                               value="@Model.AppointmentTime"
+                               readonly />
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Doctor Information -->
+
+        <div class="col-lg-6 mb-4">
+
+            <div class="card shadow border-0 h-100">
+
+                <div class="card-header bg-primary text-white">
+
+                    <h5 class="mb-0">
+
+                        <i class="fa-solid fa-user-doctor me-2"></i>
+
+                        Doctor Information
+
+                    </h5>
+
+                </div>
+
+                <div class="card-body text-center">
+
+                    @if (!string.IsNullOrEmpty(Model.DoctorImage))
+                    {
+                        <img src="~/Department/@Model.DoctorImage"
+                             class="rounded-circle border mb-3"
+                             width="150"
+                             height="150"
+                             style="object-fit:cover;" />
+                    }
+                    else
+                    {
+                        <img src="~/images/no-image.png"
+                             class="rounded-circle border mb-3"
+                             width="150"
+                             height="150"
+                             style="object-fit:cover;" />
+                    }
+
+                    <h4 class="text-primary">
+
+                        Dr. @Model.DoctorName
+
+                    </h4>
+
+                    <hr />
+
+                    <table class="table table-borderless">
+
+                        <tr>
+
+                            <th width="35%">
+
+                                Department
+
+                            </th>
+
+                            <td>
+
+                                @Model.DepartmentName
+
+                            </td>
+
+                        </tr>
+
+                        <tr>
+
+                            <th>
+
+                                Payment Status
+
+                            </th>
+
+                            <td>
+
+                                @if (Model.PaymentStatus == "Paid")
+                                {
+                                    <span class="badge bg-success">
+
+                                        Paid
+
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-warning text-dark">
+
+                                        Pending
+
+                                    </span>
+                                }
+
+                            </td>
+
+                        </tr>
+
+                        <tr>
+
+                            <th>
+
+                                Bill Status
+
+                            </th>
+
+                            <td>
+
+                                @if (Model.BillStatus == "Generated")
+                                {
+                                    <span class="badge bg-primary">
+
+                                        Generated
+
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">
+
+                                        Cancelled
+
+                                    </span>
+                                }
+
+                            </td>
+
+                        </tr>
+
+                        <tr>
+
+                            <th>
+
+                                Bill Date
+
+                            </th>
+
+                            <td>
+
+                                @Model.BillDate.ToString("dd MMM yyyy")
+
+                            </td>
+
+                        </tr>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+    <!-- Billing Summary -->
+
+    <div class="card border-0 shadow mb-4">
+
+        <div class="card-header bg-danger text-white">
+
+            <h5 class="mb-0">
+
+                <i class="fa-solid fa-money-bill-wave me-2"></i>
+
+                Billing Summary
+
+            </h5>
+
+        </div>
+
+        <div class="card-body">
+
+            <div class="row">
+
+                <div class="col-md-6 mb-3">
+
+                    <label class="fw-bold">
+
+                        Consultation Fee
+
+                    </label>
+
+                    <input class="form-control"
+                           value="₹ @Model.ConsultationFee.ToString("0.00")"
+                           readonly />
+
+                </div>
+
+                <div class="col-md-6 mb-3">
+
+                    <label class="fw-bold">
+
+                        Medicine Charge
+
+                    </label>
+
+                    <input class="form-control"
+                           value="₹ @Model.MedicineCharge.ToString("0.00")"
+                           readonly />
+
+                </div>
+
+                <div class="col-md-6 mb-3">
+
+                    <label class="fw-bold">
+
+                        Lab Charge
+
+                    </label>
+
+                    <input class="form-control"
+                           value="₹ @Model.LabCharge.ToString("0.00")"
+                           readonly />
+
+                </div>
+
+                <div class="col-md-6 mb-3">
+
+                    <label class="fw-bold">
+
+                        Other Charge
+
+                    </label>
+
+                    <input class="form-control"
+                           value="₹ @Model.OtherCharge.ToString("0.00")"
+                           readonly />
+
+                </div>
+
+                <div class="col-md-6 mb-3">
+
+                    <label class="fw-bold">
+
+                        Discount
+
+                    </label>
+
+                    <input class="form-control text-danger fw-bold"
+                           value="- ₹ @Model.Discount.ToString("0.00")"
+                           readonly />
+
+                </div>
+
+                <div class="col-md-6 mb-3">
+
+                    <label class="fw-bold">
+
+                        GST (@Model.GSTPercentage%)
+
+                    </label>
+
+                    <input class="form-control"
+                           value="₹ @Model.GSTAmount.ToString("0.00")"
+                           readonly />
+
+                </div>
+
+            </div>
+
+            <hr />
+
+            <!-- Grand Total -->
+
+            <div class="row">
+
+                <div class="col-md-12">
+
+                    <div class="alert alert-success text-center">
+
+                        <h2 class="mb-0">
+
+                            <i class="fa-solid fa-indian-rupee-sign me-2"></i>
+
+                            Grand Total :
+                            ₹ @Model.TotalAmount.ToString("0.00")
+
+                        </h2>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Remarks -->
+
+            <div class="mt-4">
+
+                <label class="fw-bold">
+
+                    Remarks
+
+                </label>
+
+                <textarea class="form-control"
+                          rows="4"
+                          readonly>@Model.Remarks</textarea>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Action Buttons -->
+
+    <div class="text-center mb-4">
+
+        <a asp-action="DownloadBillPDF"
+           asp-route-id="@Model.BillingId"
+           class="btn btn-danger btn-lg px-5 me-2">
+
+            <i class="fa-solid fa-file-pdf me-2"></i>
+
+            Download PDF
+
+        </a>
+
+        <a asp-action="ManageBills"
+           class="btn btn-secondary btn-lg px-5">
+
+            <i class="fa-solid fa-arrow-left me-2"></i>
+
+            Back
+
+        </a>
+
+    </div>
+@section Styles{
+
+        <style>
+
+            body {
+                background: #f5f7fb;
+            }
+
+            .card {
+                border: none;
+                border-radius: 18px;
+                overflow: hidden;
+                transition: .35s;
+            }
+
+                .card:hover {
+                    transform: translateY(-3px);
+                    box-shadow: 0 15px 35px rgba(0,0,0,.10) !important;
+                }
+
+            .card-header {
+                font-weight: 600;
+            }
+
+            .form-control {
+                min-height: 46px;
+                border-radius: 10px;
+                background: #fff;
+            }
+
+                .form-control:focus {
+                    border-color: #0d6efd;
+                    box-shadow: 0 0 0 .15rem rgba(13,110,253,.20);
+                }
+
+            textarea {
+                resize: none;
+            }
+
+            .table th {
+                width: 35%;
+                color: #555;
+            }
+
+            .table td {
+                font-weight: 500;
+            }
+
+            .rounded-circle {
+                border: 5px solid #fff;
+                box-shadow: 0 5px 20px rgba(0,0,0,.15);
+                transition: .35s;
+            }
+
+                .rounded-circle:hover {
+                    transform: scale(1.08);
+                }
+
+            .alert-success {
+                border-radius: 15px;
+            }
+
+            .btn {
+                border-radius: 10px;
+                transition: .30s;
+            }
+
+                .btn:hover {
+                    transform: translateY(-2px);
+                }
+
+            .badge {
+                font-size: 14px;
+            }
+
+            @@media(max-width:992px) {
+
+                .rounded-circle {
+                    width: 130px !important;
+                    height: 130px !important;
+                }
+            }
+
+            @@media(max-width:768px) {
+
+                .rounded-circle {
+                    width: 110px !important;
+                    height: 110px !important;
+                }
+
+                .btn {
+                    width: 100%;
+                    margin-bottom: 10px;
+                }
+
+                h2 {
+                    font-size: 24px;
+                }
+            }
+
+        </style>
+
+}
+
+@section Scripts{
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    @if (TempData["Success"] != null)
+    {
+            <script>
+
+                Swal.fire({
+
+                icon:'success',
+
+                title:'Success',
+
+                text:'@TempData["Success"]',
+
+                confirmButtonColor:'#198754'
+
+                });
+
+            </script>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+            <script>
+
+                Swal.fire({
+
+                icon:'error',
+
+                title:'Error',
+
+                text:'@TempData["Error"]',
+
+                confirmButtonColor:'#dc3545'
+
+                });
+
+            </script>
+    }
+
+        <script>
+
+            $(document).ready(function(){
+
+                $(".table tr").hover(
+
+                    function(){
+
+                        $(this).addClass("table-primary");
+
+                    },
+
+                    function(){
+
+                        $(this).removeClass("table-primary");
+
+                    }
+
+                );
+
+            });
+
+        </script>
+
+}

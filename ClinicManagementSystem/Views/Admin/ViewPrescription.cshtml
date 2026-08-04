@@ -1,0 +1,750 @@
+﻿@model ClinicManagementSystem.Models.PrescriptionModel
+
+@{
+    ViewData["Title"] = "View Prescription";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid py-4">
+
+    <!-- Header -->
+
+    <div class="row mb-4">
+
+        <div class="col-lg-12">
+
+            <div class="card shadow border-0">
+
+                <div class="card-body bg-primary text-white rounded">
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <div>
+
+                            <h2 class="fw-bold mb-1">
+
+                                <i class="fa-solid fa-file-prescription me-2"></i>
+
+                                Prescription Details
+
+                            </h2>
+
+                            <p class="mb-0">
+
+                                View complete prescription information.
+
+                            </p>
+
+                        </div>
+
+                        <a asp-action="ManagePrescriptions"
+                           class="btn btn-light">
+
+                            <i class="fa-solid fa-arrow-left me-2"></i>
+
+                            Back
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="row">
+
+        <!-- Doctor Information -->
+
+        <div class="col-lg-4 mb-4">
+
+            <div class="card shadow border-0 h-100">
+
+                <div class="card-header bg-success text-white">
+
+                    <h5 class="mb-0">
+
+                        <i class="fa-solid fa-user-doctor me-2"></i>
+
+                        Doctor Information
+
+                    </h5>
+
+                </div>
+
+                <div class="card-body text-center">
+
+                    @if (!string.IsNullOrEmpty(Model.DoctorImage))
+                    {
+                        <img src="~/DoctorImages/@Model.DoctorImage"
+                             class="rounded-circle doctor-img mb-3"
+                             style="width:170px;height:170px;object-fit:cover;" />
+                    }
+                    else
+                    {
+                        <img src="~/images/no-image.png"
+                             class="rounded-circle doctor-img mb-3"
+                             style="width:170px;height:170px;object-fit:cover;" />
+                    }
+
+                    <h4 class="fw-bold text-primary">
+
+                        Dr. @Model.DoctorName
+
+                    </h4>
+
+                    <hr />
+
+                    <table class="table table-borderless mb-0">
+
+                        <tr>
+
+                            <th width="40%">
+
+                                Department
+
+                            </th>
+
+                            <td>
+
+                                @Model.DepartmentName
+
+                            </td>
+
+                        </tr>
+
+                        <tr>
+
+                            <th>
+
+                                Qualification
+
+                            </th>
+
+                            <td>
+
+                                @Model.Qualification
+
+                            </td>
+
+                        </tr>
+
+                        <tr>
+
+                            <th>
+
+                                Specialization
+
+                            </th>
+
+                            <td>
+
+                                @Model.Specialization
+
+                            </td>
+
+                        </tr>
+
+                        <tr>
+
+                            <th>
+
+                                Experience
+
+                            </th>
+
+                            <td>
+
+                                @Model.Experience
+
+                            </td>
+
+                        </tr>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Patient & Appointment Information -->
+
+        <div class="col-lg-8">
+
+            <div class="card shadow border-0">
+
+                <div class="card-header bg-info text-white">
+
+                    <h5 class="mb-0">
+
+                        <i class="fa-solid fa-user-injured me-2"></i>
+
+                        Patient & Appointment Information
+
+                    </h5>
+
+                </div>
+
+                <div class="card-body">
+
+                    <div class="row">
+
+                        <div class="col-md-6 mb-3">
+
+                            <label class="form-label fw-bold">
+
+                                Appointment No
+
+                            </label>
+
+                            <input class="form-control"
+                                   value="@Model.AppointmentNo"
+                                   readonly />
+
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+
+                            <label class="form-label fw-bold">
+
+                                Appointment Date
+
+                            </label>
+
+                            <input class="form-control"
+                                   value="@Model.AppointmentDate?.ToString("dd MMM yyyy")"
+                                   readonly />
+
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+
+                            <label class="form-label fw-bold">
+
+                                Appointment Time
+
+                            </label>
+
+                            <input class="form-control"
+                                   value="@Model.AppointmentTime?.ToString(@"hh\:mm")"
+                                   readonly />
+
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+
+                            <label class="form-label fw-bold">
+
+                                Patient Name
+
+                            </label>
+
+                            <input class="form-control"
+                                   value="@Model.CustomerName"
+                                   readonly />
+
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+
+                            <label class="form-label fw-bold">
+
+                                Mobile Number
+
+                            </label>
+
+                            <input class="form-control"
+                                   value="@Model.MobileNo"
+                                   readonly />
+
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+
+                            <label class="form-label fw-bold">
+
+                                Email Address
+
+                            </label>
+
+                            <input class="form-control"
+                                   value="@Model.Email"
+                                   readonly />
+
+                        </div>
+
+                        <hr class="my-3" />
+
+                        <h5 class="text-primary mb-3">
+
+                            <i class="fa-solid fa-file-medical me-2"></i>
+
+                            Prescription Details
+
+                        </h5>
+                        <div class="col-md-12 mb-3">
+
+                            <label class="form-label fw-bold">
+
+                                Diagnosis
+
+                            </label>
+
+                            <textarea class="form-control"
+                                      rows="3"
+                                      readonly>@Model.Diagnosis</textarea>
+
+                        </div>
+
+                        <div class="col-md-12 mb-3">
+
+                            <label class="form-label fw-bold">
+
+                                Symptoms
+
+                            </label>
+
+                            <textarea class="form-control"
+                                      rows="3"
+                                      readonly>@Model.Symptoms</textarea>
+
+                        </div>
+
+                        <div class="col-md-12 mb-3">
+
+                            <label class="form-label fw-bold">
+
+                                Medicines
+
+                            </label>
+
+                            <textarea class="form-control"
+                                      rows="5"
+                                      readonly>@Model.Medicines</textarea>
+
+                        </div>
+
+                        <div class="col-md-12 mb-3">
+
+                            <label class="form-label fw-bold">
+
+                                Dosage
+
+                            </label>
+
+                            <textarea class="form-control"
+                                      rows="4"
+                                      readonly>@Model.Dosage</textarea>
+
+                        </div>
+
+                        <div class="col-md-12 mb-3">
+
+                            <label class="form-label fw-bold">
+
+                                Doctor Instructions
+
+                            </label>
+
+                            <textarea class="form-control"
+                                      rows="4"
+                                      readonly>@Model.Instructions</textarea>
+
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+
+                            <label class="form-label fw-bold">
+
+                                Next Visit Date
+
+                            </label>
+
+                            <input class="form-control"
+                                   value="@(Model.NextVisitDate?.ToString("dd MMM yyyy"))"
+                                   readonly />
+
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+
+                            <label class="form-label fw-bold">
+
+                                Prescription Status
+
+                            </label>
+
+                            <br />
+
+                            @if (Model.PrescriptionStatus == "Active")
+                            {
+                                <span class="badge bg-success fs-6 px-4 py-2">
+
+                                    <i class="fa-solid fa-circle-check me-2"></i>
+
+                                    Active
+
+                                </span>
+                            }
+                            else if (Model.PrescriptionStatus == "Completed")
+                            {
+                                <span class="badge bg-primary fs-6 px-4 py-2">
+
+                                    <i class="fa-solid fa-file-medical me-2"></i>
+
+                                    Completed
+
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary fs-6 px-4 py-2">
+
+                                    @Model.PrescriptionStatus
+
+                                </span>
+                            }
+
+                        </div>
+
+                        <!-- Prescription Summary -->
+
+                        <div class="col-12 mt-4">
+
+                            <div class="card border-success shadow-sm">
+
+                                <div class="card-header bg-success text-white">
+
+                                    <h5 class="mb-0">
+
+                                        <i class="fa-solid fa-notes-medical me-2"></i>
+
+                                        Prescription Summary
+
+                                    </h5>
+
+                                </div>
+
+                                <div class="card-body">
+
+                                    <table class="table table-borderless mb-0">
+
+                                        <tr>
+
+                                            <th width="35%">
+
+                                                Appointment No
+
+                                            </th>
+
+                                            <td>
+
+                                                @Model.AppointmentNo
+
+                                            </td>
+
+                                        </tr>
+
+                                        <tr>
+
+                                            <th>
+
+                                                Patient
+
+                                            </th>
+
+                                            <td>
+
+                                                @Model.CustomerName
+
+                                            </td>
+
+                                        </tr>
+
+                                        <tr>
+
+                                            <th>
+
+                                                Doctor
+
+                                            </th>
+
+                                            <td>
+
+                                                Dr. @Model.DoctorName
+
+                                            </td>
+
+                                        </tr>
+
+                                        <tr>
+
+                                            <th>
+
+                                                Department
+
+                                            </th>
+
+                                            <td>
+
+                                                @Model.DepartmentName
+
+                                            </td>
+
+                                        </tr>
+
+                                        <tr>
+
+                                            <th>
+
+                                                Next Visit
+
+                                            </th>
+
+                                            <td>
+
+                                                @(Model.NextVisitDate?.ToString("dd MMM yyyy"))
+
+                                            </td>
+
+                                        </tr>
+
+                                        <tr>
+
+                                            <th>
+
+                                                Status
+
+                                            </th>
+
+                                            <td>
+
+                                                @Model.PrescriptionStatus
+
+                                            </td>
+
+                                        </tr>
+
+                                    </table>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div class="col-12 text-center mt-4">
+
+                            <a asp-action="ManagePrescriptions"
+                               class="btn btn-secondary px-5 me-2">
+
+                                <i class="fa-solid fa-arrow-left me-2"></i>
+
+                                Back
+
+                            </a>
+
+                            <a asp-action="DownloadPrescriptionPDF"
+                               asp-route-id="@Model.PrescriptionId"
+                               class="btn btn-success px-5 me-2">
+
+                                <i class="fa-solid fa-file-pdf me-2"></i>
+
+                                Download PDF
+
+                            </a>
+
+                            <a asp-action="EditPrescription"
+                               asp-route-id="@Model.PrescriptionId"
+                               class="btn btn-warning px-5">
+
+                                <i class="fa-solid fa-pen-to-square me-2"></i>
+
+                                Edit Prescription
+
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+@section Styles {
+
+    <style>
+
+        body {
+            background: #f5f7fb;
+        }
+
+        .card {
+            border: none;
+            border-radius: 18px;
+            overflow: hidden;
+            transition: .35s;
+        }
+
+            .card:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 15px 35px rgba(0,0,0,.10) !important;
+            }
+
+        .bg-primary {
+            background: linear-gradient(135deg,#0d6efd,#4f8cff) !important;
+        }
+
+        .bg-success {
+            background: linear-gradient(135deg,#198754,#20c997) !important;
+        }
+
+        .bg-info {
+            background: linear-gradient(135deg,#0dcaf0,#3dbdf5) !important;
+        }
+
+        .doctor-img {
+            width: 170px;
+            height: 170px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 5px solid #fff;
+            transition: .35s;
+        }
+
+            .doctor-img:hover {
+                transform: scale(1.08);
+            }
+
+        .form-control {
+            min-height: 48px;
+            border-radius: 10px;
+            background: #fff;
+        }
+
+        textarea.form-control {
+            min-height: 110px;
+            resize: none;
+        }
+
+        .form-control:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 .15rem rgba(13,110,253,.20);
+        }
+
+        .table th {
+            width: 40%;
+            color: #555;
+        }
+
+        .table td {
+            font-weight: 500;
+        }
+
+        .badge {
+            font-size: 14px;
+        }
+
+        .btn {
+            border-radius: 10px;
+            transition: .3s;
+        }
+
+            .btn:hover {
+                transform: translateY(-2px);
+            }
+
+        .text-primary {
+            font-weight: 600;
+        }
+
+        .text-success {
+            color: #198754 !important;
+        }
+
+        @@media(max-width:991px) {
+
+            .doctor-img {
+                width: 150px;
+                height: 150px;
+            }
+        }
+
+        @@media(max-width:768px) {
+
+            .doctor-img {
+                width: 130px;
+                height: 130px;
+            }
+
+            .btn {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+
+            h2 {
+                font-size: 24px;
+            }
+        }
+
+    </style>
+
+}
+
+@section Scripts {
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    @if (TempData["Success"] != null)
+    {
+        <script>
+
+            Swal.fire({
+
+                icon:'success',
+
+                title:'Success',
+
+                text:'@TempData["Success"]',
+
+                confirmButtonColor:'#198754'
+
+            });
+
+        </script>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <script>
+
+            Swal.fire({
+
+                icon:'error',
+
+                title:'Error',
+
+                text:'@TempData["Error"]',
+
+                confirmButtonColor:'#dc3545'
+
+            });
+
+        </script>
+    }
+
+}

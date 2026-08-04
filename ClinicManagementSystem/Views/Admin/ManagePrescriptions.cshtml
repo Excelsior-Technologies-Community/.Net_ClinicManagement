@@ -1,0 +1,547 @@
+﻿@model IEnumerable<ClinicManagementSystem.Models.PrescriptionModel>
+
+@{
+    ViewData["Title"] = "Manage Prescriptions";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid py-4">
+
+    <!-- Page Header -->
+
+    <div class="row mb-4">
+
+        <div class="col-12">
+
+            <div class="card shadow border-0">
+
+                <div class="card-body bg-primary text-white rounded">
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <div>
+
+                            <h2 class="fw-bold mb-1">
+
+                                <i class="fa-solid fa-file-prescription me-2"></i>
+
+                                Manage Prescriptions
+
+                            </h2>
+
+                            <p class="mb-0">
+
+                                View and manage all patient prescriptions.
+
+                            </p>
+
+                        </div>
+
+                        <span class="badge bg-light text-primary fs-6 px-3 py-2">
+
+                            Total Prescriptions : @Model.Count()
+
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Search Card -->
+
+    <div class="card border-0 shadow mb-4">
+
+        <div class="card-body">
+
+            <form method="get" asp-action="ManagePrescriptions">
+
+                <div class="row">
+
+                    <div class="col-md-5 mb-3">
+
+                        <label class="form-label fw-bold">
+
+                            Search
+
+                        </label>
+
+                        <input type="text"
+                               name="search"
+                               value="@ViewBag.Search"
+                               class="form-control"
+                               placeholder="Appointment No / Patient / Doctor / Diagnosis" />
+
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+
+                        <label class="form-label fw-bold">
+
+                            Prescription Status
+
+                        </label>
+
+                        <select name="status"
+                                class="form-select">
+
+                            <option value="">All</option>
+
+                            <option value="Active"
+                                    selected="@(ViewBag.Status=="Active")">
+
+                                Active
+
+                            </option>
+
+                            <option value="Completed"
+                                    selected="@(ViewBag.Status=="Completed")">
+
+                                Completed
+
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-md-3 d-grid">
+
+                        <label>&nbsp;</label>
+
+                        <button type="submit"
+                                class="btn btn-primary">
+
+                            <i class="fa-solid fa-search me-2"></i>
+
+                            Search
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+    <!-- Prescription Table -->
+
+    <div class="card shadow border-0">
+
+        <div class="card-header bg-success text-white">
+
+            <h5 class="mb-0">
+
+                <i class="fa-solid fa-list me-2"></i>
+
+                Prescription List
+
+            </h5>
+
+        </div>
+
+        <div class="card-body table-responsive">
+
+            <table class="table table-bordered table-hover align-middle">
+
+                <thead class="table-dark">
+
+                    <tr>
+
+                        <th>#</th>
+
+                        <th>Appointment No</th>
+
+                        <th>Patient</th>
+
+                        <th>Doctor</th>
+
+                        <th>Department</th>
+
+                        <th>Diagnosis</th>
+
+                        <th>Appointment Date</th>
+
+                        <th>Next Visit</th>
+
+                        <th>Status</th>
+
+                        <th width="180">Action</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    @{
+                        int sr = 1;
+                    }
+
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+
+                            <td>
+
+                                @(sr++)
+
+                            </td>
+
+                            <td>
+
+                                <span class="fw-bold text-primary">
+
+                                    @item.AppointmentNo
+
+                                </span>
+
+                            </td>
+
+                            <td>
+
+                                @item.CustomerName
+
+                                <br />
+
+                                <small class="text-muted">
+
+                                    @item.MobileNo
+
+                                </small>
+
+                            </td>
+
+                            <td>
+
+                                Dr. @item.DoctorName
+
+                            </td>
+
+                            <td>
+
+                                @item.DepartmentName
+
+                            </td>
+
+                            <td>
+
+                                @item.Diagnosis
+
+                            </td>
+
+                            <td>
+
+                                @(item.AppointmentDate?.ToString("dd MMM yyyy"))
+
+                            </td>
+
+                            <td>
+
+                                @(item.NextVisitDate?.ToString("dd MMM yyyy"))
+
+                            </td>
+                            <td>
+
+                                @if (item.PrescriptionStatus == "Active")
+                                {
+                                    <span class="badge bg-success px-3 py-2">
+
+                                        <i class="fa-solid fa-circle-check me-1"></i>
+
+                                        Active
+
+                                    </span>
+                                }
+                                else if (item.PrescriptionStatus == "Completed")
+                                {
+                                    <span class="badge bg-primary px-3 py-2">
+
+                                        <i class="fa-solid fa-file-medical me-1"></i>
+
+                                        Completed
+
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary px-3 py-2">
+
+                                        @item.PrescriptionStatus
+
+                                    </span>
+                                }
+
+                            </td>
+
+                            <td>
+
+                                <!-- View -->
+
+                                <a asp-action="ViewPrescription"
+                                   asp-route-id="@item.PrescriptionId"
+                                   class="btn btn-primary btn-sm mb-1"
+                                   title="View">
+
+                                    <i class="fa-solid fa-eye"></i>
+
+                                </a>
+
+                                <!-- Edit -->
+
+                                <a asp-action="EditPrescription"
+                                   asp-route-id="@item.PrescriptionId"
+                                   class="btn btn-warning btn-sm mb-1"
+                                   title="Edit">
+
+                                    <i class="fa-solid fa-pen-to-square"></i>
+
+                                </a>
+
+                                <!-- Download PDF -->
+
+                                <a asp-action="DownloadPrescriptionPDF"
+                                   asp-route-id="@item.PrescriptionId"
+                                   class="btn btn-success btn-sm mb-1"
+                                   title="Download PDF">
+
+                                    <i class="fa-solid fa-file-pdf"></i>
+
+                                </a>
+
+                                <!-- Delete -->
+
+                                <a href="#"
+                                   class="btn btn-danger btn-sm deleteBtn"
+                                   data-id="@item.PrescriptionId">
+
+                                    <i class="fa-solid fa-trash"></i>
+
+                                </a>
+
+                            </td>
+
+                        </tr>
+                    }
+
+                    @if (!Model.Any())
+                    {
+                        <tr>
+
+                            <td colspan="10" class="text-center py-5">
+
+                                <i class="fa-solid fa-file-prescription fa-4x text-secondary mb-3"></i>
+
+                                <h4 class="text-muted">
+
+                                    No Prescription Records Found
+
+                                </h4>
+
+                                <p class="text-muted mb-0">
+
+                                    Prescription records are not available.
+
+                                </p>
+
+                            </td>
+
+                        </tr>
+                    }
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+@section Styles {
+
+    <style>
+
+        body {
+            background: #f5f7fb;
+        }
+
+        .card {
+            border: none;
+            border-radius: 18px;
+            overflow: hidden;
+            transition: .35s;
+        }
+
+            .card:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 15px 35px rgba(0,0,0,.10) !important;
+            }
+
+        .bg-primary {
+            background: linear-gradient(135deg,#0d6efd,#4f8cff) !important;
+        }
+
+        .bg-success {
+            background: linear-gradient(135deg,#198754,#20c997) !important;
+        }
+
+        .table thead th {
+            text-align: center;
+            vertical-align: middle;
+            white-space: nowrap;
+        }
+
+        .table tbody td {
+            vertical-align: middle;
+        }
+
+        .table-hover tbody tr:hover {
+            background: #f8fbff;
+        }
+
+        .form-control,
+        .form-select {
+            min-height: 45px;
+            border-radius: 10px;
+        }
+
+            .form-control:focus,
+            .form-select:focus {
+                border-color: #0d6efd;
+                box-shadow: 0 0 0 .15rem rgba(13,110,253,.20);
+            }
+
+        .btn {
+            border-radius: 8px;
+            transition: .3s;
+        }
+
+            .btn:hover {
+                transform: translateY(-2px);
+            }
+
+        .badge {
+            font-size: 13px;
+            padding: 8px 14px;
+        }
+
+        .text-primary {
+            font-weight: 600;
+        }
+
+        @@media(max-width:992px) {
+
+            .table {
+                min-width: 1300px;
+            }
+        }
+
+        @@media(max-width:768px) {
+
+            h2 {
+                font-size: 24px;
+            }
+
+            .btn {
+                width: 100%;
+                margin-bottom: 8px;
+            }
+        }
+
+    </style>
+
+}
+
+@section Scripts {
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    @if (TempData["Success"] != null)
+    {
+        <script>
+
+            Swal.fire({
+
+                icon:'success',
+
+                title:'Success',
+
+                text:'@TempData["Success"]',
+
+                confirmButtonColor:'#198754'
+
+            });
+
+        </script>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <script>
+
+            Swal.fire({
+
+                icon:'error',
+
+                title:'Error',
+
+                text:'@TempData["Error"]',
+
+                confirmButtonColor:'#dc3545'
+
+            });
+
+        </script>
+    }
+    <script>
+
+        $(".deleteBtn").click(function (e) {
+
+            e.preventDefault();
+
+            var id = $(this).data("id");
+
+            Swal.fire({
+
+                title: "Delete Prescription?",
+
+                text: "This prescription will be removed.",
+
+                icon: "warning",
+
+                showCancelButton: true,
+
+                confirmButtonColor: "#dc3545",
+
+                cancelButtonColor: "#6c757d",
+
+                confirmButtonText: "Yes, Delete"
+
+            }).then((result)=>{
+
+                if(result.isConfirmed){
+
+                    window.location.href="/Admin/DeletePrescription/"+id;
+
+                }
+
+            });
+
+        });
+
+    </script>
+    </script>
+
+}

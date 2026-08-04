@@ -1,0 +1,631 @@
+﻿@model ClinicManagementSystem.Models.PrescriptionModel
+
+@{
+    ViewData["Title"] = "Add Prescription";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid py-4">
+
+    <!-- Page Header -->
+
+    <div class="row mb-4">
+
+        <div class="col-12">
+
+            <div class="card border-0 shadow">
+
+                <div class="card-body bg-primary text-white rounded">
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <div>
+
+                            <h2 class="fw-bold mb-1">
+
+                                <i class="fa-solid fa-file-prescription me-2"></i>
+
+                                Add Prescription
+
+                            </h2>
+
+                            <p class="mb-0">
+
+                                Create a prescription for the selected patient.
+
+                            </p>
+
+                        </div>
+
+                        <a asp-action="ManagePrescriptions"
+                           class="btn btn-light">
+
+                            <i class="fa-solid fa-arrow-left me-2"></i>
+
+                            Back
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <form asp-action="AddPrescription" method="post">
+
+        @Html.AntiForgeryToken()
+
+        <input asp-for="AppointmentId" type="hidden" />
+        <input asp-for="CustomerId" type="hidden" />
+        <input asp-for="DoctorId" type="hidden" />
+
+        <div class="row">
+
+            <!-- Doctor Information -->
+
+            <div class="col-lg-4 mb-4">
+
+                <div class="card border-0 shadow h-100">
+
+                    <div class="card-header bg-success text-white">
+
+                        <h5 class="mb-0">
+
+                            <i class="fa-solid fa-user-doctor me-2"></i>
+
+                            Doctor Information
+
+                        </h5>
+
+                    </div>
+
+                    <div class="card-body text-center">
+
+                        @if (!string.IsNullOrEmpty(Model.DoctorImage))
+                        {
+                            <img src="~/Department/@Model.DoctorImage"
+                                 class="rounded-circle doctor-img mb-3" />
+                        }
+                        else
+                        {
+                            <img src="~/images/no-image.png"
+                                 class="rounded-circle doctor-img mb-3" />
+                        }
+
+                        <h4 class="fw-bold text-primary">
+
+                            Dr. @Model.DoctorName
+
+                        </h4>
+
+                        <hr />
+
+                        <table class="table table-borderless">
+
+                            <tr>
+
+                                <th width="40%">Department</th>
+
+                                <td>@Model.DepartmentName</td>
+
+                            </tr>
+
+                            <tr>
+
+                                <th>Qualification</th>
+
+                                <td>@Model.Qualification</td>
+
+                            </tr>
+
+                            <tr>
+
+                                <th>Specialization</th>
+
+                                <td>@Model.Specialization</td>
+
+                            </tr>
+
+                            <tr>
+
+                                <th>Experience</th>
+
+                                <td>@Model.Experience</td>
+
+                            </tr>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Prescription Form -->
+
+            <div class="col-lg-8">
+
+                <div class="card border-0 shadow">
+
+                    <div class="card-header bg-info text-white">
+
+                        <h5 class="mb-0">
+
+                            <i class="fa-solid fa-notes-medical me-2"></i>
+
+                            Patient & Appointment Details
+
+                        </h5>
+
+                    </div>
+
+                    <div class="card-body">
+
+                        <div class="row">
+
+                            <div class="col-md-6 mb-3">
+
+                                <label class="form-label fw-bold">
+
+                                    Appointment No
+
+                                </label>
+
+                                <input asp-for="AppointmentNo"
+                                       class="form-control"
+                                       readonly />
+
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+
+                                <label class="form-label fw-bold">
+
+                                    Appointment Date
+
+                                </label>
+
+                                <input class="form-control"
+                                       value="@Model.AppointmentDate?.ToString("dd MMM yyyy")"
+                                       readonly />
+
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+
+                                <label class="form-label fw-bold">
+
+                                    Appointment Time
+
+                                </label>
+
+                                <input class="form-control"
+                                       value="@Model.AppointmentTime?.ToString(@"hh\:mm")"
+                                       readonly />
+
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+
+                                <label class="form-label fw-bold">
+
+                                    Patient Name
+
+                                </label>
+
+                                <input asp-for="CustomerName"
+                                       class="form-control"
+                                       readonly />
+
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+
+                                <label class="form-label fw-bold">
+
+                                    Mobile Number
+
+                                </label>
+
+                                <input asp-for="MobileNo"
+                                       class="form-control"
+                                       readonly />
+
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+
+                                <label class="form-label fw-bold">
+
+                                    Email Address
+
+                                </label>
+
+                                <input asp-for="Email"
+                                       class="form-control"
+                                       readonly />
+
+                            </div>
+
+                            <hr class="my-3"/>
+
+                            <h5 class="text-primary mb-3">
+
+                                <i class="fa-solid fa-file-medical me-2"></i>
+
+                                Prescription Details
+
+                            </h5>
+                            <div class="col-md-12 mb-3">
+
+                                <label asp-for="Diagnosis"
+                                       class="form-label fw-bold">
+
+                                    Diagnosis <span class="text-danger">*</span>
+
+                                </label>
+
+                                <textarea asp-for="Diagnosis"
+                                          class="form-control"
+                                          rows="3"
+                                          placeholder="Enter diagnosis..."></textarea>
+
+                                <span asp-validation-for="Diagnosis"
+                                      class="text-danger"></span>
+
+                            </div>
+
+                            <div class="col-md-12 mb-3">
+
+                                <label asp-for="Symptoms"
+                                       class="form-label fw-bold">
+
+                                    Symptoms
+
+                                </label>
+
+                                <textarea asp-for="Symptoms"
+                                          class="form-control"
+                                          rows="3"
+                                          placeholder="Enter patient symptoms..."></textarea>
+
+                                <span asp-validation-for="Symptoms"
+                                      class="text-danger"></span>
+
+                            </div>
+
+                            <div class="col-md-12 mb-3">
+
+                                <label asp-for="Medicines"
+                                       class="form-label fw-bold">
+
+                                    Medicines <span class="text-danger">*</span>
+
+                                </label>
+
+                                <textarea asp-for="Medicines"
+                                          class="form-control"
+                                          rows="4"
+                                          placeholder="Example:
+Paracetamol 500mg
+Amoxicillin 250mg
+Vitamin C"></textarea>
+
+                                <span asp-validation-for="Medicines"
+                                      class="text-danger"></span>
+
+                            </div>
+
+                            <div class="col-md-12 mb-3">
+
+                                <label asp-for="Dosage"
+                                       class="form-label fw-bold">
+
+                                    Dosage <span class="text-danger">*</span>
+
+                                </label>
+
+                                <textarea asp-for="Dosage"
+                                          class="form-control"
+                                          rows="4"
+                                          placeholder="Example:
+1 Tablet - Morning
+1 Tablet - Night
+After Meal"></textarea>
+
+                                <span asp-validation-for="Dosage"
+                                      class="text-danger"></span>
+
+                            </div>
+
+                            <div class="col-md-12 mb-3">
+
+                                <label asp-for="Instructions"
+                                       class="form-label fw-bold">
+
+                                    Doctor Instructions
+
+                                </label>
+
+                                <textarea asp-for="Instructions"
+                                          class="form-control"
+                                          rows="4"
+                                          placeholder="Enter additional instructions..."></textarea>
+
+                                <span asp-validation-for="Instructions"
+                                      class="text-danger"></span>
+
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+
+                                <label asp-for="NextVisitDate"
+                                       class="form-label fw-bold">
+
+                                    Next Visit Date
+
+                                </label>
+
+                                <input asp-for="NextVisitDate"
+                                       type="date"
+                                       class="form-control" />
+
+                                <span asp-validation-for="NextVisitDate"
+                                      class="text-danger"></span>
+
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+
+                                <label asp-for="PrescriptionStatus"
+                                       class="form-label fw-bold">
+
+                                    Prescription Status
+
+                                </label>
+
+                                <select asp-for="PrescriptionStatus"
+                                        class="form-select">
+
+                                    <option value="Active">Active</option>
+
+                                    <option value="Completed">Completed</option>
+
+                                </select>
+
+                                <span asp-validation-for="PrescriptionStatus"
+                                      class="text-danger"></span>
+
+                            </div>
+
+                            <div class="col-12">
+
+                                <div class="alert alert-info border-0 shadow-sm mt-3">
+
+                                    <h6 class="fw-bold">
+
+                                        <i class="fa-solid fa-circle-info me-2"></i>
+
+                                        Important Notes
+
+                                    </h6>
+
+                                    <ul class="mb-0">
+
+                                        <li>Verify the patient's diagnosis before saving.</li>
+
+                                        <li>Enter all medicines with the correct dosage.</li>
+
+                                        <li>Mention any dietary restrictions or precautions.</li>
+
+                                        <li>Provide the next visit date if follow-up is required.</li>
+
+                                    </ul>
+
+                                </div>
+
+                            </div>
+
+                            <div class="col-12 text-center mt-4">
+
+                                <a asp-action="ManagePrescriptions"
+                                   class="btn btn-secondary px-5 me-2">
+
+                                    <i class="fa-solid fa-arrow-left me-2"></i>
+
+                                    Cancel
+
+                                </a>
+
+                                <button type="submit"
+                                        class="btn btn-success px-5">
+
+                                    <i class="fa-solid fa-floppy-disk me-2"></i>
+
+                                    Save Prescription
+
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </form>
+
+</div>
+@section Styles {
+
+    <style>
+
+        body {
+            background: #f5f7fb;
+        }
+
+        .card {
+            border: none;
+            border-radius: 18px;
+            overflow: hidden;
+            transition: .35s;
+        }
+
+            .card:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 15px 35px rgba(0,0,0,.10) !important;
+            }
+
+        .bg-primary {
+            background: linear-gradient(135deg,#0d6efd,#4f8cff) !important;
+        }
+
+        .bg-success {
+            background: linear-gradient(135deg,#198754,#20c997) !important;
+        }
+
+        .bg-info {
+            background: linear-gradient(135deg,#0dcaf0,#3dbdf5) !important;
+        }
+
+        .doctor-img {
+            width: 170px;
+            height: 170px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 5px solid #ffffff;
+            transition: .35s;
+        }
+
+            .doctor-img:hover {
+                transform: scale(1.08);
+            }
+
+        .form-control,
+        .form-select {
+            min-height: 48px;
+            border-radius: 10px;
+        }
+
+        textarea.form-control {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 .15rem rgba(13,110,253,.20);
+        }
+
+        .table th {
+            width: 40%;
+            color: #555;
+        }
+
+        .table td {
+            font-weight: 500;
+        }
+
+        .alert {
+            border-radius: 12px;
+        }
+
+        .btn {
+            border-radius: 10px;
+            transition: .3s;
+        }
+
+            .btn:hover {
+                transform: translateY(-2px);
+            }
+
+        .text-danger {
+            font-size: 14px;
+        }
+
+        @@media(max-width:991px) {
+
+            .doctor-img {
+                width: 150px;
+                height: 150px;
+            }
+        }
+
+        @@media(max-width:768px) {
+
+            .doctor-img {
+                width: 130px;
+                height: 130px;
+            }
+
+            .btn {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+
+            h2 {
+                font-size: 24px;
+            }
+        }
+
+    </style>
+
+}
+
+@section Scripts {
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    @if (TempData["Success"] != null)
+    {
+        <script>
+
+            Swal.fire({
+
+                icon:'success',
+
+                title:'Success',
+
+                text:'@TempData["Success"]',
+
+                confirmButtonColor:'#198754'
+
+            });
+
+        </script>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <script>
+
+            Swal.fire({
+
+                icon:'error',
+
+                title:'Error',
+
+                text:'@TempData["Error"]',
+
+                confirmButtonColor:'#dc3545'
+
+            });
+
+        </script>
+    }
+
+}

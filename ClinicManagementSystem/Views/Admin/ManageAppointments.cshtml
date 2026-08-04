@@ -363,22 +363,33 @@
 
                                         @if (item.AppointmentStatus == "Approved")
                                         {
-                                         
                                             <a asp-action="CompleteAppointment"
                                                asp-route-id="@item.AppointmentId"
-                                               class="btn btn-sm btn-dark mb-1"
+                                               class="btn btn-dark btn-sm mb-1"
                                                onclick="return confirm('Complete this appointment?');">
 
                                                 <i class="fa fa-check-double"></i>
 
                                             </a>
+                                        }
 
-                                           
-                                            <a asp-action="UploadPrescription"
-                                               asp-route-id="@item.AppointmentId"
-                                               class="btn btn-sm btn-info mb-1">
+                                        @if (item.AppointmentStatus == "Completed")
+                                        {
+                                            <a asp-action="AddPrescription"
+                                               asp-route-appointmentId="@item.AppointmentId"
+                                               class="btn btn-success btn-sm mb-1">
 
-                                                <i class="fa fa-upload"></i>
+                                                <i class="fa fa-file-prescription"></i>
+
+                                            </a>
+                                            <!-- Generate Bill -->
+
+                                            <a asp-action="GenerateBill"
+                                               asp-route-appointmentId="@item.AppointmentId"
+                                               class="btn btn-danger btn-sm mb-1"
+                                               title="Generate Bill">
+
+                                                <i class="fa fa-file-invoice-dollar"></i>
 
                                             </a>
                                         }

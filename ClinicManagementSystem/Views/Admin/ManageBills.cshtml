@@ -1,0 +1,621 @@
+﻿@model IEnumerable<ClinicManagementSystem.Models.BillingModel>
+
+@{
+    ViewData["Title"] = "Manage Bills";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid py-4">
+
+    <!-- Header -->
+
+    <div class="card border-0 shadow-lg mb-4">
+
+        <div class="card-body text-white rounded"
+             style="background:linear-gradient(135deg,#0d6efd,#4f8cff);">
+
+            <div class="row align-items-center">
+
+                <div class="col-md-8">
+
+                    <h2 class="fw-bold mb-1">
+
+                        <i class="fa-solid fa-file-invoice-dollar me-2"></i>
+
+                        Manage Bills
+
+                    </h2>
+
+                    <p class="mb-0">
+
+                        Manage all generated bills, payment status and download invoices.
+
+                    </p>
+
+                </div>
+
+                <div class="col-md-4 text-end">
+
+                    <a asp-action="Dashboard"
+                       class="btn btn-light">
+
+                        <i class="fa-solid fa-arrow-left me-2"></i>
+
+                        Dashboard
+
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Statistics -->
+
+    <div class="row mb-4">
+
+        <div class="col-lg-3 col-md-6 mb-3">
+
+            <div class="card border-0 shadow">
+
+                <div class="card-body text-center">
+
+                    <i class="fa-solid fa-file-invoice-dollar
+                              fa-3x text-primary mb-3"></i>
+
+                    <h3 class="fw-bold">
+
+                        @ViewBag.TotalBills
+
+                    </h3>
+
+                    <h6 class="text-muted">
+
+                        Total Bills
+
+                    </h6>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-3">
+
+            <div class="card border-0 shadow">
+
+                <div class="card-body text-center">
+
+                    <i class="fa-solid fa-circle-check
+                              fa-3x text-success mb-3"></i>
+
+                    <h3 class="fw-bold">
+
+                        @Model.Count(x=>x.PaymentStatus=="Paid")
+
+                    </h3>
+
+                    <h6 class="text-muted">
+
+                        Paid Bills
+
+                    </h6>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-3">
+
+            <div class="card border-0 shadow">
+
+                <div class="card-body text-center">
+
+                    <i class="fa-solid fa-clock
+                              fa-3x text-warning mb-3"></i>
+
+                    <h3 class="fw-bold">
+
+                        @Model.Count(x=>x.PaymentStatus=="Pending")
+
+                    </h3>
+
+                    <h6 class="text-muted">
+
+                        Pending Bills
+
+                    </h6>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-3">
+
+            <div class="card border-0 shadow">
+
+                <div class="card-body text-center">
+
+                    <i class="fa-solid fa-indian-rupee-sign
+                              fa-3x text-danger mb-3"></i>
+
+                    <h4 class="fw-bold text-success">
+
+                        ₹ @Model.Sum(x=>x.TotalAmount)
+
+                    </h4>
+
+                    <h6 class="text-muted">
+
+                        Total Revenue
+
+                    </h6>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Search -->
+
+    <div class="card shadow border-0 mb-4">
+
+        <div class="card-body">
+
+            <form method="get">
+
+                <div class="row">
+
+                    <div class="col-md-4">
+
+                        <label class="form-label fw-bold">
+
+                            Search
+
+                        </label>
+
+                        <input type="text"
+                               name="search"
+                               value="@ViewBag.Search"
+                               class="form-control"
+                               placeholder="Bill No / Patient / Doctor / Appointment" />
+
+                    </div>
+
+                    <div class="col-md-3">
+
+                        <label class="form-label fw-bold">
+
+                            Payment Status
+
+                        </label>
+
+                        <select name="paymentStatus"
+                                class="form-select">
+
+                            <option value="">All</option>
+
+                            <option value="Paid"
+                                    selected="@(ViewBag.PaymentStatus=="Paid")">
+
+                                Paid
+
+                            </option>
+
+                            <option value="Pending"
+                                    selected="@(ViewBag.PaymentStatus=="Pending")">
+
+                                Pending
+
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-md-3">
+
+                        <label class="form-label fw-bold">
+
+                            Bill Status
+
+                        </label>
+
+                        <select name="billStatus"
+                                class="form-select">
+
+                            <option value="">All</option>
+
+                            <option value="Generated"
+                                    selected="@(ViewBag.BillStatus=="Generated")">
+
+                                Generated
+
+                            </option>
+
+                            <option value="Cancelled"
+                                    selected="@(ViewBag.BillStatus=="Cancelled")">
+
+                                Cancelled
+
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-md-2 d-flex align-items-end">
+
+                        <button class="btn btn-primary w-100">
+
+                            <i class="fa-solid fa-magnifying-glass me-2"></i>
+
+                            Search
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+    <!-- Bills List -->
+
+    <div class="card border-0 shadow">
+
+        <div class="card-header bg-success text-white">
+
+            <h5 class="mb-0">
+
+                <i class="fa-solid fa-list me-2"></i>
+
+                Bills List
+
+            </h5>
+
+        </div>
+
+        <div class="card-body p-0">
+
+            <div class="table-responsive">
+
+                <table class="table table-bordered table-hover align-middle mb-0">
+
+                    <thead class="table-dark">
+
+                        <tr>
+
+                            <th>#</th>
+
+                            <th>Bill No</th>
+
+                            <th>Appointment</th>
+
+                            <th>Patient</th>
+
+                            <th>Doctor</th>
+
+                            <th>Total</th>
+
+                            <th>Payment</th>
+
+                            <th>Bill</th>
+
+                            <th>Date</th>
+
+                            <th width="180">Action</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        @{
+                            int sr = 1;
+                        }
+
+                        @if (Model != null && Model.Any())
+                        {
+                            foreach (var item in Model)
+                            {
+                                <tr>
+
+                                    <td class="text-center">@sr</td>
+
+                                    <td>
+                                        <strong class="text-primary">@item.BillNo</strong>
+                                    </td>
+
+                                    <td>@item.AppointmentNo</td>
+
+                                    <td>
+                                        <strong>@item.CustomerName</strong>
+                                    </td>
+
+                                    <td>
+                                        Dr. @item.DoctorName
+                                        <br />
+                                        <small class="text-muted">@item.DepartmentName</small>
+                                    </td>
+
+                                    <td>
+                                        <strong class="text-success">
+                                            ₹ @item.TotalAmount.ToString("0.00")
+                                        </strong>
+                                    </td>
+
+                                    <td>
+                                        @if (item.PaymentStatus == "Paid")
+                                        {
+                                            <span class="badge bg-success">Paid</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning text-dark">Pending</span>
+                                        }
+                                    </td>
+
+                                    <td>
+                                        @if (item.BillStatus == "Generated")
+                                        {
+                                            <span class="badge bg-primary">Generated</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger">Cancelled</span>
+                                        }
+                                    </td>
+
+                                    <td>@item.BillDate.ToString("dd MMM yyyy")</td>
+
+                                    <td>
+
+                                        <a asp-action="ViewBill"
+                                           asp-route-id="@item.BillingId"
+                                           class="btn btn-info btn-sm mb-1">
+
+                                            <i class="fa fa-eye"></i>
+
+                                        </a>
+
+                                        <a asp-action="DownloadBillPDF"
+                                           asp-route-id="@item.BillingId"
+                                           class="btn btn-success btn-sm mb-1">
+
+                                            <i class="fa fa-file-pdf"></i>
+
+                                        </a>
+
+                                        <a asp-action="DeleteBill"
+                                           asp-route-id="@item.BillingId"
+                                           class="btn btn-danger btn-sm mb-1 deleteBill">
+
+                                            <i class="fa fa-trash"></i>
+
+                                        </a>
+
+                                    </td>
+
+                                </tr>
+
+                                sr++;
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="10" class="text-center py-5">
+
+                                    <i class="fa fa-file-invoice fa-4x text-secondary"></i>
+
+                                    <br /><br />
+
+                                    <h4>No Bills Found</h4>
+
+                                </td>
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+    @section Styles {
+
+        <style>
+
+            body {
+                background: #f5f7fb;
+            }
+
+            .card {
+                border: none;
+                border-radius: 18px;
+                overflow: hidden;
+                transition: .35s;
+            }
+
+                .card:hover {
+                    transform: translateY(-3px);
+                    box-shadow: 0 15px 35px rgba(0,0,0,.10) !important;
+                }
+
+            .table th {
+                text-align: center;
+                vertical-align: middle;
+                white-space: nowrap;
+            }
+
+            .table td {
+                vertical-align: middle;
+            }
+
+            .table-hover tbody tr:hover {
+                background: #f8fbff;
+            }
+
+            .form-control,
+            .form-select {
+                min-height: 45px;
+                border-radius: 10px;
+            }
+
+                .form-control:focus,
+                .form-select:focus {
+                    border-color: #0d6efd;
+                    box-shadow: 0 0 0 .15rem rgba(13,110,253,.20);
+                }
+
+            .btn {
+                border-radius: 8px;
+                transition: .30s;
+            }
+
+                .btn:hover {
+                    transform: translateY(-2px);
+                }
+
+            .badge {
+                font-size: 13px;
+            }
+
+            .text-success {
+                font-weight: 600;
+            }
+
+            .card-header {
+                font-weight: 600;
+            }
+
+            @@media(max-width:992px) {
+
+                .table {
+                    min-width: 1200px;
+                }
+            }
+
+            @@media(max-width:768px) {
+
+                h2 {
+                    font-size: 24px;
+                }
+
+                .btn {
+                    margin-bottom: 5px;
+                }
+            }
+
+        </style>
+
+    }
+
+    @section Scripts {
+
+        @{
+            await Html.RenderPartialAsync("_ValidationScriptsPartial");
+        }
+
+        @if (TempData["Success"] != null)
+        {
+            <script>
+
+                Swal.fire({
+
+                    icon:'success',
+
+                    title:'Success',
+
+                    text:'@TempData["Success"]',
+
+                    confirmButtonColor:'#198754'
+
+                });
+
+            </script>
+        }
+
+        @if (TempData["Error"] != null)
+        {
+            <script>
+
+                Swal.fire({
+
+                    icon:'error',
+
+                    title:'Error',
+
+                    text:'@TempData["Error"]',
+
+                    confirmButtonColor:'#dc3545'
+
+                });
+
+            </script>
+        }
+
+        <script>
+
+            // Delete Confirmation
+
+            $(".deleteBill").click(function (e) {
+
+                e.preventDefault();
+
+                var url = $(this).attr("href");
+
+                Swal.fire({
+
+                    title: "Delete Bill?",
+
+                    text: "This bill will be deleted.",
+
+                    icon: "warning",
+
+                    showCancelButton: true,
+
+                    confirmButtonColor: "#dc3545",
+
+                    cancelButtonColor: "#6c757d",
+
+                    confirmButtonText: "Yes, Delete"
+
+                }).then((result)=>{
+
+                    if(result.isConfirmed){
+
+                        window.location.href = url;
+
+                    }
+
+                });
+
+            });
+
+        </script>
+
+    }
