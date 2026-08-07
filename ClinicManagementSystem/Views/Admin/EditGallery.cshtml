@@ -1,0 +1,433 @@
+﻿@model ClinicManagementSystem.Models.GalleryModel
+
+@{
+    ViewData["Title"] = "Edit Gallery";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid mt-4">
+
+    <div class="card shadow-lg border-0">
+
+        <div class="card-header bg-warning text-dark">
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <h3 class="mb-0">
+
+                    <i class="fa-solid fa-pen-to-square me-2"></i>
+
+                    Edit Gallery
+
+                </h3>
+
+                <a asp-action="ManageGallery"
+                   class="btn btn-dark">
+
+                    <i class="fa-solid fa-arrow-left me-2"></i>
+
+                    Back
+
+                </a>
+
+            </div>
+
+        </div>
+
+        <div class="card-body">
+
+            <form asp-action="EditGallery"
+                  method="post"
+                  enctype="multipart/form-data">
+
+                @Html.AntiForgeryToken()
+
+                <input asp-for="GalleryId" type="hidden" />
+
+                <input asp-for="GalleryImage" type="hidden" />
+
+                <div asp-validation-summary="ModelOnly"
+                     class="text-danger mb-3">
+                </div>
+
+                <div class="row">
+
+                    <!-- Gallery Title -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="GalleryTitle"
+                               class="form-label fw-bold">
+                        </label>
+
+                        <input asp-for="GalleryTitle"
+                               class="form-control"
+                               placeholder="Enter Gallery Title" />
+
+                        <span asp-validation-for="GalleryTitle"
+                              class="text-danger"></span>
+
+                    </div>
+
+                    <!-- Category -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="GalleryCategory"
+                               class="form-label fw-bold">
+                        </label>
+
+                        <select asp-for="GalleryCategory"
+                                class="form-select">
+
+                            <option value="">Select Category</option>
+
+                            <option value="Reception">Reception</option>
+
+                            <option value="Consultation Room">Consultation Room</option>
+
+                            <option value="Laboratory">Laboratory</option>
+
+                            <option value="Pharmacy">Pharmacy</option>
+
+                            <option value="Medical Equipment">Medical Equipment</option>
+
+                            <option value="Operation Theatre">Operation Theatre</option>
+
+                            <option value="Doctors">Doctors</option>
+
+                            <option value="Staff">Staff</option>
+
+                            <option value="Health Camp">Health Camp</option>
+
+                            <option value="Events">Events</option>
+
+                            <option value="Clinic Building">Clinic Building</option>
+
+                        </select>
+
+                        <span asp-validation-for="GalleryCategory"
+                              class="text-danger"></span>
+
+                    </div>
+
+                    <!-- Upload New Image -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="ImageFile"
+                               class="form-label fw-bold">
+
+                            Change Gallery Image
+
+                        </label>
+
+                        <input asp-for="ImageFile"
+                               type="file"
+                               class="form-control"
+                               accept=".jpg,.jpeg,.png,.webp"
+                               onchange="PreviewImage(this)" />
+
+                        <span asp-validation-for="ImageFile"
+                              class="text-danger"></span>
+
+                    </div>
+
+                    <!-- Display Order -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="DisplayOrder"
+                               class="form-label fw-bold">
+                        </label>
+
+                        <input asp-for="DisplayOrder"
+                               class="form-control" />
+
+                        <span asp-validation-for="DisplayOrder"
+                              class="text-danger"></span>
+
+                    </div>
+                    <!-- Description -->
+
+                    <div class="col-md-12 mb-3">
+
+                        <label asp-for="Description"
+                               class="form-label fw-bold">
+                        </label>
+
+                        <textarea asp-for="Description"
+                                  class="form-control"
+                                  rows="4"
+                                  placeholder="Enter Gallery Description">
+                        </textarea>
+
+                        <span asp-validation-for="Description"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+                    <!-- Active Status -->
+
+                    <div class="col-md-6 mb-4">
+
+                        <div class="form-check mt-4">
+
+                            <input asp-for="IsActive"
+                                   class="form-check-input" />
+
+                            <label asp-for="IsActive"
+                                   class="form-check-label fw-bold">
+
+                                Active Gallery
+
+                            </label>
+
+                        </div>
+
+                    </div>
+
+                    <!-- Current / New Image Preview -->
+
+                    <div class="col-md-6 mb-4 text-center">
+
+                        <label class="form-label fw-bold d-block">
+
+                            Gallery Image
+
+                        </label>
+
+                        @if (!string.IsNullOrEmpty(Model.GalleryImage))
+                        {
+                            <img id="PreviewImage"
+                                 src="~/GalleryImages/@Model.GalleryImage"
+                                 class="img-thumbnail shadow"
+                                 style="width:220px;
+                                            height:170px;
+                                            object-fit:cover;
+                                            border-radius:12px;" />
+                        }
+                        else
+                        {
+                            <img id="PreviewImage"
+                                 src="~/images/no-image.png"
+                                 class="img-thumbnail shadow"
+                                 style="width:220px;
+                                            height:170px;
+                                            object-fit:cover;
+                                            border-radius:12px;" />
+                        }
+
+                    </div>
+
+                </div>
+
+                <hr />
+
+                <!-- Buttons -->
+
+                <div class="text-center">
+
+                    <button type="submit"
+                            class="btn btn-warning px-5">
+
+                        <i class="fa-solid fa-floppy-disk me-2"></i>
+
+                        Update Gallery
+
+                    </button>
+
+                    <button type="reset"
+                            class="btn btn-secondary px-5 ms-2">
+
+                        <i class="fa-solid fa-rotate-right me-2"></i>
+
+                        Reset
+
+                    </button>
+
+                    <a asp-action="ManageGallery"
+                       class="btn btn-dark px-5 ms-2">
+
+                        <i class="fa-solid fa-arrow-left me-2"></i>
+
+                        Back
+
+                    </a>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+@section Styles {
+
+    <style>
+
+        body {
+            background: #f5f7fb;
+        }
+
+        .card {
+            border: none;
+            border-radius: 18px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            border-radius: 18px 18px 0 0 !important;
+        }
+
+        .form-control,
+        .form-select {
+            min-height: 46px;
+            border-radius: 10px;
+        }
+
+            .form-control:focus,
+            .form-select:focus {
+                border-color: #ffc107;
+                box-shadow: 0 0 0 .15rem rgba(255,193,7,.25);
+            }
+
+        textarea {
+            resize: none;
+        }
+
+        .img-thumbnail {
+            transition: .35s;
+            cursor: pointer;
+        }
+
+            .img-thumbnail:hover {
+                transform: scale(1.05);
+                box-shadow: 0 12px 30px rgba(0,0,0,.20);
+            }
+
+        .form-check-input {
+            width: 20px;
+            height: 20px;
+        }
+
+        .form-check-label {
+            margin-left: 8px;
+            font-weight: 600;
+        }
+
+        .btn {
+            border-radius: 10px;
+            transition: .30s;
+        }
+
+            .btn:hover {
+                transform: translateY(-2px);
+            }
+
+        @@media(max-width:768px) {
+
+            #PreviewImage {
+                width: 170px !important;
+                height: 140px !important;
+            }
+
+            .btn {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+        }
+
+    </style>
+
+}
+
+@section Scripts {
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+
+        function PreviewImage(input)
+        {
+            if (input.files && input.files[0])
+            {
+                var reader = new FileReader();
+
+                reader.onload = function(e)
+                {
+                    $("#PreviewImage").attr("src", e.target.result);
+                }
+
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        $(document).ready(function(){
+
+            $("#PreviewImage").click(function(){
+
+                Swal.fire({
+
+                    imageUrl: $(this).attr("src"),
+
+                    imageAlt: "Gallery Image",
+
+                    showConfirmButton:false,
+
+                    showCloseButton:true,
+
+                    width:700
+
+                });
+
+            });
+
+        });
+
+    </script>
+
+    @if (TempData["Success"] != null)
+    {
+        <script>
+
+            Swal.fire({
+
+                icon:'success',
+
+                title:'Success',
+
+                text:'@TempData["Success"]',
+
+                confirmButtonColor:'#198754'
+
+            });
+
+        </script>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <script>
+
+            Swal.fire({
+
+                icon:'error',
+
+                title:'Error',
+
+                text:'@TempData["Error"]',
+
+                confirmButtonColor:'#dc3545'
+
+            });
+
+        </script>
+    }
+
+}

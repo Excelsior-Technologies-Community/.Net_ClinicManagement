@@ -1,0 +1,442 @@
+﻿@model ClinicManagementSystem.Models.FeedbackModel
+
+@{
+    ViewData["Title"] = "Add Feedback";
+    Layout = "~/Views/Shared/_CustomerLayout.cshtml";
+}
+
+<div class="container py-5">
+
+    <div class="row justify-content-center">
+
+        <div class="col-lg-9">
+
+            <div class="card shadow-lg border-0">
+
+                <div class="card-header bg-primary text-white">
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <h3 class="mb-0">
+
+                            <i class="fa-solid fa-star me-2"></i>
+
+                            Give Feedback
+
+                        </h3>
+
+                        <a asp-action="MyAppointments"
+                           class="btn btn-light">
+
+                            <i class="fa-solid fa-arrow-left me-2"></i>
+
+                            Back
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+                <div class="card-body">
+
+                    <form asp-action="AddFeedback"
+                          method="post">
+
+                        @Html.AntiForgeryToken()
+
+                        <input asp-for="AppointmentId" type="hidden" />
+
+                        <input asp-for="CustomerId" type="hidden" />
+
+                        <input asp-for="DoctorId" type="hidden" />
+
+                        <div asp-validation-summary="ModelOnly"
+                             class="text-danger mb-3">
+                        </div>
+
+                        <div class="row">
+
+                            <!-- Doctor -->
+
+                            <div class="col-md-6 mb-3">
+
+                                <label class="form-label fw-bold">
+
+                                    Doctor
+
+                                </label>
+
+                                <input class="form-control"
+                                       value="@Model.DoctorName"
+                                       readonly />
+
+                            </div>
+
+                            <!-- Appointment -->
+
+                            <div class="col-md-6 mb-3">
+
+                                <label class="form-label fw-bold">
+
+                                    Appointment No
+
+                                </label>
+
+                                <input class="form-control"
+                                       value="@Model.AppointmentNo"
+                                       readonly />
+
+                            </div>
+
+                            <!-- Appointment Date -->
+
+                            <div class="col-md-6 mb-3">
+
+                                <label class="form-label fw-bold">
+
+                                    Appointment Date
+
+                                </label>
+
+                                <input class="form-control"
+                                       value="@Model.AppointmentDate.ToString("dd MMM yyyy")"
+                                       readonly />
+
+                            </div>
+
+                            <!-- Specialization -->
+
+                            <div class="col-md-6 mb-3">
+
+                                <label class="form-label fw-bold">
+
+                                    Doctor Specialization
+
+                                </label>
+
+                                <input class="form-control"
+                                       value="@Model.DoctorSpecialization"
+                                       readonly />
+
+                            </div>
+
+                            <!-- Rating -->
+
+                            <div class="col-12 mb-4">
+
+                                <label class="form-label fw-bold">
+
+                                    Rating
+
+                                </label>
+
+                                <br />
+
+                                <div class="rating-stars">
+
+                                    <i class="fa-solid fa-star star"
+                                       data-value="1"></i>
+
+                                    <i class="fa-solid fa-star star"
+                                       data-value="2"></i>
+
+                                    <i class="fa-solid fa-star star"
+                                       data-value="3"></i>
+
+                                    <i class="fa-solid fa-star star"
+                                       data-value="4"></i>
+
+                                    <i class="fa-solid fa-star star"
+                                       data-value="5"></i>
+
+                                </div>
+
+                                <input asp-for="Rating"
+                                       type="hidden"
+                                       id="Rating" />
+
+                                <span asp-validation-for="Rating"
+                                      class="text-danger"></span>
+
+                            </div>
+                            <!-- Subject -->
+
+                            <div class="col-12 mb-3">
+
+                                <label asp-for="Subject"
+                                       class="form-label fw-bold">
+
+                                    Subject
+
+                                </label>
+
+                                <input asp-for="Subject"
+                                       class="form-control"
+                                       placeholder="Enter feedback subject" />
+
+                                <span asp-validation-for="Subject"
+                                      class="text-danger"></span>
+
+                            </div>
+
+                            <!-- Feedback Message -->
+
+                            <div class="col-12 mb-4">
+
+                                <label asp-for="FeedbackMessage"
+                                       class="form-label fw-bold">
+
+                                    Feedback
+
+                                </label>
+
+                                <textarea asp-for="FeedbackMessage"
+                                          class="form-control"
+                                          rows="6"
+                                          placeholder="Write your valuable feedback here..."></textarea>
+
+                                <span asp-validation-for="FeedbackMessage"
+                                      class="text-danger"></span>
+
+                            </div>
+
+                        </div>
+
+                        <hr />
+
+                        <div class="text-center">
+
+                            <button type="submit"
+                                    class="btn btn-success px-5">
+
+                                <i class="fa-solid fa-paper-plane me-2"></i>
+
+                                Submit Feedback
+
+                            </button>
+
+                            <button type="reset"
+                                    class="btn btn-warning px-5 ms-2">
+
+                                <i class="fa-solid fa-rotate-right me-2"></i>
+
+                                Reset
+
+                            </button>
+
+                            <a asp-action="MyAppointments"
+                               class="btn btn-secondary px-5 ms-2">
+
+                                <i class="fa-solid fa-arrow-left me-2"></i>
+
+                                Back
+
+                            </a>
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+@section Styles {
+
+    <style>
+
+        body {
+            background: #f5f7fb;
+        }
+
+        .card {
+            border: none;
+            border-radius: 18px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            font-weight: 600;
+        }
+
+        .form-control,
+        textarea {
+            border-radius: 10px;
+            min-height: 46px;
+        }
+
+            .form-control:focus,
+            textarea:focus {
+                border-color: #0d6efd;
+                box-shadow: 0 0 0 .15rem rgba(13,110,253,.20);
+            }
+
+        textarea {
+            resize: none;
+        }
+
+        .rating-stars {
+            display: flex;
+            gap: 10px;
+            font-size: 35px;
+        }
+
+        .star {
+            color: #d6d6d6;
+            cursor: pointer;
+            transition: .30s;
+        }
+
+            .star:hover {
+                transform: scale(1.2);
+            }
+
+            .star.active {
+                color: #ffc107;
+            }
+
+        .btn {
+            border-radius: 10px;
+            transition: .30s;
+        }
+
+            .btn:hover {
+                transform: translateY(-2px);
+            }
+
+        .card {
+            box-shadow: 0 12px 25px rgba(0,0,0,.08);
+        }
+
+        @@media(max-width:768px) {
+
+            .rating-stars {
+                justify-content: center;
+                font-size: 28px;
+            }
+
+            .btn {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+        }
+
+    </style>
+
+}
+
+@section Scripts {
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+
+        $(document).ready(function () {
+
+            $(".star").click(function () {
+
+                var rating = $(this).data("value");
+
+                $("#Rating").val(rating);
+
+                $(".star").removeClass("active");
+
+                $(".star").each(function () {
+
+                    if ($(this).data("value") <= rating) {
+
+                        $(this).addClass("active");
+
+                    }
+
+                });
+
+            });
+
+            $(".star").mouseenter(function () {
+
+                var rating = $(this).data("value");
+
+                $(".star").removeClass("active");
+
+                $(".star").each(function () {
+
+                    if ($(this).data("value") <= rating) {
+
+                        $(this).addClass("active");
+
+                    }
+
+                });
+
+            });
+
+            $(".rating-stars").mouseleave(function () {
+
+                var selected = $("#Rating").val();
+
+                $(".star").removeClass("active");
+
+                $(".star").each(function () {
+
+                    if ($(this).data("value") <= selected) {
+
+                        $(this).addClass("active");
+
+                    }
+
+                });
+
+            });
+
+        });
+
+    </script>
+
+    @if (TempData["Success"] != null)
+    {
+        <script>
+
+            Swal.fire({
+
+                icon:'success',
+
+                title:'Thank You',
+
+                text:'@TempData["Success"]',
+
+                confirmButtonColor:'#198754'
+
+            });
+
+        </script>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <script>
+
+            Swal.fire({
+
+                icon:'error',
+
+                title:'Error',
+
+                text:'@TempData["Error"]',
+
+                confirmButtonColor:'#dc3545'
+
+            });
+
+        </script>
+    }
+
+}

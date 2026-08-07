@@ -1,0 +1,375 @@
+﻿@model List<ClinicManagementSystem.Models.HealthTipModel>
+
+@{
+    ViewData["Title"] = "Health Tips";
+    Layout = "~/Views/Shared/_CustomerLayout.cshtml";
+}
+
+<div class="container py-5">
+
+    <!-- Page Heading -->
+
+    <div class="row mb-5">
+
+        <div class="col-lg-12 text-center">
+
+            <h2 class="fw-bold text-success">
+
+                <i class="fa-solid fa-book-medical me-2"></i>
+
+                Health Tips & Medical Blogs
+
+            </h2>
+
+            <p class="text-muted">
+
+                Read useful health tips shared by our doctors to stay healthy.
+
+            </p>
+
+        </div>
+
+    </div>
+
+    <!-- Search -->
+
+    <div class="row justify-content-center mb-5">
+
+        <div class="col-lg-8">
+
+            <form method="get"
+                  asp-action="HealthTips">
+
+                <div class="input-group shadow">
+
+                    <input type="text"
+                           name="search"
+                           value="@ViewBag.Search"
+                           class="form-control form-control-lg"
+                           placeholder="Search Health Tips..." />
+
+                    <button class="btn btn-success">
+
+                        <i class="fa fa-search me-2"></i>
+
+                        Search
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+    <!-- Health Tips -->
+
+    <div class="row">
+
+        @if (Model != null && Model.Any())
+        {
+            foreach (var item in Model)
+            {
+                <div class="col-lg-4 col-md-6 mb-4">
+
+                    <div class="card shadow-lg border-0 h-100 tip-card">
+
+                        <!-- Image -->
+
+                        @if (!string.IsNullOrEmpty(item.TipImage))
+                        {
+                            <img src="~/HealthTips/@item.TipImage"
+                                 asp-append-version="true"
+                                 class="card-img-top"
+                                 style="height:240px;object-fit:cover;">
+                        }
+                        else
+                        {
+                            <img src="~/images/no-image.png"
+                                 class="card-img-top"
+                                 style="height:240px;object-fit:cover;">
+                        }
+
+                        <div class="card-body">
+
+                            <!-- Featured -->
+
+                            @if (item.IsFeatured)
+                            {
+                                <span class="badge bg-warning text-dark mb-2">
+
+                                    <i class="fa-solid fa-star me-1"></i>
+
+                                    Featured
+
+                                </span>
+                            }
+
+                            <!-- Category -->
+
+                            <span class="badge bg-success float-end">
+
+                                @item.Category
+
+                            </span>
+
+                            <h4 class="mt-3 fw-bold">
+
+                                @item.Title
+
+                            </h4>
+
+                            <p class="text-muted mt-3">
+                                @if (item.ShortDescription.Length > 120)
+                                {
+                                    @(item.ShortDescription.Substring(0, 120) + "...")
+                                }
+                                else
+                                {
+                                    @item.ShortDescription
+                                }
+
+                            </p>
+
+                            <hr />
+
+                            <!-- Author -->
+
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+
+                                <small class="text-primary">
+
+                                    <i class="fa-solid fa-user-doctor me-1"></i>
+
+                                    @item.AuthorName
+
+                                </small>
+
+                                <small class="text-muted">
+
+                                    <i class="fa-solid fa-calendar-days me-1"></i>
+
+                                    @item.CreatedDate.ToString("dd MMM yyyy")
+
+                                </small>
+
+                            </div>
+
+                        </div>
+
+                        <!-- Footer -->
+
+                        <div class="card-footer bg-white border-0 pb-4">
+
+                            <div class="d-grid">
+
+                                <a asp-action="HealthTipDetails"
+                                   asp-route-id="@item.HealthTipId"
+                                   class="btn btn-success btn-lg">
+
+                                    <i class="fa-solid fa-book-open me-2"></i>
+
+                                    Read More
+
+                                </a>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12">
+
+                <div class="card border-0 shadow">
+
+                    <div class="card-body text-center py-5">
+
+                        <i class="fa-solid fa-book-medical
+                                      fa-5x text-secondary mb-4"></i>
+
+                        <h3 class="fw-bold">
+
+                            No Health Tips Found
+
+                        </h3>
+
+                        <p class="text-muted">
+
+                            There are no health tips available at the moment.
+
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+        }
+
+    </div>
+
+</div>
+@section Styles {
+
+    <style>
+
+        body {
+            background: #f8f9fa;
+        }
+
+        .tip-card {
+            border-radius: 18px;
+            overflow: hidden;
+            transition: .35s;
+        }
+
+            .tip-card:hover {
+                transform: translateY(-8px);
+                box-shadow: 0 15px 35px rgba(0,0,0,.15) !important;
+            }
+
+            .tip-card img {
+                transition: .4s;
+            }
+
+            .tip-card:hover img {
+                transform: scale(1.05);
+            }
+
+        .card-title {
+            color: #198754;
+        }
+
+        .badge {
+            padding: 8px 14px;
+            font-size: 13px;
+            border-radius: 20px;
+        }
+
+        .input-group .form-control {
+            border-radius: 50px 0 0 50px;
+        }
+
+        .input-group .btn {
+            border-radius: 0 50px 50px 0;
+        }
+
+        .btn-success {
+            transition: .3s;
+        }
+
+            .btn-success:hover {
+                transform: translateY(-2px);
+            }
+
+        .card-footer {
+            background: #fff;
+        }
+
+        h2 {
+            font-weight: 700;
+        }
+
+        .text-muted {
+            line-height: 28px;
+        }
+
+        @@media(max-width:992px) {
+
+            .tip-card {
+                margin-bottom: 20px;
+            }
+        }
+
+        @@media(max-width:768px) {
+
+            .card-img-top {
+                height: 220px !important;
+            }
+
+            h2 {
+                font-size: 28px;
+            }
+
+            .input-group .form-control,
+            .input-group .btn {
+                border-radius: 10px;
+            }
+
+            .input-group {
+                display: block;
+            }
+
+                .input-group .btn {
+                    width: 100%;
+                    margin-top: 10px;
+                }
+        }
+
+    </style>
+
+}
+
+@section Scripts {
+
+    <script>
+
+        $(document).ready(function(){
+
+            $(".tip-card").hide().each(function(index){
+
+                $(this).delay(index*150).fadeIn(400);
+
+            });
+
+        });
+
+    </script>
+
+    @if (TempData["Success"] != null)
+    {
+        <script>
+
+            Swal.fire({
+
+                icon: "success",
+
+                title: "Success",
+
+                text: "@TempData["Success"]",
+
+                confirmButtonColor: "#198754"
+
+            });
+
+        </script>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <script>
+
+            Swal.fire({
+
+                icon: "error",
+
+                title: "Error",
+
+                text: "@TempData["Error"]",
+
+                confirmButtonColor: "#dc3545"
+
+            });
+
+        </script>
+    }
+
+}

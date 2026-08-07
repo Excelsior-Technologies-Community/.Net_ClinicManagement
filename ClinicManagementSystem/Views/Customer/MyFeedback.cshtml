@@ -1,0 +1,520 @@
+﻿@model IEnumerable<ClinicManagementSystem.Models.FeedbackModel>
+
+@{
+    ViewData["Title"] = "My Feedback";
+    Layout = "~/Views/Shared/_CustomerLayout.cshtml";
+}
+
+<div class="container py-5">
+
+    <!-- Header -->
+
+    <div class="card border-0 shadow-lg mb-4">
+
+        <div class="card-body text-white"
+             style="background:linear-gradient(135deg,#0d6efd,#4f8cff);">
+
+            <div class="row align-items-center">
+
+                <div class="col-lg-8">
+
+                    <h2 class="fw-bold mb-2">
+
+                        <i class="fa-solid fa-star me-2"></i>
+
+                        My Feedback
+
+                    </h2>
+
+                    <p class="mb-0">
+
+                        View and manage all your submitted feedback.
+
+                    </p>
+
+                </div>
+
+                <div class="col-lg-4 text-end">
+
+                    <div class="col-lg-4 text-end">
+
+                        <a asp-action="MyAppointments"
+                           class="btn btn-light me-2">
+
+                            <i class="fa-solid fa-arrow-left me-2"></i>
+
+                            Back
+
+                        </a>
+
+                      
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Search -->
+
+    <div class="card border-0 shadow mb-4">
+
+        <div class="card-body">
+
+            <form method="get"
+                  asp-action="MyFeedback">
+
+                <div class="row">
+
+                    <div class="col-md-10 mb-3">
+
+                        <label class="form-label fw-bold">
+
+                            Search
+
+                        </label>
+
+                        <input type="text"
+                               name="search"
+                               value="@ViewBag.Search"
+                               class="form-control"
+                               placeholder="Search by Doctor, Appointment No or Subject" />
+
+                    </div>
+
+                    <div class="col-md-2 d-grid mb-3">
+
+                        <label>&nbsp;</label>
+
+                        <button type="submit"
+                                class="btn btn-primary">
+
+                            <i class="fa-solid fa-magnifying-glass me-2"></i>
+
+                            Search
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+    <!-- Feedback List -->
+
+    <div class="card border-0 shadow">
+
+        <div class="card-header bg-primary text-white">
+
+            <h5 class="mb-0">
+
+                <i class="fa-solid fa-comments me-2"></i>
+
+                Feedback List
+
+            </h5>
+
+        </div>
+
+        <div class="card-body p-0">
+
+            <div class="table-responsive">
+
+                <table class="table table-hover table-bordered align-middle mb-0">
+
+                    <thead class="table-primary">
+
+                        <tr>
+
+                            <th>#</th>
+
+                            <th>Appointment</th>
+
+                            <th>Doctor</th>
+
+                            <th>Rating</th>
+
+                            <th>Subject</th>
+
+                            <th>Status</th>
+
+                            <th>Reply</th>
+
+                            <th width="180">
+
+                                Action
+
+                            </th>
+
+                        </tr>
+
+                    </thead>
+                    <tbody>
+
+                        @{
+                            int sr = 1;
+                        }
+
+                        @if (Model != null && Model.Any())
+                        {
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+
+                                    <td class="text-center">
+                                        @sr
+                                    </td>
+
+                                    <td>
+                                        <span class="fw-bold text-primary">
+                                            @item.AppointmentNo
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        <strong>
+                                            Dr. @item.DoctorName
+                                        </strong>
+                                        <br />
+                                        <small class="text-muted">
+                                            @item.DepartmentName
+                                        </small>
+                                    </td>
+
+                                    <td>
+
+                                        @for (int i = 1; i <= 5; i++)
+                                        {
+                                            if (i <= item.Rating)
+                                            {
+                                                <i class="fa-solid fa-star text-warning"></i>
+                                            }
+                                            else
+                                            {
+                                                <i class="fa-regular fa-star text-secondary"></i>
+                                            }
+                                        }
+
+                                    <br />
+
+                                    <small>
+                                        (@item.Rating/5)
+                                    </small>
+
+                                </td>
+
+                                <td>
+
+                                    <strong>
+                                        @item.Subject
+                                    </strong>
+
+                                    <br />
+
+                                    <small class="text-muted">
+
+                                        @(item.FeedbackMessage.Length > 50
+                                                                            ? item.FeedbackMessage.Substring(0, 50) + "..."
+                                                                            : item.FeedbackMessage)
+
+                                </small>
+
+                                    </td>
+
+                                    <td class="text-center">
+
+                                @if (item.IsApproved)
+                                        {
+                                            <a asp-action="ChangeFeedbackStatus"
+                                               asp-route-id="@item.FeedbackId"
+                                               class="btn btn-warning btn-sm"
+                                               title="Mark as Pending">
+
+                                                <i class="fa-solid fa-toggle-on"></i>
+
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <a asp-action="ChangeFeedbackStatus"
+                                               asp-route-id="@item.FeedbackId"
+                                               class="btn btn-success btn-sm"
+                                               title="Approve Feedback">
+
+                                                <i class="fa-solid fa-toggle-off"></i>
+
+                                            </a>
+                                        }
+                                    </td>
+
+                                    <td>
+
+                                        @if (!string.IsNullOrWhiteSpace(item.ReplyMessage))
+                                        {
+                                            <span class="text-success">
+
+                                                @item.ReplyMessage
+
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+
+                                                No Reply
+
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                    <td class="text-center">
+
+                                        <!-- View -->
+
+                                        <a asp-action="ViewFeedback"
+                                           asp-route-id="@item.FeedbackId"
+                                           class="btn btn-info btn-sm mb-1"
+                                           title="View">
+
+                                            <i class="fa-solid fa-eye"></i>
+
+                                        </a>
+
+                                        @if (string.IsNullOrWhiteSpace(item.ReplyMessage))
+                                        {
+                                            <!-- Edit -->
+
+                                            <a asp-action="EditFeedback"
+                                               asp-route-id="@item.FeedbackId"
+                                               class="btn btn-warning btn-sm mb-1"
+                                               title="Edit">
+
+                                                <i class="fa-solid fa-pen"></i>
+
+                                            </a>
+
+                                            <!-- Delete -->
+
+                                            <a href="@Url.Action("DeleteFeedback", "Admin", new { id = item.FeedbackId })"
+                                               class="btn btn-danger btn-sm btn-delete"
+                                               title="Delete">
+
+                                                <i class="fa-solid fa-trash"></i>
+
+                                            </a>
+                                        }
+
+                                    </td>
+
+                                </tr>
+
+                                sr++;
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+
+                                <td colspan="8" class="text-center py-5">
+
+                                    <i class="fa-solid fa-comments fa-5x text-secondary mb-3"></i>
+
+                                    <h4>No Feedback Found</h4>
+
+                                    <p class="text-muted mb-0">
+
+                                        You have not submitted any feedback yet.
+
+                                    </p>
+
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+    @section Styles {
+
+        <style>
+
+            body {
+                background: #f5f7fb;
+            }
+
+            .card {
+                border: none;
+                border-radius: 18px;
+            }
+
+            .card-header {
+                font-weight: 600;
+            }
+
+            .table th {
+                vertical-align: middle;
+                white-space: nowrap;
+            }
+
+            .table td {
+                vertical-align: middle;
+            }
+
+            .table tbody tr {
+                transition: .3s;
+            }
+
+                .table tbody tr:hover {
+                    background: #f8fbff;
+                }
+
+            .badge {
+                padding: 8px 14px;
+                border-radius: 20px;
+                font-size: 13px;
+            }
+
+            .btn {
+                border-radius: 8px;
+                transition: .3s;
+            }
+
+                .btn:hover {
+                    transform: translateY(-2px);
+                }
+
+            .fa-star {
+                font-size: 15px;
+            }
+
+            .text-warning {
+                color: #ffc107 !important;
+            }
+
+            .text-secondary {
+                color: #ced4da !important;
+            }
+
+            @@media(max-width:768px) {
+
+                .table {
+                    font-size: 13px;
+                }
+
+                .btn {
+                    margin-bottom: 4px;
+                }
+            }
+
+        </style>
+
+    }
+
+    @section Scripts {
+
+        @{
+            await Html.RenderPartialAsync("_ValidationScriptsPartial");
+        }
+    <script>
+
+        $(document).ready(function () {
+
+            $(".btn-delete").click(function (e) {
+
+                e.preventDefault();
+
+                var url = $(this).attr("href");
+
+                Swal.fire({
+
+                    title: "Delete Feedback?",
+
+                    text: "This feedback will be deleted permanently.",
+
+                    icon: "warning",
+
+                    showCancelButton: true,
+
+                    confirmButtonColor: "#dc3545",
+
+                    cancelButtonColor: "#6c757d",
+
+                    confirmButtonText: "Yes, Delete",
+
+                    cancelButtonText: "Cancel"
+
+                }).then((result) => {
+
+                    if (result.isConfirmed) {
+
+                        window.location.href = url;
+
+                    }
+
+                });
+
+            });
+
+        });
+
+    </script>
+
+        @if (TempData["Success"] != null)
+        {
+            <script>
+
+                Swal.fire({
+
+                    icon:'success',
+
+                    title:'Success',
+
+                    text:'@TempData["Success"]',
+
+                    confirmButtonColor:'#198754'
+
+                });
+
+            </script>
+        }
+
+        @if (TempData["Error"] != null)
+        {
+            <script>
+
+                Swal.fire({
+
+                    icon:'error',
+
+                    title:'Error',
+
+                    text:'@TempData["Error"]',
+
+                    confirmButtonColor:'#dc3545'
+
+                });
+
+            </script>
+        }
+
+    }

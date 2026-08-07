@@ -1,0 +1,489 @@
+﻿@model ClinicManagementSystem.Models.ContactInquiryModel
+
+@{
+    ViewData["Title"] = "Contact Us";
+    Layout = "~/Views/Shared/_CustomerLayout.cshtml";
+}
+
+<div class="container py-5">
+
+    <!-- Page Header -->
+
+    <div class="row mb-5">
+
+        <div class="col-lg-12 text-center">
+
+            <h2 class="fw-bold text-primary">
+
+                <i class="fa-solid fa-envelope me-2"></i>
+
+                Contact Us
+
+            </h2>
+
+            <p class="text-muted">
+
+                We'd love to hear from you. Send us your questions, feedback, or appointment inquiries.
+
+            </p>
+
+        </div>
+
+    </div>
+
+    <div class="row">
+
+        <!-- Contact Information -->
+
+        <div class="col-lg-4 mb-4">
+
+            <div class="card shadow border-0 h-100">
+
+                <div class="card-body">
+
+                    <h4 class="text-primary mb-4">
+
+                        <i class="fa-solid fa-hospital me-2"></i>
+
+                        Clinic Information
+
+                    </h4>
+
+                    <div class="mb-4">
+
+                        <h6 class="fw-bold">
+
+                            <i class="fa-solid fa-location-dot text-danger me-2"></i>
+
+                            Address
+
+                        </h6>
+
+                        <p class="text-muted mb-0">
+
+                            101, Health Care Center,
+                            Ring Road,
+                            Ahmedabad,
+                            Gujarat - 380001
+
+                        </p>
+
+                    </div>
+
+                    <div class="mb-4">
+
+                        <h6 class="fw-bold">
+
+                            <i class="fa-solid fa-phone text-success me-2"></i>
+
+                            Phone
+
+                        </h6>
+
+                        <p class="text-muted mb-0">
+
+                            +91 98765 43210
+
+                        </p>
+
+                    </div>
+
+                    <div class="mb-4">
+
+                        <h6 class="fw-bold">
+
+                            <i class="fa-solid fa-envelope text-primary me-2"></i>
+
+                            Email
+
+                        </h6>
+
+                        <p class="text-muted mb-0">
+
+                            clinic@example.com
+
+                        </p>
+
+                    </div>
+
+                    <div>
+
+                        <h6 class="fw-bold">
+
+                            <i class="fa-solid fa-clock text-warning me-2"></i>
+
+                            Working Hours
+
+                        </h6>
+
+                        <p class="text-muted mb-1">
+
+                            Monday - Saturday
+
+                        </p>
+
+                        <p class="text-muted">
+
+                            9:00 AM - 8:00 PM
+
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Contact Form -->
+
+        <div class="col-lg-8">
+
+            <div class="card shadow border-0">
+
+                <div class="card-header bg-primary text-white">
+
+                    <h4 class="mb-0">
+
+                        <i class="fa-solid fa-paper-plane me-2"></i>
+
+                        Send Inquiry
+
+                    </h4>
+
+                </div>
+
+                <div class="card-body">
+
+                    <form asp-action="Contact"
+                          method="post">
+
+                        @Html.AntiForgeryToken()
+
+                        <input asp-for="CustomerId" type="hidden" />
+
+                        <div asp-validation-summary="ModelOnly"
+                             class="text-danger mb-3">
+                        </div>
+
+                        <div class="row">
+
+                            <!-- Full Name -->
+
+                            <div class="col-md-6 mb-3">
+
+                                <label asp-for="FullName"
+                                       class="form-label fw-bold">
+
+                                    Full Name
+
+                                </label>
+
+                                <input asp-for="FullName"
+                                       class="form-control"
+                                       placeholder="Enter Full Name" />
+
+                                <span asp-validation-for="FullName"
+                                      class="text-danger"></span>
+
+                            </div>
+
+                            <!-- Email -->
+
+                            <div class="col-md-6 mb-3">
+
+                                <label asp-for="Email"
+                                       class="form-label fw-bold">
+
+                                    Email
+
+                                </label>
+
+                                <input asp-for="Email"
+                                       class="form-control"
+                                       placeholder="Enter Email Address" />
+
+                                <span asp-validation-for="Email"
+                                      class="text-danger"></span>
+
+                            </div>
+
+                            <!-- Mobile -->
+
+                            <div class="col-md-6 mb-3">
+
+                                <label asp-for="MobileNo"
+                                       class="form-label fw-bold">
+
+                                    Mobile Number
+
+                                </label>
+
+                                <input asp-for="MobileNo"
+                                       class="form-control"
+                                       placeholder="Enter Mobile Number" />
+
+                                <span asp-validation-for="MobileNo"
+                                      class="text-danger"></span>
+
+                            </div>
+                            <!-- Subject -->
+
+                            <div class="col-md-6 mb-3">
+
+                                <label asp-for="Subject"
+                                       class="form-label fw-bold">
+
+                                    Subject
+
+                                </label>
+
+                                <input asp-for="Subject"
+                                       class="form-control"
+                                       placeholder="Enter Subject" />
+
+                                <span asp-validation-for="Subject"
+                                      class="text-danger"></span>
+
+                            </div>
+
+                            <!-- Empty Column -->
+
+                            <div class="col-md-6 mb-3">
+                            </div>
+
+                            <!-- Message -->
+
+                            <div class="col-12 mb-4">
+
+                                <label asp-for="Message"
+                                       class="form-label fw-bold">
+
+                                    Message
+
+                                </label>
+
+                                <textarea asp-for="Message"
+                                          rows="6"
+                                          class="form-control"
+                                          placeholder="Write your inquiry here..."></textarea>
+
+                                <span asp-validation-for="Message"
+                                      class="text-danger"></span>
+
+                            </div>
+
+                        </div>
+
+                        <div class="text-center mt-3">
+
+                            <button type="submit"
+                                    class="btn btn-primary px-5">
+
+                                <i class="fa-solid fa-paper-plane me-2"></i>
+
+                                Send Inquiry
+
+                            </button>
+
+                            <button type="reset"
+                                    class="btn btn-secondary px-5 ms-2">
+
+                                <i class="fa-solid fa-rotate-right me-2"></i>
+
+                                Reset
+
+                            </button>
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Google Map -->
+
+    <div class="row mt-5">
+
+        <div class="col-lg-12">
+
+            <div class="card shadow border-0">
+
+                <div class="card-header bg-success text-white">
+
+                    <h4 class="mb-0">
+
+                        <i class="fa-solid fa-map-location-dot me-2"></i>
+
+                        Our Location
+
+                    </h4>
+
+                </div>
+
+                <div class="card-body p-0">
+
+                    <iframe src="https://www.google.com/maps?q=Ahmedabad,Gujarat&output=embed"
+                            width="100%"
+                            height="400"
+                            style="border:0;"
+                            allowfullscreen=""
+                            loading="lazy">
+                    </iframe>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+@section Styles {
+
+    <style>
+
+        body {
+            background: #f5f7fb;
+        }
+
+        .card {
+            border: none;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0,0,0,.08);
+        }
+
+        .card-header {
+            font-weight: 600;
+        }
+
+        .form-control {
+            border-radius: 10px;
+            min-height: 46px;
+        }
+
+            .form-control:focus {
+                border-color: #0d6efd;
+                box-shadow: 0 0 0 .15rem rgba(13,110,253,.20);
+            }
+
+        textarea {
+            resize: none;
+        }
+
+        .btn {
+            border-radius: 10px;
+            transition: .3s;
+        }
+
+            .btn:hover {
+                transform: translateY(-2px);
+            }
+
+        iframe {
+            border-radius: 0 0 18px 18px;
+        }
+
+        h2, h4 {
+            font-weight: 700;
+        }
+
+        .fa-location-dot,
+        .fa-phone,
+        .fa-envelope,
+        .fa-clock {
+            width: 22px;
+        }
+
+        @@media(max-width:768px) {
+
+            .btn {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+
+            iframe {
+                height: 300px;
+            }
+        }
+
+    </style>
+
+}
+
+@section Scripts {
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    @if (TempData["Success"] != null)
+    {
+        <script>
+
+            Swal.fire({
+
+                icon:'success',
+
+                title:'Thank You!',
+
+                text:'@TempData["Success"]',
+
+                confirmButtonColor:'#198754'
+
+            });
+
+        </script>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <script>
+
+            Swal.fire({
+
+                icon:'error',
+
+                title:'Oops!',
+
+                text:'@TempData["Error"]',
+
+                confirmButtonColor:'#dc3545'
+
+            });
+
+        </script>
+    }
+
+    <script>
+
+        $(document).ready(function(){
+
+            $(".card").hide().fadeIn(600);
+
+            $("input, textarea").focus(function(){
+
+                $(this).parent().find("label").addClass("text-primary");
+
+            });
+
+            $("input, textarea").blur(function(){
+
+                $(this).parent().find("label").removeClass("text-primary");
+
+            });
+
+        });
+
+    </script>
+
+}

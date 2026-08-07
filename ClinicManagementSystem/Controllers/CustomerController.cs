@@ -2329,6 +2329,2368 @@ AND p.IsDeleted=0";
                 "application/pdf",
                 fileName);
         }
+        //======================================================
+        // My Bills
+        //======================================================
+        [HttpGet]
+        public IActionResult MyBills(string search = "", string paymentStatus = "")
+        {
+            if (HttpContext.Session.GetString("CustomerId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            long customerId = Convert.ToInt64(HttpContext.Session.GetString("CustomerId"));
+
+            List<BillingModel> list = new List<BillingModel>();
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+                string query = @"
+
+SELECT
+
+b.*,
+
+a.AppointmentNo,
+
+d.DoctorName,
+
+dep.DepartmentName
+
+FROM tbl_Billing b
+
+INNER JOIN tbl_Appointment a
+ON b.AppointmentId = a.AppointmentId
+
+INNER JOIN tbl_Doctor d
+ON b.DoctorId = d.DoctorId
+
+INNER JOIN tbl_Department dep
+ON d.DepartmentId = dep.DepartmentId
+
+WHERE
+
+b.CustomerId=@CustomerId
+AND b.IsDeleted=0
+
+AND
+(
+    @PaymentStatus=''
+    OR
+    b.PaymentStatus=@PaymentStatus
+)
+
+AND
+(
+    b.BillNo LIKE @Search
+    OR
+    d.DoctorName LIKE @Search
+)
+
+ORDER BY b.BillDate DESC";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+
+                cmd.Parameters.AddWithValue("@CustomerId", customerId);
+                cmd.Parameters.AddWithValue("@Search", "%" + search + "%");
+                cmd.Parameters.AddWithValue("@PaymentStatus", paymentStatus ?? "");
+
+                SqlDataReader dr = cmd.ExecuteReader();
+
+                while (dr.Read())
+                {
+                    BillingModel model = new BillingModel();
+
+                    model.BillingId = Convert.ToInt64(dr["BillingId"]);
+                    model.BillNo = dr["BillNo"].ToString();
+
+                    model.AppointmentId = Convert.ToInt64(dr["AppointmentId"]);
+
+                    model.AppointmentNo = dr["AppointmentNo"].ToString();
+
+                    model.DoctorId = Convert.ToInt64(dr["DoctorId"]);
+                    model.DoctorName = dr["DoctorName"].ToString();
+
+                    model.DepartmentName = dr["DepartmentName"].ToString();
+
+                    model.ConsultationFee = Convert.ToDecimal(dr["ConsultationFee"]);
+                    model.MedicineCharge = Convert.ToDecimal(dr["MedicineCharge"]);
+                    model.LabCharge = Convert.ToDecimal(dr["LabCharge"]);
+                    model.OtherCharge = Convert.ToDecimal(dr["OtherCharge"]);
+
+                    model.Discount = Convert.ToDecimal(dr["Discount"]);
+
+                    model.GSTPercentage = Convert.ToDecimal(dr["GSTPercentage"]);
+                    model.GSTAmount = Convert.ToDecimal(dr["GSTAmount"]);
+
+                    model.TotalAmount = Convert.ToDecimal(dr["TotalAmount"]);
+
+                    model.PaymentStatus = dr["PaymentStatus"].ToString();
+                    model.BillStatus = dr["BillStatus"].ToString();
+
+                    model.BillDate = Convert.ToDateTime(dr["BillDate"]);
+
+                    list.Add(model);
+                }
+
+                dr.Close();
+            }
+
+            ViewBag.Search = search;
+            ViewBag.PaymentStatus = paymentStatus;
+
+            ViewBag.TotalBills = list.Count;
+
+            ViewBag.PaidBills = list.Count(x => x.PaymentStatus == "Paid");
+
+            ViewBag.PendingBills = list.Count(x => x.PaymentStatus == "Pending");
+
+            ViewBag.TotalAmount = list.Sum(x => x.TotalAmount);
+
+            return View(list);
+        }
+      
+        [HttpGet]
+        public IActionResult ViewBill(long id)
+        {
+            if (HttpContext.Session.GetString("CustomerId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            long customerId = Convert.ToInt64(HttpContext.Session.GetString("CustomerId"));
+
+            BillingModel model = new BillingModel();
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+                string query = @"
+
+SELECT
+
+b.*,
+
+a.AppointmentNo,
+a.AppointmentDate,
+a.AppointmentTime,
+
+d.DoctorName,
+d.DoctorImage,
+
+dep.DepartmentName,
+
+c.FullName,
+c.MobileNo,
+c.Email
+
+FROM tbl_Billing b
+
+INNER JOIN tbl_Appointment a
+ON b.AppointmentId = a.AppointmentId
+
+INNER JOIN tbl_Doctor d
+ON b.DoctorId = d.DoctorId
+
+INNER JOIN tbl_Department dep
+ON d.DepartmentId = dep.DepartmentId
+
+INNER JOIN tbl_Customer c
+ON b.CustomerId = c.CustomerId
+
+WHERE
+
+b.BillingId=@BillingId
+AND b.CustomerId=@CustomerId
+AND b.IsDeleted=0";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+
+                cmd.Parameters.AddWithValue("@BillingId", id);
+                cmd.Parameters.AddWithValue("@CustomerId", customerId);
+
+                SqlDataReader dr = cmd.ExecuteReader();
+
+                if (dr.Read())
+                {
+                    model.BillingId = Convert.ToInt64(dr["BillingId"]);
+
+                    model.BillNo = dr["BillNo"].ToString();
+
+                    model.AppointmentId = Convert.ToInt64(dr["AppointmentId"]);
+
+                    model.AppointmentNo = dr["AppointmentNo"].ToString();
+
+                    if (dr["AppointmentDate"] != DBNull.Value)
+                        model.AppointmentDate = Convert.ToDateTime(dr["AppointmentDate"]);
+
+                    if (dr["AppointmentTime"] != DBNull.Value)
+                        model.AppointmentTime = (TimeSpan?)dr["AppointmentTime"];
+
+                    model.CustomerId = Convert.ToInt64(dr["CustomerId"]);
+
+                    model.CustomerName = dr["FullName"].ToString();
+
+                    model.MobileNo = dr["MobileNo"].ToString();
+
+                    model.Email = dr["Email"].ToString();
+
+                    model.DoctorId = Convert.ToInt64(dr["DoctorId"]);
+
+                    model.DoctorName = dr["DoctorName"].ToString();
+
+                    model.DoctorImage = dr["DoctorImage"].ToString();
+
+                    model.DepartmentName = dr["DepartmentName"].ToString();
+
+                    model.ConsultationFee = Convert.ToDecimal(dr["ConsultationFee"]);
+
+                    model.MedicineCharge = Convert.ToDecimal(dr["MedicineCharge"]);
+
+                    model.LabCharge = Convert.ToDecimal(dr["LabCharge"]);
+
+                    model.OtherCharge = Convert.ToDecimal(dr["OtherCharge"]);
+
+                    model.Discount = Convert.ToDecimal(dr["Discount"]);
+
+                    model.GSTPercentage = Convert.ToDecimal(dr["GSTPercentage"]);
+
+                    model.GSTAmount = Convert.ToDecimal(dr["GSTAmount"]);
+
+                    model.TotalAmount = Convert.ToDecimal(dr["TotalAmount"]);
+
+                    model.PaymentStatus = dr["PaymentStatus"].ToString();
+
+                    model.BillStatus = dr["BillStatus"].ToString();
+
+                    model.Remarks = dr["Remarks"] == DBNull.Value
+                        ? ""
+                        : dr["Remarks"].ToString();
+
+                    model.BillDate = Convert.ToDateTime(dr["BillDate"]);
+
+                    model.CreatedDate = Convert.ToDateTime(dr["CreatedDate"]);
+
+                    if (dr["UpdatedDate"] != DBNull.Value)
+                    {
+                        model.UpdatedDate = Convert.ToDateTime(dr["UpdatedDate"]);
+                    }
+                }
+
+                dr.Close();
+            }
+
+            if (model.BillingId == 0)
+            {
+                TempData["Error"] = "Bill not found.";
+
+                return RedirectToAction("MyBills");
+            }
+
+            return View(model);
+        }
+      
+        [HttpGet]
+        public IActionResult DownloadBillPDF(long id)
+        {
+            if (HttpContext.Session.GetString("CustomerId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            long customerId = Convert.ToInt64(HttpContext.Session.GetString("CustomerId"));
+
+            BillingModel model = new BillingModel();
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+                string query = @"
+
+SELECT
+
+b.*,
+
+a.AppointmentNo,
+a.AppointmentDate,
+a.AppointmentTime,
+
+c.FullName,
+c.MobileNo,
+c.Email,
+
+d.DoctorName,
+d.DoctorImage,
+
+dep.DepartmentName
+
+FROM tbl_Billing b
+
+INNER JOIN tbl_Appointment a
+ON b.AppointmentId = a.AppointmentId
+
+INNER JOIN tbl_Customer c
+ON b.CustomerId = c.CustomerId
+
+INNER JOIN tbl_Doctor d
+ON b.DoctorId = d.DoctorId
+
+INNER JOIN tbl_Department dep
+ON d.DepartmentId = dep.DepartmentId
+
+WHERE
+
+b.BillingId=@BillingId
+AND b.CustomerId=@CustomerId
+AND b.IsDeleted=0";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+
+                cmd.Parameters.AddWithValue("@BillingId", id);
+                cmd.Parameters.AddWithValue("@CustomerId", customerId);
+
+                SqlDataReader dr = cmd.ExecuteReader();
+
+                if (dr.Read())
+                {
+                    model.BillingId = Convert.ToInt64(dr["BillingId"]);
+
+                    model.BillNo = dr["BillNo"].ToString();
+
+                    model.AppointmentNo = dr["AppointmentNo"].ToString();
+
+                    if (dr["AppointmentDate"] != DBNull.Value)
+                        model.AppointmentDate = Convert.ToDateTime(dr["AppointmentDate"]);
+
+                    if (dr["AppointmentTime"] != DBNull.Value)
+                        model.AppointmentTime = (TimeSpan?)dr["AppointmentTime"];
+
+                    model.CustomerName = dr["FullName"].ToString();
+
+                    model.MobileNo = dr["MobileNo"].ToString();
+
+                    model.Email = dr["Email"].ToString();
+
+                    model.DoctorName = dr["DoctorName"].ToString();
+
+                    model.DoctorImage = dr["DoctorImage"].ToString();
+
+                    model.DepartmentName = dr["DepartmentName"].ToString();
+
+                    model.ConsultationFee = Convert.ToDecimal(dr["ConsultationFee"]);
+
+                    model.MedicineCharge = Convert.ToDecimal(dr["MedicineCharge"]);
+
+                    model.LabCharge = Convert.ToDecimal(dr["LabCharge"]);
+
+                    model.OtherCharge = Convert.ToDecimal(dr["OtherCharge"]);
+
+                    model.Discount = Convert.ToDecimal(dr["Discount"]);
+
+                    model.GSTPercentage = Convert.ToDecimal(dr["GSTPercentage"]);
+
+                    model.GSTAmount = Convert.ToDecimal(dr["GSTAmount"]);
+
+                    model.TotalAmount = Convert.ToDecimal(dr["TotalAmount"]);
+
+                    model.PaymentStatus = dr["PaymentStatus"].ToString();
+
+                    model.BillStatus = dr["BillStatus"].ToString();
+
+                    model.Remarks = dr["Remarks"] == DBNull.Value
+                        ? ""
+                        : dr["Remarks"].ToString();
+
+                    model.BillDate = Convert.ToDateTime(dr["BillDate"]);
+                }
+
+                dr.Close();
+            }
+
+            if (model.BillingId == 0)
+            {
+                TempData["Error"] = "Bill not found.";
+
+                return RedirectToAction("MyBills");
+            }
+
+            byte[] pdf = Document.Create(container =>
+            {
+                container.Page(page =>
+                {
+                    page.Size(PageSizes.A4);
+
+                    page.Margin(30);
+
+                    page.DefaultTextStyle(x => x.FontSize(11));
+
+
+                    page.Header()
+                        .Column(col =>
+                        {
+                            col.Spacing(5);
+
+                            col.Item()
+                                .AlignCenter()
+                                .Text("CLINIC MANAGEMENT SYSTEM")
+                                .FontSize(24)
+                                .Bold()
+                                .FontColor(Colors.Blue.Darken2);
+
+                            col.Item()
+                                .AlignCenter()
+                                .Text("MEDICAL BILL / INVOICE")
+                                .FontSize(18)
+                                .Bold();
+
+                            col.Item()
+                                .AlignCenter()
+                                .Text("123 Health Street, Ahmedabad, Gujarat")
+                                .FontSize(10);
+
+                            col.Item()
+                                .AlignCenter()
+                                .Text("Phone : +91 9876543210 | Email : clinic@gmail.com")
+                                .FontSize(10);
+
+                            col.Item()
+                                .PaddingTop(8);
+
+                            col.Item()
+                                .LineHorizontal(1);
+
+                        });
+
+
+                    page.Content()
+                        .PaddingVertical(15)
+                        .Column(column =>
+                        {
+                            column.Spacing(15);
+
+                            column.Item()
+                                .AlignCenter()
+                                .Text("PATIENT BILL")
+                                .Bold()
+                                .FontSize(20)
+                                .FontColor(Colors.Red.Darken2);
+
+
+                            column.Item()
+                                .Border(1)
+                                .Padding(10)
+                                .Column(info =>
+                                {
+                                    info.Item()
+                                        .Text("Bill Information")
+                                        .Bold()
+                                        .FontSize(14);
+
+                                    info.Item()
+                                        .Text($"Bill Number : {model.BillNo}");
+
+                                    info.Item()
+                                        .Text($"Bill Date : {model.BillDate:dd MMM yyyy}");
+
+                                    info.Item()
+                                        .Text($"Payment Status : {model.PaymentStatus}");
+
+                                    info.Item()
+                                        .Text($"Bill Status : {model.BillStatus}");
+                                });
+
+
+                            column.Item()
+                                .Border(1)
+                                .Padding(10)
+                                .Column(info =>
+                                {
+                                    info.Item()
+                                        .Text("Patient Information")
+                                        .Bold()
+                                        .FontSize(14);
+
+                                    info.Item()
+                                        .Text($"Patient Name : {model.CustomerName}");
+
+                                    info.Item()
+                                        .Text($"Mobile Number : {model.MobileNo}");
+
+                                    info.Item()
+                                        .Text($"Email Address : {model.Email}");
+                                });
+
+
+                            column.Item()
+                                .Border(1)
+                                .Padding(10)
+                                .Column(info =>
+                                {
+                                    info.Item()
+                                        .Text("Doctor Information")
+                                        .Bold()
+                                        .FontSize(14);
+
+                                    info.Item()
+                                        .Text($"Doctor : Dr. {model.DoctorName}");
+
+                                    info.Item()
+                                        .Text($"Department : {model.DepartmentName}");
+                                });
+
+
+                            column.Item()
+                                .Border(1)
+                                .Padding(10)
+                                .Column(info =>
+                                {
+                                    info.Item()
+                                        .Text("Appointment Information")
+                                        .Bold()
+                                        .FontSize(14);
+
+                                    info.Item()
+                                        .Text($"Appointment No : {model.AppointmentNo}");
+
+                                    info.Item()
+                                        .Text($"Appointment Date : {model.AppointmentDate:dd MMM yyyy}");
+
+                                    info.Item()
+                                        .Text($"Appointment Time : {model.AppointmentTime}");
+                                });
+
+                            column.Item()
+    .Border(1)
+    .Padding(10)
+    .Column(info =>
+    {
+        info.Item()
+            .Text("Charges Details")
+            .Bold()
+            .FontSize(15)
+            .FontColor(Colors.Green.Darken2);
+
+        info.Item().PaddingTop(10);
+
+        info.Item().Table(table =>
+        {
+            table.ColumnsDefinition(columns =>
+            {
+                columns.RelativeColumn(3);
+                columns.RelativeColumn(1);
+            });
+
+
+            table.Header(header =>
+            {
+                header.Cell()
+                    .Background(Colors.Grey.Lighten2)
+                    .Padding(8)
+                    .Text("Particular")
+                    .Bold();
+
+                header.Cell()
+                    .Background(Colors.Grey.Lighten2)
+                    .Padding(8)
+                    .AlignRight()
+                    .Text("Amount")
+                    .Bold();
+            });
+
+  
+
+            table.Cell()
+                .BorderBottom(1)
+                .Padding(8)
+                .Text("Consultation Fee");
+
+            table.Cell()
+                .BorderBottom(1)
+                .Padding(8)
+                .AlignRight()
+                .Text($"? {model.ConsultationFee:0.00}");
+
+
+            table.Cell()
+                .BorderBottom(1)
+                .Padding(8)
+                .Text("Medicine Charge");
+
+            table.Cell()
+                .BorderBottom(1)
+                .Padding(8)
+                .AlignRight()
+                .Text($"? {model.MedicineCharge:0.00}");
+
+
+            table.Cell()
+                .BorderBottom(1)
+                .Padding(8)
+                .Text("Lab Charge");
+
+            table.Cell()
+                .BorderBottom(1)
+                .Padding(8)
+                .AlignRight()
+                .Text($"? {model.LabCharge:0.00}");
+
+
+            table.Cell()
+                .BorderBottom(1)
+                .Padding(8)
+                .Text("Other Charge");
+
+            table.Cell()
+                .BorderBottom(1)
+                .Padding(8)
+                .AlignRight()
+                .Text($"? {model.OtherCharge:0.00}");
+
+
+            table.Cell()
+                .BorderBottom(1)
+                .Padding(8)
+                .Text("Discount");
+
+            table.Cell()
+                .BorderBottom(1)
+                .Padding(8)
+                .AlignRight()
+                .Text($"- ? {model.Discount:0.00}");
+
+           
+
+            table.Cell()
+                .BorderBottom(1)
+                .Padding(8)
+                .Text($"GST ({model.GSTPercentage:0.##}%)");
+
+            table.Cell()
+                .BorderBottom(1)
+                .Padding(8)
+                .AlignRight()
+                .Text($"? {model.GSTAmount:0.00}");
+        });
+
+
+        info.Item()
+            .PaddingTop(15);
+
+        info.Item()
+            .Background(Colors.Green.Lighten4)
+            .Border(1)
+            .BorderColor(Colors.Green.Darken1)
+            .Padding(12)
+            .Row(row =>
+            {
+                row.RelativeItem()
+                    .Text("Grand Total")
+                    .Bold()
+                    .FontSize(16);
+
+                row.RelativeItem()
+                    .AlignRight()
+                    .Text($"? {model.TotalAmount:0.00}")
+                    .Bold()
+                    .FontSize(18)
+                    .FontColor(Colors.Green.Darken3);
+            });
+
+
+        if (!string.IsNullOrWhiteSpace(model.Remarks))
+        {
+            info.Item()
+                .PaddingTop(15);
+
+            info.Item()
+                .Text("Remarks")
+                .Bold()
+                .FontSize(13);
+
+            info.Item()
+                .Border(1)
+                .Padding(8)
+                .Text(model.Remarks);
+        }
+    });
+
+
+                            column.Item()
+                                .PaddingTop(20)
+                                .Border(1)
+                                .BorderColor(Colors.Blue.Lighten2)
+                                .Background(Colors.Blue.Lighten5)
+                                .Padding(10)
+                                .Column(note =>
+                                {
+                                    note.Item()
+                                        .Text("Important Notes")
+                                        .Bold()
+                                        .FontSize(14)
+                                        .FontColor(Colors.Blue.Darken2);
+
+                                    note.Item()
+                                        .Text("• This invoice is generated by Clinic Management System.");
+
+                                    note.Item()
+                                        .Text("• Please keep this bill safely for future medical reference.");
+
+                                    note.Item()
+                                        .Text("• Contact the clinic if you have any billing questions.");
+
+                                    note.Item()
+                                        .Text("• We appreciate your trust in our healthcare services.");
+                                });
+                          
+
+                            column.Item()
+                                .PaddingTop(30);
+
+                            column.Item()
+                                .AlignRight()
+                                .Column(signature =>
+                                {
+                                    signature.Item()
+                                        .Text("--------------------------------");
+
+                                    signature.Item()
+                                        .AlignCenter()
+                                        .Text("Authorized Signature")
+                                        .Bold();
+
+                                    signature.Item()
+                                        .AlignCenter()
+                                        .Text("Clinic Administrator");
+
+                                    signature.Item()
+                                        .AlignCenter()
+                                        .Text("Clinic Management System");
+                                });
+
+                        
+
+                            column.Item()
+                                .PaddingTop(20)
+                                .AlignCenter()
+                                .Text("Thank You For Choosing Our Clinic")
+                                .Bold()
+                                .FontSize(18)
+                                .FontColor(Colors.Green.Darken2);
+
+                            column.Item()
+                                .AlignCenter()
+                                .Text("We wish you good health and a speedy recovery.")
+                                .FontSize(10);
+
+                        });
+
+
+                    page.Footer()
+                        .PaddingTop(10)
+                        .Column(col =>
+                        {
+                            col.Item().LineHorizontal(1);
+
+                            col.Item()
+                                .PaddingTop(5)
+                                .AlignCenter()
+                                .Text(text =>
+                                {
+                                    text.Span("Generated On : ").Bold();
+                                    text.Span(DateTime.Now.ToString("dd MMM yyyy hh:mm tt"));
+                                });
+
+                            col.Item()
+                                .AlignCenter()
+                                .Text("This is a computer generated medical invoice.")
+                                .FontSize(9)
+                                .FontColor(Colors.Grey.Darken1);
+
+                            col.Item()
+                                .AlignCenter()
+                                .Text(text =>
+                                {
+                                    text.Span("Page ");
+                                    text.CurrentPageNumber();
+                                    text.Span(" of ");
+                                    text.TotalPages();
+                                });
+                        });
+
+                });
+
+            }).GeneratePdf();
+
+            string fileName = $"MedicalBill_{model.BillNo}.pdf";
+
+            return File(
+                pdf,
+                "application/pdf",
+                fileName);
+        }
+       
+        [HttpGet]
+        public IActionResult Gallery(string search = "", string category = "")
+        {
+            if (HttpContext.Session.GetString("CustomerId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            List<GalleryModel> list = new List<GalleryModel>();
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+                string query = @"
+
+SELECT *
+
+FROM tbl_Gallery
+
+WHERE
+
+IsDeleted = 0
+AND IsActive = 1
+
+AND
+(
+    @Search = ''
+    OR
+    GalleryTitle LIKE @SearchText
+)
+
+AND
+(
+    @Category = ''
+    OR
+    GalleryCategory = @Category
+)
+
+ORDER BY
+
+DisplayOrder ASC,
+GalleryId DESC";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+
+                cmd.Parameters.AddWithValue("@Search", search ?? "");
+
+                cmd.Parameters.AddWithValue("@SearchText", "%" + (search ?? "") + "%");
+
+                cmd.Parameters.AddWithValue("@Category", category ?? "");
+
+                SqlDataReader dr = cmd.ExecuteReader();
+
+                while (dr.Read())
+                {
+                    GalleryModel model = new GalleryModel();
+
+                    model.GalleryId = Convert.ToInt64(dr["GalleryId"]);
+
+                    model.GalleryTitle = dr["GalleryTitle"].ToString();
+
+                    model.GalleryCategory = dr["GalleryCategory"].ToString();
+
+                    model.GalleryImage = dr["GalleryImage"].ToString();
+
+                    model.Description = dr["Description"] == DBNull.Value
+                        ? ""
+                        : dr["Description"].ToString();
+
+                    model.DisplayOrder = Convert.ToInt32(dr["DisplayOrder"]);
+
+                    model.IsActive = Convert.ToBoolean(dr["IsActive"]);
+
+                    model.CreatedDate = Convert.ToDateTime(dr["CreatedDate"]);
+
+                    if (dr["UpdatedDate"] != DBNull.Value)
+                    {
+                        model.UpdatedDate = Convert.ToDateTime(dr["UpdatedDate"]);
+                    }
+
+                    list.Add(model);
+                }
+
+                dr.Close();
+            }
+
+            ViewBag.Search = search;
+            ViewBag.Category = category;
+
+            return View(list);
+        }
+     
+        [HttpGet]
+        public IActionResult GalleryDetails(long id)
+        {
+          
+            if (HttpContext.Session.GetString("CustomerId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            GalleryModel model = new GalleryModel();
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+                string query = @"
+
+SELECT *
+
+FROM tbl_Gallery
+
+WHERE
+
+GalleryId = @GalleryId
+AND IsActive = 1
+AND IsDeleted = 0";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+
+                cmd.Parameters.AddWithValue("@GalleryId", id);
+
+                SqlDataReader dr = cmd.ExecuteReader();
+
+                if (dr.Read())
+                {
+                    model.GalleryId = Convert.ToInt64(dr["GalleryId"]);
+
+                    model.GalleryTitle = dr["GalleryTitle"].ToString();
+
+                    model.GalleryCategory = dr["GalleryCategory"].ToString();
+
+                    model.GalleryImage = dr["GalleryImage"].ToString();
+
+                    model.Description = dr["Description"] == DBNull.Value
+                        ? ""
+                        : dr["Description"].ToString();
+
+                    model.DisplayOrder = Convert.ToInt32(dr["DisplayOrder"]);
+
+                    model.IsActive = Convert.ToBoolean(dr["IsActive"]);
+
+                    model.IsDeleted = Convert.ToBoolean(dr["IsDeleted"]);
+
+                    model.CreatedDate = Convert.ToDateTime(dr["CreatedDate"]);
+
+                    if (dr["UpdatedDate"] != DBNull.Value)
+                    {
+                        model.UpdatedDate = Convert.ToDateTime(dr["UpdatedDate"]);
+                    }
+                }
+                else
+                {
+                    dr.Close();
+
+                    TempData["Error"] = "Gallery image not found.";
+
+                    return RedirectToAction("Gallery");
+                }
+
+                dr.Close();
+            }
+
+            return View(model);
+        }
+
+     
+        [HttpGet]
+        public IActionResult AddFeedback(long appointmentId)
+        {
+            if (HttpContext.Session.GetString("CustomerId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            FeedbackModel model = new FeedbackModel();
+
+            long customerId = Convert.ToInt64(HttpContext.Session.GetString("CustomerId"));
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+
+                string checkQuery = @"
+
+SELECT COUNT(*)
+
+FROM tbl_Feedback
+
+WHERE
+
+AppointmentId=@AppointmentId
+AND CustomerId=@CustomerId
+AND IsDeleted=0";
+
+                SqlCommand checkCmd = new SqlCommand(checkQuery, con);
+
+                checkCmd.Parameters.AddWithValue("@AppointmentId", appointmentId);
+
+                checkCmd.Parameters.AddWithValue("@CustomerId", customerId);
+
+                int count = Convert.ToInt32(checkCmd.ExecuteScalar());
+
+                if (count > 0)
+                {
+                    TempData["Error"] = "Feedback already submitted for this appointment.";
+
+                    return RedirectToAction("MyFeedback");
+                }
+
+           
+
+                string query = @"
+
+SELECT
+
+A.AppointmentId,
+A.AppointmentNo,
+A.AppointmentDate,
+A.AppointmentStatus,
+
+D.DoctorId,
+D.DoctorName,
+D.Specialization,
+
+P.CustomerId,
+P.FullName AS CustomerName
+
+FROM tbl_Appointment A
+
+INNER JOIN tbl_Doctor D
+ON A.DoctorId = D.DoctorId
+
+INNER JOIN tbl_Customer P
+ON A.CustomerId = P.CustomerId
+
+WHERE
+
+A.AppointmentId = @AppointmentId
+AND A.CustomerId = @CustomerId
+AND A.AppointmentStatus = 'Completed'";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+
+                cmd.Parameters.AddWithValue("@AppointmentId", appointmentId);
+
+                cmd.Parameters.AddWithValue("@CustomerId", customerId);
+
+                SqlDataReader dr = cmd.ExecuteReader();
+
+                if (dr.Read())
+                {
+                    model.AppointmentId = Convert.ToInt64(dr["AppointmentId"]);
+
+                    model.AppointmentNo = dr["AppointmentNo"].ToString();
+
+                    model.CustomerId = Convert.ToInt64(dr["CustomerId"]);
+
+                    model.CustomerName = dr["CustomerName"].ToString();
+
+                    model.DoctorId = Convert.ToInt64(dr["DoctorId"]);
+
+                    model.DoctorName = dr["DoctorName"].ToString();
+
+                    model.DoctorSpecialization = dr["Specialization"].ToString();
+
+                    model.AppointmentDate = Convert.ToDateTime(dr["AppointmentDate"]);
+                }
+                else
+                {
+                    dr.Close();
+
+                    TempData["Error"] = "Completed appointment not found.";
+
+                    return RedirectToAction("MyAppointments");
+                }
+
+                dr.Close();
+            }
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult AddFeedback(FeedbackModel model)
+        {
+            if (HttpContext.Session.GetString("CustomerId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            ModelState.Remove("CustomerName");
+            ModelState.Remove("DoctorName");
+            ModelState.Remove("AppointmentNo");
+            ModelState.Remove("DepartmentName");
+            ModelState.Remove("CustomerImage");
+            ModelState.Remove("DoctorImage");
+            ModelState.Remove("DoctorSpecialization");
+            ModelState.Remove("ReplyMessage");
+
+            if (!ModelState.IsValid)
+            {
+                return AddFeedback(model.AppointmentId);
+            }
+
+            long customerId = Convert.ToInt64(HttpContext.Session.GetString("CustomerId"));
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+
+                string checkQuery = @"
+
+SELECT COUNT(*)
+
+FROM tbl_Feedback
+
+WHERE
+
+AppointmentId=@AppointmentId
+AND CustomerId=@CustomerId
+AND IsDeleted=0";
+
+                SqlCommand checkCmd = new SqlCommand(checkQuery, con);
+
+                checkCmd.Parameters.AddWithValue("@AppointmentId", model.AppointmentId);
+
+                checkCmd.Parameters.AddWithValue("@CustomerId", customerId);
+
+                int count = Convert.ToInt32(checkCmd.ExecuteScalar());
+
+                if (count > 0)
+                {
+                    TempData["Error"] = "Feedback already submitted.";
+
+                    return RedirectToAction("MyFeedback");
+                }
+
+
+                string insertQuery = @"
+
+INSERT INTO tbl_Feedback
+(
+    CustomerId,
+    AppointmentId,
+    DoctorId,
+    Rating,
+    Subject,
+    FeedbackMessage,
+    ReplyMessage,
+    IsApproved,
+    IsActive,
+    IsDeleted,
+    CreatedDate
+)
+
+VALUES
+(
+    @CustomerId,
+    @AppointmentId,
+    @DoctorId,
+    @Rating,
+    @Subject,
+    @FeedbackMessage,
+    @ReplyMessage,
+    @IsApproved,
+    @IsActive,
+    @IsDeleted,
+    @CreatedDate
+)";
+
+                SqlCommand cmd = new SqlCommand(insertQuery, con);
+
+                cmd.Parameters.AddWithValue("@CustomerId", customerId);
+
+                cmd.Parameters.AddWithValue("@AppointmentId", model.AppointmentId);
+
+                cmd.Parameters.AddWithValue("@DoctorId", model.DoctorId);
+
+                cmd.Parameters.AddWithValue("@Rating", model.Rating);
+
+                cmd.Parameters.AddWithValue("@Subject", model.Subject);
+
+                cmd.Parameters.AddWithValue("@FeedbackMessage", model.FeedbackMessage);
+
+                cmd.Parameters.AddWithValue("@ReplyMessage", DBNull.Value);
+
+                cmd.Parameters.AddWithValue("@IsApproved", false);
+
+                cmd.Parameters.AddWithValue("@IsActive", true);
+
+                cmd.Parameters.AddWithValue("@IsDeleted", false);
+
+                cmd.Parameters.AddWithValue("@CreatedDate", DateTime.Now);
+
+                int result = cmd.ExecuteNonQuery();
+
+                if (result > 0)
+                {
+                    TempData["Success"] = "Thank you! Your feedback has been submitted successfully.";
+
+                    return RedirectToAction("MyFeedback");
+                }
+
+                TempData["Error"] = "Unable to submit feedback.";
+            }
+
+            return RedirectToAction("MyFeedback");
+        }
+
+        [HttpGet]
+        public IActionResult MyFeedback(string search = "")
+        {
+            if (HttpContext.Session.GetString("CustomerId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            List<FeedbackModel> list = new List<FeedbackModel>();
+
+            long customerId = Convert.ToInt64(HttpContext.Session.GetString("CustomerId"));
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+                string query = @"
+
+SELECT
+
+F.FeedbackId,
+F.CustomerId,
+F.AppointmentId,
+F.DoctorId,
+F.Rating,
+F.Subject,
+F.FeedbackMessage,
+F.ReplyMessage,
+F.IsApproved,
+F.IsActive,
+F.IsDeleted,
+F.CreatedDate,
+F.UpdatedDate,
+
+A.AppointmentNo,
+
+D.DoctorName,
+
+DP.DepartmentName
+
+FROM tbl_Feedback F
+
+INNER JOIN tbl_Appointment A
+ON F.AppointmentId = A.AppointmentId
+
+INNER JOIN tbl_Doctor D
+ON F.DoctorId = D.DoctorId
+
+LEFT JOIN tbl_Department DP
+ON D.DepartmentId = DP.DepartmentId
+
+WHERE
+
+F.CustomerId = @CustomerId
+AND F.IsDeleted = 0
+
+AND
+(
+    @Search = ''
+    OR
+    D.DoctorName LIKE @SearchText
+    OR
+    A.AppointmentNo LIKE @SearchText
+    OR
+    F.Subject LIKE @SearchText
+)
+
+ORDER BY
+
+F.FeedbackId DESC";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+
+                cmd.Parameters.AddWithValue("@CustomerId", customerId);
+
+                cmd.Parameters.AddWithValue("@Search", search ?? "");
+
+                cmd.Parameters.AddWithValue("@SearchText", "%" + (search ?? "") + "%");
+
+                SqlDataReader dr = cmd.ExecuteReader();
+
+                while (dr.Read())
+                {
+                    FeedbackModel model = new FeedbackModel();
+
+                    model.FeedbackId = Convert.ToInt64(dr["FeedbackId"]);
+
+                    model.CustomerId = Convert.ToInt64(dr["CustomerId"]);
+
+                    model.AppointmentId = Convert.ToInt64(dr["AppointmentId"]);
+
+                    model.DoctorId = Convert.ToInt64(dr["DoctorId"]);
+
+                    model.AppointmentNo = dr["AppointmentNo"].ToString();
+
+                    model.DoctorName = dr["DoctorName"].ToString();
+
+                    model.DepartmentName = dr["DepartmentName"] == DBNull.Value
+                        ? ""
+                        : dr["DepartmentName"].ToString();
+
+                    model.Rating = Convert.ToInt32(dr["Rating"]);
+
+                    model.Subject = dr["Subject"].ToString();
+
+                    model.FeedbackMessage = dr["FeedbackMessage"].ToString();
+
+                    model.ReplyMessage = dr["ReplyMessage"] == DBNull.Value
+                        ? ""
+                        : dr["ReplyMessage"].ToString();
+
+                    model.IsApproved = Convert.ToBoolean(dr["IsApproved"]);
+
+                    model.IsActive = Convert.ToBoolean(dr["IsActive"]);
+
+                    model.IsDeleted = Convert.ToBoolean(dr["IsDeleted"]);
+
+                    model.CreatedDate = Convert.ToDateTime(dr["CreatedDate"]);
+
+                    if (dr["UpdatedDate"] != DBNull.Value)
+                    {
+                        model.UpdatedDate = Convert.ToDateTime(dr["UpdatedDate"]);
+                    }
+
+                    list.Add(model);
+                }
+
+                dr.Close();
+            }
+
+            ViewBag.Search = search;
+
+            return View(list);
+        }
+
+      
+        [HttpGet]
+        public IActionResult ViewFeedback(long id)
+        {
+            if (HttpContext.Session.GetString("CustomerId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            FeedbackModel model = new FeedbackModel();
+
+            long customerId = Convert.ToInt64(HttpContext.Session.GetString("CustomerId"));
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+                string query = @"
+
+SELECT
+
+F.FeedbackId,
+F.CustomerId,
+F.AppointmentId,
+F.DoctorId,
+F.Rating,
+F.Subject,
+F.FeedbackMessage,
+F.ReplyMessage,
+F.IsApproved,
+F.IsActive,
+F.CreatedDate,
+F.UpdatedDate,
+
+A.AppointmentNo,
+A.AppointmentDate,
+
+D.DoctorName,
+D.Specialization,
+
+DP.DepartmentName
+
+FROM tbl_Feedback F
+
+INNER JOIN tbl_Appointment A
+ON F.AppointmentId = A.AppointmentId
+
+INNER JOIN tbl_Doctor D
+ON F.DoctorId = D.DoctorId
+
+LEFT JOIN tbl_Department DP
+ON D.DepartmentId = DP.DepartmentId
+
+WHERE
+
+F.FeedbackId = @FeedbackId
+AND F.CustomerId = @CustomerId
+AND F.IsDeleted = 0";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+
+                cmd.Parameters.AddWithValue("@FeedbackId", id);
+                cmd.Parameters.AddWithValue("@CustomerId", customerId);
+
+                SqlDataReader dr = cmd.ExecuteReader();
+
+                if (dr.Read())
+                {
+                    model.FeedbackId = Convert.ToInt64(dr["FeedbackId"]);
+
+                    model.CustomerId = Convert.ToInt64(dr["CustomerId"]);
+
+                    model.AppointmentId = Convert.ToInt64(dr["AppointmentId"]);
+
+                    model.DoctorId = Convert.ToInt64(dr["DoctorId"]);
+
+                    model.AppointmentNo = dr["AppointmentNo"].ToString();
+
+                    model.AppointmentDate = Convert.ToDateTime(dr["AppointmentDate"]);
+
+                    model.DoctorName = dr["DoctorName"].ToString();
+
+                    model.DoctorSpecialization = dr["Specialization"].ToString();
+
+                    model.DepartmentName = dr["DepartmentName"] == DBNull.Value
+                        ? ""
+                        : dr["DepartmentName"].ToString();
+
+                    model.Rating = Convert.ToInt32(dr["Rating"]);
+
+                    model.Subject = dr["Subject"].ToString();
+
+                    model.FeedbackMessage = dr["FeedbackMessage"].ToString();
+
+                    model.ReplyMessage = dr["ReplyMessage"] == DBNull.Value
+                        ? ""
+                        : dr["ReplyMessage"].ToString();
+
+                    model.IsApproved = Convert.ToBoolean(dr["IsApproved"]);
+
+                    model.IsActive = Convert.ToBoolean(dr["IsActive"]);
+
+                    model.CreatedDate = Convert.ToDateTime(dr["CreatedDate"]);
+
+                    if (dr["UpdatedDate"] != DBNull.Value)
+                    {
+                        model.UpdatedDate = Convert.ToDateTime(dr["UpdatedDate"]);
+                    }
+                }
+                else
+                {
+                    dr.Close();
+
+                    TempData["Error"] = "Feedback not found.";
+
+                    return RedirectToAction("MyFeedback");
+                }
+
+                dr.Close();
+            }
+
+            return View(model);
+        }
+       
+        [HttpGet]
+        public IActionResult EditFeedback(long id)
+        {
+            if (HttpContext.Session.GetString("CustomerId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            FeedbackModel model = new FeedbackModel();
+
+            long customerId = Convert.ToInt64(HttpContext.Session.GetString("CustomerId"));
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+                string query = @"
+
+SELECT
+
+F.FeedbackId,
+F.CustomerId,
+F.AppointmentId,
+F.DoctorId,
+F.Rating,
+F.Subject,
+F.FeedbackMessage,
+F.ReplyMessage,
+F.IsApproved,
+F.IsActive,
+F.CreatedDate,
+F.UpdatedDate,
+
+A.AppointmentNo,
+A.AppointmentDate,
+
+D.DoctorName,
+D.Specialization,
+
+DP.DepartmentName
+
+FROM tbl_Feedback F
+
+INNER JOIN tbl_Appointment A
+ON F.AppointmentId = A.AppointmentId
+
+INNER JOIN tbl_Doctor D
+ON F.DoctorId = D.DoctorId
+
+LEFT JOIN tbl_Department DP
+ON D.DepartmentId = DP.DepartmentId
+
+WHERE
+
+F.FeedbackId = @FeedbackId
+AND F.CustomerId = @CustomerId
+AND F.IsDeleted = 0";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+
+                cmd.Parameters.AddWithValue("@FeedbackId", id);
+                cmd.Parameters.AddWithValue("@CustomerId", customerId);
+
+                SqlDataReader dr = cmd.ExecuteReader();
+
+                if (dr.Read())
+                {
+                    if (dr["ReplyMessage"] != DBNull.Value &&
+                        !string.IsNullOrWhiteSpace(dr["ReplyMessage"].ToString()))
+                    {
+                        dr.Close();
+
+                        TempData["Error"] = "Feedback cannot be edited because admin has already replied.";
+
+                        return RedirectToAction("MyFeedback");
+                    }
+
+                    model.FeedbackId = Convert.ToInt64(dr["FeedbackId"]);
+
+                    model.CustomerId = Convert.ToInt64(dr["CustomerId"]);
+
+                    model.AppointmentId = Convert.ToInt64(dr["AppointmentId"]);
+
+                    model.DoctorId = Convert.ToInt64(dr["DoctorId"]);
+
+                    model.AppointmentNo = dr["AppointmentNo"].ToString();
+
+                    model.AppointmentDate = Convert.ToDateTime(dr["AppointmentDate"]);
+
+                    model.DoctorName = dr["DoctorName"].ToString();
+
+                    model.DoctorSpecialization = dr["Specialization"].ToString();
+
+                    model.DepartmentName = dr["DepartmentName"] == DBNull.Value
+                        ? ""
+                        : dr["DepartmentName"].ToString();
+
+                    model.Rating = Convert.ToInt32(dr["Rating"]);
+
+                    model.Subject = dr["Subject"].ToString();
+
+                    model.FeedbackMessage = dr["FeedbackMessage"].ToString();
+
+                    model.ReplyMessage = dr["ReplyMessage"] == DBNull.Value
+                        ? ""
+                        : dr["ReplyMessage"].ToString();
+
+                    model.IsApproved = Convert.ToBoolean(dr["IsApproved"]);
+
+                    model.IsActive = Convert.ToBoolean(dr["IsActive"]);
+
+                    model.CreatedDate = Convert.ToDateTime(dr["CreatedDate"]);
+
+                    if (dr["UpdatedDate"] != DBNull.Value)
+                    {
+                        model.UpdatedDate = Convert.ToDateTime(dr["UpdatedDate"]);
+                    }
+                }
+                else
+                {
+                    dr.Close();
+
+                    TempData["Error"] = "Feedback not found.";
+
+                    return RedirectToAction("MyFeedback");
+                }
+
+                dr.Close();
+            }
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult EditFeedback(FeedbackModel model)
+        {
+            if (HttpContext.Session.GetString("CustomerId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            ModelState.Remove("CustomerName");
+            ModelState.Remove("DoctorName");
+            ModelState.Remove("AppointmentNo");
+            ModelState.Remove("DepartmentName");
+            ModelState.Remove("DoctorSpecialization");
+            ModelState.Remove("ReplyMessage");
+            ModelState.Remove("CustomerImage");
+            ModelState.Remove("DoctorImage");
+
+            if (!ModelState.IsValid)
+            {
+                return EditFeedback(model.FeedbackId);
+            }
+
+            long customerId = Convert.ToInt64(HttpContext.Session.GetString("CustomerId"));
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+                string checkQuery = @"
+
+SELECT ReplyMessage
+
+FROM tbl_Feedback
+
+WHERE
+
+FeedbackId=@FeedbackId
+AND CustomerId=@CustomerId
+AND IsDeleted=0";
+
+                SqlCommand checkCmd = new SqlCommand(checkQuery, con);
+
+                checkCmd.Parameters.AddWithValue("@FeedbackId", model.FeedbackId);
+                checkCmd.Parameters.AddWithValue("@CustomerId", customerId);
+
+                object reply = checkCmd.ExecuteScalar();
+
+                if (reply == null)
+                {
+                    TempData["Error"] = "Feedback not found.";
+
+                    return RedirectToAction("MyFeedback");
+                }
+
+                if (reply != DBNull.Value &&
+                    !string.IsNullOrWhiteSpace(reply.ToString()))
+                {
+                    TempData["Error"] = "Feedback cannot be edited because admin has already replied.";
+
+                    return RedirectToAction("MyFeedback");
+                }
+
+                string updateQuery = @"
+
+UPDATE tbl_Feedback
+
+SET
+
+Rating=@Rating,
+Subject=@Subject,
+FeedbackMessage=@FeedbackMessage,
+UpdatedDate=@UpdatedDate
+
+WHERE
+
+FeedbackId=@FeedbackId
+AND CustomerId=@CustomerId
+AND IsDeleted=0";
+
+                SqlCommand cmd = new SqlCommand(updateQuery, con);
+
+                cmd.Parameters.AddWithValue("@FeedbackId", model.FeedbackId);
+                cmd.Parameters.AddWithValue("@CustomerId", customerId);
+                cmd.Parameters.AddWithValue("@Rating", model.Rating);
+                cmd.Parameters.AddWithValue("@Subject", model.Subject);
+                cmd.Parameters.AddWithValue("@FeedbackMessage", model.FeedbackMessage);
+                cmd.Parameters.AddWithValue("@UpdatedDate", DateTime.Now);
+
+                int result = cmd.ExecuteNonQuery();
+
+                if (result > 0)
+                {
+                    TempData["Success"] = "Feedback updated successfully.";
+
+                    return RedirectToAction("MyFeedback");
+                }
+
+                TempData["Error"] = "Unable to update feedback.";
+            }
+
+            return RedirectToAction("MyFeedback");
+        }
+
+        [HttpGet]
+        public IActionResult DeleteFeedback(long id)
+        {
+            if (HttpContext.Session.GetString("CustomerId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            long customerId = Convert.ToInt64(HttpContext.Session.GetString("CustomerId"));
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+
+                string checkQuery = @"
+
+SELECT ReplyMessage
+
+FROM tbl_Feedback
+
+WHERE
+
+FeedbackId = @FeedbackId
+AND CustomerId = @CustomerId
+AND IsDeleted = 0";
+
+                SqlCommand checkCmd = new SqlCommand(checkQuery, con);
+
+                checkCmd.Parameters.AddWithValue("@FeedbackId", id);
+
+                checkCmd.Parameters.AddWithValue("@CustomerId", customerId);
+
+                object result = checkCmd.ExecuteScalar();
+
+                if (result == null)
+                {
+                    TempData["Error"] = "Feedback not found.";
+
+                    return RedirectToAction("MyFeedback");
+                }
+
+
+                if (result != DBNull.Value &&
+                    !string.IsNullOrWhiteSpace(result.ToString()))
+                {
+                    TempData["Error"] = "Feedback cannot be deleted because the admin has already replied.";
+
+                    return RedirectToAction("MyFeedback");
+                }
+
+
+                string query = @"
+
+UPDATE tbl_Feedback
+
+SET
+
+IsDeleted = 1,
+UpdatedDate = @UpdatedDate
+
+WHERE
+
+FeedbackId = @FeedbackId
+AND CustomerId = @CustomerId";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+
+                cmd.Parameters.AddWithValue("@FeedbackId", id);
+
+                cmd.Parameters.AddWithValue("@CustomerId", customerId);
+
+                cmd.Parameters.AddWithValue("@UpdatedDate", DateTime.Now);
+
+                int delete = cmd.ExecuteNonQuery();
+
+                if (delete > 0)
+                {
+                    TempData["Success"] = "Feedback deleted successfully.";
+                }
+                else
+                {
+                    TempData["Error"] = "Unable to delete feedback.";
+                }
+            }
+
+            return RedirectToAction("MyFeedback");
+        }
+       
+        [HttpGet]
+        public IActionResult Contact()
+        {
+            ContactInquiryModel model = new ContactInquiryModel();
+
+            if (HttpContext.Session.GetString("CustomerId") != null)
+            {
+                long customerId = Convert.ToInt64(HttpContext.Session.GetString("CustomerId"));
+
+                using (SqlConnection con = new SqlConnection(cs))
+                {
+                    con.Open();
+
+                    string query = @"
+
+SELECT
+
+CustomerId,
+FullName,
+Email,
+MobileNo
+
+FROM tbl_Customer
+
+WHERE
+
+CustomerId=@CustomerId
+AND IsDeleted=0
+AND IsActive=1";
+
+                    SqlCommand cmd = new SqlCommand(query, con);
+
+                    cmd.Parameters.AddWithValue("@CustomerId", customerId);
+
+                    SqlDataReader dr = cmd.ExecuteReader();
+
+                    if (dr.Read())
+                    {
+                        model.CustomerId = Convert.ToInt64(dr["CustomerId"]);
+
+                        model.FullName = dr["FullName"].ToString();
+
+                        model.Email = dr["Email"].ToString();
+
+                        model.MobileNo = dr["MobileNo"].ToString();
+                    }
+
+                    dr.Close();
+                }
+            }
+
+            return View(model);
+        }
+     
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Contact(ContactInquiryModel model)
+        {
+            ModelState.Remove("CustomerName");
+            ModelState.Remove("CustomerImage");
+            ModelState.Remove("ReplyMessage");
+            ModelState.Remove("StatusText");
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            long? customerId = null;
+
+            if (HttpContext.Session.GetString("CustomerId") != null)
+            {
+                customerId = Convert.ToInt64(HttpContext.Session.GetString("CustomerId"));
+            }
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+                string query = @"
+
+INSERT INTO tbl_ContactInquiry
+(
+    CustomerId,
+    FullName,
+    Email,
+    MobileNo,
+    Subject,
+    Message,
+    ReplyMessage,
+    IsReplied,
+    IsActive,
+    IsDeleted,
+    CreatedDate
+)
+
+VALUES
+(
+    @CustomerId,
+    @FullName,
+    @Email,
+    @MobileNo,
+    @Subject,
+    @Message,
+    @ReplyMessage,
+    @IsReplied,
+    @IsActive,
+    @IsDeleted,
+    @CreatedDate
+)";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+
+                if (customerId.HasValue)
+                {
+                    cmd.Parameters.AddWithValue("@CustomerId", customerId.Value);
+                }
+                else
+                {
+                    cmd.Parameters.AddWithValue("@CustomerId", DBNull.Value);
+                }
+
+                cmd.Parameters.AddWithValue("@FullName", model.FullName);
+
+                cmd.Parameters.AddWithValue("@Email", model.Email);
+
+                cmd.Parameters.AddWithValue("@MobileNo", model.MobileNo);
+
+                cmd.Parameters.AddWithValue("@Subject", model.Subject);
+
+                cmd.Parameters.AddWithValue("@Message", model.Message);
+
+                cmd.Parameters.AddWithValue("@ReplyMessage", DBNull.Value);
+
+                cmd.Parameters.AddWithValue("@IsReplied", false);
+
+                cmd.Parameters.AddWithValue("@IsActive", true);
+
+                cmd.Parameters.AddWithValue("@IsDeleted", false);
+
+                cmd.Parameters.AddWithValue("@CreatedDate", DateTime.Now);
+
+                int result = cmd.ExecuteNonQuery();
+
+                if (result > 0)
+                {
+                    TempData["Success"] = "Thank you! Your inquiry has been submitted successfully.";
+
+                    return RedirectToAction("Contact");
+                }
+                else
+                {
+                    TempData["Error"] = "Unable to submit your inquiry. Please try again.";
+                }
+            }
+
+            return View(model);
+        }
+      
+        [HttpGet]
+        public IActionResult MyContactInquiry(string search = "")
+        {
+            if (HttpContext.Session.GetString("CustomerId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            List<ContactInquiryModel> list = new List<ContactInquiryModel>();
+
+            long customerId = Convert.ToInt64(HttpContext.Session.GetString("CustomerId"));
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+                string query = @"
+
+SELECT
+
+InquiryId,
+CustomerId,
+FullName,
+Email,
+MobileNo,
+Subject,
+Message,
+ReplyMessage,
+IsReplied,
+IsActive,
+IsDeleted,
+CreatedDate,
+UpdatedDate
+
+FROM tbl_ContactInquiry
+
+WHERE
+
+CustomerId=@CustomerId
+AND IsDeleted=0
+
+AND
+(
+    @Search=''
+
+    OR Subject LIKE @SearchText
+
+    OR Message LIKE @SearchText
+)
+
+ORDER BY InquiryId DESC";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+
+                cmd.Parameters.AddWithValue("@CustomerId", customerId);
+
+                cmd.Parameters.AddWithValue("@Search", search ?? "");
+
+                cmd.Parameters.AddWithValue("@SearchText", "%" + (search ?? "") + "%");
+
+                SqlDataReader dr = cmd.ExecuteReader();
+
+                while (dr.Read())
+                {
+                    ContactInquiryModel model = new ContactInquiryModel();
+
+                    model.InquiryId = Convert.ToInt64(dr["InquiryId"]);
+
+                    model.CustomerId = dr["CustomerId"] == DBNull.Value
+                        ? null
+                        : Convert.ToInt64(dr["CustomerId"]);
+
+                    model.FullName = dr["FullName"].ToString();
+
+                    model.Email = dr["Email"].ToString();
+
+                    model.MobileNo = dr["MobileNo"].ToString();
+
+                    model.Subject = dr["Subject"].ToString();
+
+                    model.Message = dr["Message"].ToString();
+
+                    model.ReplyMessage = dr["ReplyMessage"] == DBNull.Value
+                        ? ""
+                        : dr["ReplyMessage"].ToString();
+
+                    model.IsReplied = Convert.ToBoolean(dr["IsReplied"]);
+
+                    model.IsActive = Convert.ToBoolean(dr["IsActive"]);
+
+                    model.IsDeleted = Convert.ToBoolean(dr["IsDeleted"]);
+
+                    model.CreatedDate = Convert.ToDateTime(dr["CreatedDate"]);
+
+                    if (dr["UpdatedDate"] != DBNull.Value)
+                    {
+                        model.UpdatedDate = Convert.ToDateTime(dr["UpdatedDate"]);
+                    }
+
+                    list.Add(model);
+                }
+
+                dr.Close();
+            }
+
+            ViewBag.Search = search;
+
+            return View(list);
+        }
+     
+        [HttpGet]
+        public IActionResult ViewContactInquiry(long id)
+        {
+            if (HttpContext.Session.GetString("CustomerId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            ContactInquiryModel model = new ContactInquiryModel();
+
+            long customerId = Convert.ToInt64(HttpContext.Session.GetString("CustomerId"));
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+                string query = @"
+
+SELECT
+
+InquiryId,
+CustomerId,
+FullName,
+Email,
+MobileNo,
+Subject,
+Message,
+ReplyMessage,
+IsReplied,
+IsActive,
+IsDeleted,
+CreatedDate,
+UpdatedDate
+
+FROM tbl_ContactInquiry
+
+WHERE
+
+InquiryId = @InquiryId
+AND CustomerId = @CustomerId
+AND IsDeleted = 0";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+
+                cmd.Parameters.AddWithValue("@InquiryId", id);
+
+                cmd.Parameters.AddWithValue("@CustomerId", customerId);
+
+                SqlDataReader dr = cmd.ExecuteReader();
+
+                if (dr.Read())
+                {
+                    model.InquiryId = Convert.ToInt64(dr["InquiryId"]);
+
+                    model.CustomerId = dr["CustomerId"] == DBNull.Value
+                        ? null
+                        : Convert.ToInt64(dr["CustomerId"]);
+
+                    model.FullName = dr["FullName"].ToString();
+
+                    model.Email = dr["Email"].ToString();
+
+                    model.MobileNo = dr["MobileNo"].ToString();
+
+                    model.Subject = dr["Subject"].ToString();
+
+                    model.Message = dr["Message"].ToString();
+
+                    model.ReplyMessage = dr["ReplyMessage"] == DBNull.Value
+                        ? ""
+                        : dr["ReplyMessage"].ToString();
+
+                    model.IsReplied = Convert.ToBoolean(dr["IsReplied"]);
+
+                    model.IsActive = Convert.ToBoolean(dr["IsActive"]);
+
+                    model.IsDeleted = Convert.ToBoolean(dr["IsDeleted"]);
+
+                    model.CreatedDate = Convert.ToDateTime(dr["CreatedDate"]);
+
+                    if (dr["UpdatedDate"] != DBNull.Value)
+                    {
+                        model.UpdatedDate = Convert.ToDateTime(dr["UpdatedDate"]);
+                    }
+                }
+                else
+                {
+                    dr.Close();
+
+                    TempData["Error"] = "Contact inquiry not found.";
+
+                    return RedirectToAction("MyContactInquiry");
+                }
+
+                dr.Close();
+            }
+
+            return View(model);
+        }
+  
+        [HttpGet]
+        public IActionResult HealthTips(string search = "")
+        {
+            if (HttpContext.Session.GetString("CustomerId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            List<HealthTipModel> list = new List<HealthTipModel>();
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+                string query = @"
+
+SELECT
+
+HealthTipId,
+Category,
+Title,
+ShortDescription,
+Description,
+TipImage,
+AuthorName,
+DisplayOrder,
+IsFeatured,
+CreatedDate
+
+FROM tbl_HealthTip
+
+WHERE
+
+IsActive = 1
+AND IsDeleted = 0
+
+AND
+(
+    @Search=''
+
+    OR Title LIKE @SearchText
+
+    OR Category LIKE @SearchText
+
+    OR AuthorName LIKE @SearchText
+)
+
+ORDER BY
+
+IsFeatured DESC,
+DisplayOrder ASC,
+CreatedDate DESC";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+
+                cmd.Parameters.AddWithValue("@Search", search ?? "");
+
+                cmd.Parameters.AddWithValue("@SearchText", "%" + (search ?? "") + "%");
+
+                SqlDataReader dr = cmd.ExecuteReader();
+
+                while (dr.Read())
+                {
+                    HealthTipModel model = new HealthTipModel();
+
+                    model.HealthTipId = Convert.ToInt64(dr["HealthTipId"]);
+
+                    model.Category = dr["Category"].ToString();
+
+                    model.Title = dr["Title"].ToString();
+
+                    model.ShortDescription = dr["ShortDescription"].ToString();
+
+                    model.Description = dr["Description"].ToString();
+
+                    model.TipImage = dr["TipImage"] == DBNull.Value
+                                        ? ""
+                                        : dr["TipImage"].ToString();
+
+                    model.AuthorName = dr["AuthorName"].ToString();
+
+                    model.DisplayOrder = Convert.ToInt32(dr["DisplayOrder"]);
+
+                    model.IsFeatured = Convert.ToBoolean(dr["IsFeatured"]);
+
+                    model.CreatedDate = Convert.ToDateTime(dr["CreatedDate"]);
+
+                    list.Add(model);
+                }
+
+                dr.Close();
+            }
+
+            ViewBag.Search = search;
+
+            return View(list);
+        }
+     
+        [HttpGet]
+        public IActionResult HealthTipDetails(long id)
+        {
+            if (HttpContext.Session.GetString("CustomerId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            HealthTipModel model = new HealthTipModel();
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+                string query = @"
+
+SELECT
+
+HealthTipId,
+Category,
+Title,
+ShortDescription,
+Description,
+TipImage,
+AuthorName,
+DisplayOrder,
+IsFeatured,
+IsActive,
+CreatedDate,
+UpdatedDate
+
+FROM tbl_HealthTip
+
+WHERE
+
+HealthTipId=@HealthTipId
+AND IsActive=1
+AND IsDeleted=0";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+
+                cmd.Parameters.AddWithValue("@HealthTipId", id);
+
+                SqlDataReader dr = cmd.ExecuteReader();
+
+                if (dr.Read())
+                {
+                    model.HealthTipId = Convert.ToInt64(dr["HealthTipId"]);
+
+                    model.Category = dr["Category"].ToString();
+
+                    model.Title = dr["Title"].ToString();
+
+                    model.ShortDescription = dr["ShortDescription"].ToString();
+
+                    model.Description = dr["Description"].ToString();
+
+                    model.TipImage = dr["TipImage"] == DBNull.Value
+                                        ? ""
+                                        : dr["TipImage"].ToString();
+
+                    model.AuthorName = dr["AuthorName"].ToString();
+
+                    model.DisplayOrder = Convert.ToInt32(dr["DisplayOrder"]);
+
+                    model.IsFeatured = Convert.ToBoolean(dr["IsFeatured"]);
+
+                    model.IsActive = Convert.ToBoolean(dr["IsActive"]);
+
+                    model.CreatedDate = Convert.ToDateTime(dr["CreatedDate"]);
+
+                    if (dr["UpdatedDate"] != DBNull.Value)
+                    {
+                        model.UpdatedDate = Convert.ToDateTime(dr["UpdatedDate"]);
+                    }
+                }
+                else
+                {
+                    dr.Close();
+
+                    TempData["Error"] = "Health Tip not found.";
+
+                    return RedirectToAction("HealthTips");
+                }
+
+                dr.Close();
+            }
+
+            return View(model);
+        }
         // ==========================================
         // GET: /Customer/Logout
         // ==========================================

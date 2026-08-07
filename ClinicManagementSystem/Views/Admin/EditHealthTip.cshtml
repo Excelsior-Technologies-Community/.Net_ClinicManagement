@@ -1,0 +1,532 @@
+﻿@model ClinicManagementSystem.Models.HealthTipModel
+
+@{
+    ViewData["Title"] = "Edit Health Tip";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid py-4">
+
+    <!-- Page Header -->
+
+    <div class="row mb-4">
+
+        <div class="col-lg-12">
+
+            <div class="card shadow border-0">
+
+                <div class="card-body bg-warning text-dark rounded">
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <div>
+
+                            <h2 class="fw-bold mb-1">
+
+                                <i class="fa-solid fa-pen-to-square me-2"></i>
+
+                                Edit Health Tip
+
+                            </h2>
+
+                            <p class="mb-0">
+
+                                Update health tip/blog information.
+
+                            </p>
+
+                        </div>
+
+                        <div>
+
+                            <a asp-action="ManageHealthTips"
+                               class="btn btn-dark">
+
+                                <i class="fa-solid fa-arrow-left me-2"></i>
+
+                                Back
+
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Edit Form -->
+
+    <div class="card shadow border-0">
+
+        <div class="card-body">
+
+            <form asp-action="EditHealthTip"
+                  method="post"
+                  enctype="multipart/form-data">
+
+                @Html.AntiForgeryToken()
+
+                <input asp-for="HealthTipId" type="hidden" />
+
+                <input asp-for="TipImage" type="hidden" />
+
+                <div asp-validation-summary="ModelOnly"
+                     class="text-danger mb-3">
+                </div>
+
+                <div class="row">
+
+                    <!-- Category -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="Category"
+                               class="form-label fw-bold">
+
+                            Category
+
+                        </label>
+
+                        <select asp-for="Category"
+                                class="form-select">
+
+                            <option value="">-- Select Category --</option>
+
+                            <option value="Heart Care">Heart Care</option>
+
+                            <option value="Diabetes">Diabetes</option>
+
+                            <option value="Nutrition">Nutrition</option>
+
+                            <option value="Fitness">Fitness</option>
+
+                            <option value="Mental Health">Mental Health</option>
+
+                            <option value="Women's Health">Women's Health</option>
+
+                            <option value="Children Care">Children Care</option>
+
+                            <option value="Skin Care">Skin Care</option>
+
+                            <option value="Dental Care">Dental Care</option>
+
+                            <option value="General Health">General Health</option>
+
+                        </select>
+
+                        <span asp-validation-for="Category"
+                              class="text-danger"></span>
+
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="AuthorName"
+                               class="form-label fw-bold">
+
+                            Author Name
+
+                        </label>
+
+                        <input asp-for="AuthorName"
+                               class="form-control"
+                               placeholder="Enter Author Name" />
+
+                        <span asp-validation-for="AuthorName"
+                              class="text-danger"></span>
+
+                    </div>
+
+                 
+
+                    <div class="col-md-12 mb-3">
+
+                        <label asp-for="Title"
+                               class="form-label fw-bold">
+
+                            Health Tip Title
+
+                        </label>
+
+                        <input asp-for="Title"
+                               class="form-control"
+                               placeholder="Enter Health Tip Title" />
+
+                        <span asp-validation-for="Title"
+                              class="text-danger"></span>
+
+                    </div>
+
+
+                    <div class="col-md-12 mb-3">
+
+                        <label asp-for="ShortDescription"
+                               class="form-label fw-bold">
+
+                            Short Description
+
+                        </label>
+
+                        <textarea asp-for="ShortDescription"
+                                  rows="3"
+                                  class="form-control"
+                                  placeholder="Enter Short Description"></textarea>
+
+                        <span asp-validation-for="ShortDescription"
+                              class="text-danger"></span>
+
+                    </div>
+                    <!-- Full Description -->
+
+                    <div class="col-md-12 mb-3">
+
+                        <label asp-for="Description"
+                               class="form-label fw-bold">
+
+                            Full Description
+
+                        </label>
+
+                        <textarea asp-for="Description"
+                                  rows="8"
+                                  class="form-control"
+                                  placeholder="Enter Full Health Tip Description"></textarea>
+
+                        <span asp-validation-for="Description"
+                              class="text-danger"></span>
+
+                    </div>
+
+                    <!-- Current Image -->
+
+                    <div class="col-md-6 mb-3 text-center">
+
+                        <label class="form-label fw-bold d-block">
+
+                            Current Image
+
+                        </label>
+
+                        @if (!string.IsNullOrEmpty(Model.TipImage))
+                        {
+                            <img src="~/HealthTips/@Model.TipImage"
+                                 asp-append-version="true"
+                                 id="previewImage"
+                                 class="img-thumbnail shadow"
+                                 style="width:200px;height:200px;object-fit:cover;" />
+                        }
+                        else
+                        {
+                            <img src="~/images/no-image.png"
+                                 id="previewImage"
+                                 class="img-thumbnail shadow"
+                                 style="width:200px;height:200px;object-fit:cover;" />
+                        }
+
+                    </div>
+
+                    <!-- Upload New Image -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="TipImageFile"
+                               class="form-label fw-bold">
+
+                            Upload New Image
+
+                        </label>
+
+                        <input asp-for="TipImageFile"
+                               type="file"
+                               class="form-control"
+                               accept=".jpg,.jpeg,.png,.webp"
+                               onchange="previewImageFile(event)" />
+
+                        <span asp-validation-for="TipImageFile"
+                              class="text-danger"></span>
+
+                        <small class="text-muted">
+
+                            Leave empty if you don't want to change the image.
+
+                        </small>
+
+                    </div>
+
+                    <!-- Display Order -->
+
+                    <div class="col-md-4 mb-3">
+
+                        <label asp-for="DisplayOrder"
+                               class="form-label fw-bold">
+
+                            Display Order
+
+                        </label>
+
+                        <input asp-for="DisplayOrder"
+                               class="form-control" />
+
+                        <span asp-validation-for="DisplayOrder"
+                              class="text-danger"></span>
+
+                    </div>
+
+                    <!-- Featured -->
+
+                    <div class="col-md-4 mb-3">
+
+                        <label class="form-label fw-bold d-block">
+
+                            Featured Health Tip
+
+                        </label>
+
+                        <div class="form-check form-switch mt-2">
+
+                            <input asp-for="IsFeatured"
+                                   class="form-check-input" />
+
+                            <label asp-for="IsFeatured"
+                                   class="form-check-label">
+
+                                Show as Featured
+
+                            </label>
+
+                        </div>
+
+                    </div>
+
+                    <!-- Active -->
+
+                    <div class="col-md-4 mb-3">
+
+                        <label class="form-label fw-bold d-block">
+
+                            Status
+
+                        </label>
+
+                        <div class="form-check form-switch mt-2">
+
+                            <input asp-for="IsActive"
+                                   class="form-check-input" />
+
+                            <label asp-for="IsActive"
+                                   class="form-check-label">
+
+                                Active
+
+                            </label>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <hr />
+
+                <div class="text-center">
+
+                    <button type="submit"
+                            class="btn btn-success px-5">
+
+                        <i class="fa-solid fa-floppy-disk me-2"></i>
+
+                        Update Health Tip
+
+                    </button>
+
+                    <button type="reset"
+                            class="btn btn-warning px-5 ms-2">
+
+                        <i class="fa-solid fa-rotate-right me-2"></i>
+
+                        Reset
+
+                    </button>
+
+                    <a asp-action="ManageHealthTips"
+                       class="btn btn-secondary px-5 ms-2">
+
+                        <i class="fa-solid fa-arrow-left me-2"></i>
+
+                        Back
+
+                    </a>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+@section Styles {
+
+    <style>
+
+        body {
+            background: #f5f7fb;
+        }
+
+        .card {
+            border: none;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0,0,0,.08);
+        }
+
+        .card-header {
+            font-weight: 600;
+        }
+
+        .form-control,
+        .form-select {
+            border-radius: 10px;
+        }
+
+            .form-control:focus,
+            .form-select:focus {
+                border-color: #0d6efd;
+                box-shadow: 0 0 0 .15rem rgba(13,110,253,.20);
+            }
+
+        textarea {
+            resize: none;
+        }
+
+        .img-thumbnail {
+            border-radius: 12px;
+            transition: .3s;
+        }
+
+            .img-thumbnail:hover {
+                transform: scale(1.03);
+            }
+
+        .form-check-input {
+            width: 50px;
+            height: 25px;
+            cursor: pointer;
+        }
+
+        .form-check-label {
+            margin-left: 8px;
+            font-weight: 600;
+        }
+
+        .btn {
+            border-radius: 10px;
+            transition: .3s;
+        }
+
+            .btn:hover {
+                transform: translateY(-2px);
+            }
+
+        .alert {
+            border-radius: 12px;
+        }
+
+        .text-danger {
+            font-size: 14px;
+        }
+
+        @@media(max-width:768px) {
+
+            .btn {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+
+            #previewImage {
+                width: 150px !important;
+                height: 150px !important;
+            }
+        }
+
+    </style>
+
+}
+
+@section Scripts {
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    @if (TempData["Success"] != null)
+    {
+        <script>
+
+            Swal.fire({
+
+                icon:'success',
+
+                title:'Success',
+
+                text:'@TempData["Success"]',
+
+                confirmButtonColor:'#198754'
+
+            });
+
+        </script>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <script>
+
+            Swal.fire({
+
+                icon:'error',
+
+                title:'Error',
+
+                text:'@TempData["Error"]',
+
+                confirmButtonColor:'#dc3545'
+
+            });
+
+        </script>
+    }
+
+    <script>
+
+        function previewImageFile(event)
+        {
+            if(event.target.files.length > 0)
+            {
+                var reader = new FileReader();
+
+                reader.onload = function(e)
+                {
+                    $("#previewImage").attr("src", e.target.result);
+                };
+
+                reader.readAsDataURL(event.target.files[0]);
+            }
+        }
+
+        $(document).ready(function(){
+
+            $(".card").hide().fadeIn(500);
+
+        });
+
+    </script>
+
+}

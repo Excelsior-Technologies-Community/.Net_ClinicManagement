@@ -1,0 +1,547 @@
+﻿@model ClinicManagementSystem.Models.ContactInquiryModel
+
+@{
+    ViewData["Title"] = "Reply Contact Inquiry";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid py-4">
+
+    <div class="row justify-content-center">
+
+        <div class="col-lg-10">
+
+            <div class="card shadow border-0">
+
+                <div class="card-header bg-primary text-white">
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <h3 class="mb-0">
+
+                            <i class="fa-solid fa-reply me-2"></i>
+
+                            Reply Contact Inquiry
+
+                        </h3>
+
+                        <a asp-action="ManageContactInquiry"
+                           class="btn btn-light">
+
+                            <i class="fa-solid fa-arrow-left me-2"></i>
+
+                            Back
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+                <div class="card-body">
+
+                    <form asp-action="ReplyContactInquiry"
+                          method="post">
+
+                        @Html.AntiForgeryToken()
+
+                        <input asp-for="InquiryId" type="hidden" />
+
+                        <input asp-for="CustomerId" type="hidden" />
+
+                        <div asp-validation-summary="ModelOnly"
+                             class="text-danger mb-3">
+                        </div>
+
+                        <div class="row">
+
+                            <!-- Customer Information -->
+
+                            <div class="col-md-6 mb-4">
+
+                                <div class="card border-0 bg-light h-100">
+
+                                    <div class="card-body">
+
+                                        <h5 class="text-primary mb-3">
+
+                                            <i class="fa-solid fa-user me-2"></i>
+
+                                            Customer Information
+
+                                        </h5>
+
+                                        <table class="table table-borderless mb-0">
+
+                                            <tr>
+
+                                                <th width="160">
+
+                                                    Full Name
+
+                                                </th>
+
+                                                <td>
+
+                                                    @Model.FullName
+
+                                                </td>
+
+                                            </tr>
+
+                                            <tr>
+
+                                                <th>
+
+                                                    Email Address
+
+                                                </th>
+
+                                                <td>
+
+                                                    @Model.Email
+
+                                                </td>
+
+                                            </tr>
+
+                                            <tr>
+
+                                                <th>
+
+                                                    Mobile Number
+
+                                                </th>
+
+                                                <td>
+
+                                                    @Model.MobileNo
+
+                                                </td>
+
+                                            </tr>
+
+                                        </table>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                            <!-- Inquiry Information -->
+
+                            <div class="col-md-6 mb-4">
+
+                                <div class="card border-0 bg-light h-100">
+
+                                    <div class="card-body">
+
+                                        <h5 class="text-success mb-3">
+
+                                            <i class="fa-solid fa-circle-info me-2"></i>
+
+                                            Inquiry Information
+
+                                        </h5>
+
+                                        <table class="table table-borderless mb-0">
+
+                                            <tr>
+
+                                                <th width="160">
+
+                                                    Inquiry ID
+
+                                                </th>
+
+                                                <td>
+
+                                                    #@Model.InquiryId
+
+                                                </td>
+
+                                            </tr>
+
+                                            <tr>
+
+                                                <th>
+
+                                                    Subject
+
+                                                </th>
+
+                                                <td>
+
+                                                    @Model.Subject
+
+                                                </td>
+
+                                            </tr>
+
+                                            <tr>
+
+                                                <th>
+
+                                                    Status
+
+                                                </th>
+
+                                                <td>
+
+                                                    @if (Model.IsReplied)
+                                                    {
+                                                        <span class="badge bg-success">
+
+                                                            <i class="fa-solid fa-circle-check me-1"></i>
+
+                                                            Replied
+
+                                                        </span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="badge bg-warning text-dark">
+
+                                                            <i class="fa-solid fa-clock me-1"></i>
+
+                                                            Pending
+
+                                                        </span>
+                                                    }
+
+                                                </td>
+
+                                            </tr>
+
+                                        </table>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+                            <div class="row">
+
+                                <!-- Customer Inquiry -->
+
+                                <div class="col-lg-12 mb-4">
+
+                                    <div class="card border-0 bg-light">
+
+                                        <div class="card-body">
+
+                                            <h5 class="text-primary mb-3">
+
+                                                <i class="fa-solid fa-message me-2"></i>
+
+                                                Customer Inquiry
+
+                                            </h5>
+
+                                            <div class="border rounded p-3 bg-white">
+
+                                                @Model.Message
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                <!-- Admin Reply -->
+
+                                <div class="col-lg-12 mb-4">
+
+                                    <label asp-for="ReplyMessage"
+                                           class="form-label fw-bold">
+
+                                        <i class="fa-solid fa-reply me-2 text-success"></i>
+
+                                        Reply Message
+
+                                    </label>
+
+                                    <textarea asp-for="ReplyMessage"
+                                              rows="7"
+                                              class="form-control"
+                                              placeholder="Write your reply here..."></textarea>
+
+                                    <span asp-validation-for="ReplyMessage"
+                                          class="text-danger"></span>
+
+                                </div>
+
+                                <!-- Dates -->
+
+                                <div class="col-lg-12 mb-4">
+
+                                    <div class="card border-0 bg-light">
+
+                                        <div class="card-body">
+
+                                            <table class="table table-bordered mb-0">
+
+                                                <tr>
+
+                                                    <th width="220">
+
+                                                        Submitted On
+
+                                                    </th>
+
+                                                    <td>
+
+                                                        @Model.CreatedDate.ToString("dd MMM yyyy hh:mm tt")
+
+                                                    </td>
+
+                                                </tr>
+
+                                                <tr>
+
+                                                    <th>
+
+                                                        Last Updated
+
+                                                    </th>
+
+                                                    <td>
+
+                                                        @if (Model.UpdatedDate != null)
+                                                        {
+                                                            @Model.UpdatedDate.Value.ToString("dd MMM yyyy hh:mm tt")
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="text-muted">
+
+                                                                Not Updated
+
+                                                            </span>
+                                                        }
+
+                                                    </td>
+
+                                                </tr>
+
+                                            </table>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                <!-- Buttons -->
+
+                                <div class="col-lg-12 text-center">
+
+                                    <button type="submit"
+                                            class="btn btn-success px-5">
+
+                                        <i class="fa-solid fa-paper-plane me-2"></i>
+
+                                        Send Reply
+
+                                    </button>
+
+                                    <button type="reset"
+                                            class="btn btn-warning px-5 ms-2">
+
+                                        <i class="fa-solid fa-rotate me-2"></i>
+
+                                        Reset
+
+                                    </button>
+
+                                    <a asp-action="ManageContactInquiry"
+                                       class="btn btn-secondary px-5 ms-2">
+
+                                        <i class="fa-solid fa-arrow-left me-2"></i>
+
+                                        Back
+
+                                    </a>
+
+                                </div>
+
+                            </div>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+</div>
+@section Styles {
+
+    <style>
+
+        body {
+            background: #f5f7fb;
+        }
+
+        .card {
+            border: none;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0,0,0,.08);
+        }
+
+        .card-header {
+            font-weight: 600;
+        }
+
+        .card.bg-light {
+            border-radius: 12px;
+        }
+
+        .table th {
+            width: 220px;
+            background: #f8f9fa;
+            font-weight: 600;
+            vertical-align: middle;
+        }
+
+        .table td {
+            vertical-align: middle;
+        }
+
+        .border.rounded {
+            border-radius: 12px !important;
+            background: #fff;
+            line-height: 28px;
+            white-space: pre-line;
+        }
+
+        textarea.form-control {
+            resize: none;
+            border-radius: 10px;
+        }
+
+        .form-control {
+            border-radius: 10px;
+        }
+
+            .form-control:focus {
+                border-color: #198754;
+                box-shadow: 0 0 0 .15rem rgba(25,135,84,.20);
+            }
+
+        .badge {
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 13px;
+        }
+
+        .btn {
+            border-radius: 10px;
+            transition: .3s;
+        }
+
+            .btn:hover {
+                transform: translateY(-2px);
+            }
+
+        .alert {
+            border-radius: 12px;
+        }
+
+        @@media(max-width:768px) {
+
+            .table th {
+                width: 130px;
+                font-size: 14px;
+            }
+
+            .table td {
+                font-size: 14px;
+            }
+
+            .btn {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+        }
+
+    </style>
+
+}
+
+@section Scripts {
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    @if (TempData["Success"] != null)
+    {
+        <script>
+
+            Swal.fire({
+
+                icon: 'success',
+
+                title: 'Success',
+
+                text: '@TempData["Success"]',
+
+                confirmButtonColor: '#198754'
+
+            });
+
+        </script>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <script>
+
+            Swal.fire({
+
+                icon: 'error',
+
+                title: 'Error',
+
+                text: '@TempData["Error"]',
+
+                confirmButtonColor: '#dc3545'
+
+            });
+
+        </script>
+    }
+
+    <script>
+
+        $(document).ready(function () {
+
+            $(".card").hide().fadeIn(500);
+
+            $("textarea").focus(function () {
+
+                $(this).parent().find("label").addClass("text-success");
+
+            });
+
+            $("textarea").blur(function () {
+
+                $(this).parent().find("label").removeClass("text-success");
+
+            });
+
+        });
+
+    </script>
+
+}

@@ -1,0 +1,397 @@
+﻿@model ClinicManagementSystem.Models.HealthTipModel
+
+@{
+    ViewData["Title"] = "Health Tip Details";
+    Layout = "~/Views/Shared/_CustomerLayout.cshtml";
+}
+
+<div class="container py-5">
+
+    <!-- Page Header -->
+
+    <div class="row mb-4">
+
+        <div class="col-12 text-center">
+
+            <h2 class="fw-bold text-success">
+
+                <i class="fa-solid fa-book-medical me-2"></i>
+
+                Health Tip Details
+
+            </h2>
+
+            <p class="text-muted">
+
+                Learn useful health information shared by our expert doctors.
+
+            </p>
+
+        </div>
+
+    </div>
+
+    <!-- Health Tip Card -->
+
+    <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+
+        <!-- Image -->
+@if (!string.IsNullOrEmpty(Model.TipImage))
+{
+            <img src="~/HealthTips/@Model.TipImage"
+                 asp-append-version="true"
+                 class="card-img-top"
+                 style="height:450px;object-fit:cover;" />
+}
+else
+{
+            <img src="~/images/no-image.png"
+                 class="card-img-top"
+                 style="height:450px;object-fit:cover;" />
+}
+
+        <div class="card-body p-5">
+
+            <!-- Category & Featured -->
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+
+                <span class="badge bg-success fs-6">
+
+                    <i class="fa-solid fa-folder-open me-2"></i>
+
+                    @Model.Category
+
+                </span>
+
+                @if (Model.IsFeatured)
+                {
+                    <span class="badge bg-warning text-dark fs-6">
+
+                        <i class="fa-solid fa-star me-2"></i>
+
+                        Featured Health Tip
+
+                    </span>
+                }
+
+            </div>
+
+            <!-- Title -->
+
+            <h2 class="fw-bold text-primary mb-4">
+
+                @Model.Title
+
+            </h2>
+
+            <!-- Author & Date -->
+
+            <div class="row mb-4">
+
+                <div class="col-md-6">
+
+                    <i class="fa-solid fa-user-doctor text-success me-2"></i>
+
+                    <strong>Author :</strong>
+
+                    @Model.AuthorName
+
+                </div>
+
+                <div class="col-md-6 text-md-end">
+
+                    <i class="fa-solid fa-calendar-days text-danger me-2"></i>
+
+                    <strong>Published :</strong>
+
+                    @Model.CreatedDate.ToString("dd MMM yyyy")
+
+                </div>
+
+            </div>
+
+            <hr />
+            <!-- Short Description -->
+
+            <div class="mb-5">
+
+                <h4 class="fw-bold text-success mb-3">
+
+                    <i class="fa-solid fa-circle-info me-2"></i>
+
+                    Short Description
+
+                </h4>
+
+                <div class="alert alert-success shadow-sm">
+
+                    @Model.ShortDescription
+
+                </div>
+
+            </div>
+
+            <!-- Full Description -->
+
+            <div class="mb-5">
+
+                <h4 class="fw-bold text-primary mb-3">
+
+                    <i class="fa-solid fa-file-medical me-2"></i>
+
+                    Health Tip Details
+
+                </h4>
+
+                <div class="border rounded-4 p-4 bg-light description-box">
+
+                    @Html.Raw(Model.Description)
+
+                </div>
+
+            </div>
+
+            <!-- Additional Information -->
+
+            <div class="row mt-4">
+
+                <div class="col-md-6">
+
+                    <div class="card border-0 shadow-sm">
+
+                        <div class="card-body">
+
+                            <h6 class="fw-bold text-success">
+
+                                <i class="fa-solid fa-calendar-plus me-2"></i>
+
+                                Published On
+
+                            </h6>
+
+                            <p class="mb-0">
+
+                                @Model.CreatedDate.ToString("dd MMM yyyy hh:mm tt")
+
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-6">
+
+                    <div class="card border-0 shadow-sm">
+
+                        <div class="card-body">
+
+                            <h6 class="fw-bold text-primary">
+
+                                <i class="fa-solid fa-clock-rotate-left me-2"></i>
+
+                                Last Updated
+
+                            </h6>
+
+                            <p class="mb-0">
+
+                                @if (Model.UpdatedDate != null)
+                                {
+                                    @Model.UpdatedDate.Value.ToString("dd MMM yyyy hh:mm tt")
+                                }
+                                else
+                                {
+                                    <span class="text-muted">
+
+                                        Not Updated
+
+                                    </span>
+                                }
+
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Buttons -->
+
+            <div class="text-center mt-5">
+
+                <a asp-action="HealthTips"
+                   class="btn btn-success btn-lg px-5">
+
+                    <i class="fa-solid fa-arrow-left me-2"></i>
+
+                    Back to Health Tips
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+@section Styles {
+
+    <style>
+
+        body {
+            background: #f5f7fb;
+        }
+
+        .card {
+            border: none;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 12px 30px rgba(0,0,0,.10);
+        }
+
+        .card-img-top {
+            transition: .4s;
+        }
+
+            .card-img-top:hover {
+                transform: scale(1.03);
+            }
+
+        .badge {
+            padding: 10px 18px;
+            border-radius: 25px;
+            font-size: 14px;
+        }
+
+        .description-box {
+            line-height: 30px;
+            font-size: 16px;
+            color: #444;
+            white-space: pre-line;
+        }
+
+        .alert {
+            border-radius: 15px;
+        }
+
+        .btn {
+            border-radius: 12px;
+            transition: .3s;
+        }
+
+            .btn:hover {
+                transform: translateY(-3px);
+            }
+
+        .shadow-sm {
+            border-radius: 15px;
+        }
+
+        h2, h4 {
+            font-weight: 700;
+        }
+
+        hr {
+            border-top: 2px dashed #dcdcdc;
+        }
+
+        @@media(max-width:992px) {
+
+            .card-img-top {
+                height: 350px !important;
+            }
+        }
+
+        @@media(max-width:768px) {
+
+            .card-body {
+                padding: 25px !important;
+            }
+
+            .card-img-top {
+                height: 250px !important;
+            }
+
+            .d-flex {
+                flex-direction: column;
+                align-items: flex-start !important;
+                gap: 12px;
+            }
+
+            .text-md-end {
+                text-align: left !important;
+                margin-top: 10px;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .description-box {
+                font-size: 15px;
+                line-height: 28px;
+            }
+        }
+
+    </style>
+
+}
+
+@section Scripts {
+
+    <script>
+
+        $(document).ready(function(){
+
+            $(".card").hide().fadeIn(600);
+
+        });
+
+    </script>
+
+    @if (TempData["Success"] != null)
+    {
+        <script>
+
+            Swal.fire({
+
+            icon:'success',
+
+            title:'Success',
+
+            text:'@TempData["Success"]',
+
+            confirmButtonColor:'#198754'
+
+            });
+
+        </script>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <script>
+
+            Swal.fire({
+
+            icon:'error',
+
+            title:'Error',
+
+            text:'@TempData["Error"]',
+
+            confirmButtonColor:'#dc3545'
+
+            });
+
+        </script>
+    }
+
+}

@@ -299,7 +299,19 @@
                                             View
 
                                         </a>
+                                        <!-- Feedback -->
+                                        @if (item.AppointmentStatus == "Completed")
+                                        {
+                                            <a asp-action="AddFeedback"
+                                               asp-route-appointmentId="@item.AppointmentId"
+                                               class="btn btn-sm btn-warning mb-1">
 
+                                                <i class="fa-solid fa-star me-1"></i>
+
+                                                Feedback
+
+                                            </a>
+                                        }
                                         <!-- Cancel -->
                                         @if (item.AppointmentStatus == "Pending" ||
                                                                         item.AppointmentStatus == "Approved")

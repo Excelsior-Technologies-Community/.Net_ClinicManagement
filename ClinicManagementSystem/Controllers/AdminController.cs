@@ -1,18 +1,25 @@
 ﻿using ClinicManagementSystem.Models;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using System.Data;
-using System.Data.SqlClient;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
+using System.Data;
+using System.Data.SqlClient;
 
 namespace ClinicManagementSystem.Controllers
 {
     public class AdminController : Controller
     {
+        private readonly IWebHostEnvironment env;
         string cs = @"Data Source=DESKTOP-J2OEC9R\SQLEXPRESS02;Initial Catalog=ClinicDB;Integrated Security=True;TrustServerCertificate=True";
+    
 
+        public AdminController(IWebHostEnvironment env)
+        {
+            this.env = env;
+        }
         public IActionResult Index()
         {
             return View();
@@ -5320,6 +5327,2722 @@ AND b.IsDeleted=0";
             }
 
             return RedirectToAction("ManageBills");
+        }
+
+        [HttpGet]
+        public IActionResult ManageGallery(string search = "", string category = "")
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            List<GalleryModel> list = new List<GalleryModel>();
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+                string query = @"
+
+SELECT *
+
+FROM tbl_Gallery
+
+WHERE
+
+IsDeleted = 0
+
+AND
+(
+    @Search = ''
+    OR
+    GalleryTitle LIKE @SearchText
+)
+
+AND
+(
+    @Category = ''
+    OR
+    GalleryCategory = @Category
+)
+
+ORDER BY
+
+DisplayOrder ASC,
+GalleryId DESC";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+
+                cmd.Parameters.AddWithValue("@Search", search ?? "");
+                cmd.Parameters.AddWithValue("@SearchText", "%" + (search ?? "") + "%");
+                cmd.Parameters.AddWithValue("@Category", category ?? "");
+
+                SqlDataReader dr = cmd.ExecuteReader();
+
+                while (dr.Read())
+                {
+                    GalleryModel model = new GalleryModel();
+
+                    model.GalleryId = Convert.ToInt64(dr["GalleryId"]);
+
+                    model.GalleryTitle = dr["GalleryTitle"].ToString();
+
+                    model.GalleryCategory = dr["GalleryCategory"].ToString();
+
+                    model.GalleryImage = dr["GalleryImage"].ToString();
+
+                    model.Description = dr["Description"] == DBNull.Value
+                                        ? ""
+                                        : dr["Description"].ToString();
+
+                    model.DisplayOrder = Convert.ToInt32(dr["DisplayOrder"]);
+
+                    model.IsActive = Convert.ToBoolean(dr["IsActive"]);
+
+                    model.IsDeleted = Convert.ToBoolean(dr["IsDeleted"]);
+
+                    model.CreatedDate = Convert.ToDateTime(dr["CreatedDate"]);
+
+                    if (dr["UpdatedDate"] != DBNull.Value)
+                    {
+                        model.UpdatedDate = Convert.ToDateTime(dr["UpdatedDate"]);
+                    }
+
+                    list.Add(model);
+                }
+
+                dr.Close();
+            }
+
+            ViewBag.Search = search;
+            ViewBag.Category = category;
+
+            return View(list);
+        }
+
+        [HttpGet]
+        public IActionResult AddGallery()
+        {
+            
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            GalleryModel model = new GalleryModel();
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+               
+                string query = @"
+        SELECT ISNULL(MAX(DisplayOrder),0) + 1
+        FROM tbl_Gallery
+        WHERE IsDeleted = 0";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+
+                model.DisplayOrder = Convert.ToInt32(cmd.ExecuteScalar());
+            }
+
+          
+            model.IsActive = true;
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult AddGallery(GalleryModel model)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            ModelState.Remove("GalleryImage");
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+               
+
+                string fileName = "";
+
+                if (model.ImageFile != null && model.ImageFile.Length > 0)
+                {
+                    string folderPath = Path.Combine(env.WebRootPath, "GalleryImages");
+
+                    if (!Directory.Exists(folderPath))
+                    {
+                        Directory.CreateDirectory(folderPath);
+                    }
+
+                    fileName = Guid.NewGuid().ToString() + Path.GetExtension(model.ImageFile.FileName);
+
+                    string filePath = Path.Combine(folderPath, fileName);
+
+                    using (FileStream stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        model.ImageFile.CopyTo(stream);
+                    }
+                }
+
+               
+
+                string query = @"
+
+INSERT INTO tbl_Gallery
+(
+    GalleryTitle,
+    GalleryCategory,
+    GalleryImage,
+    Description,
+    DisplayOrder,
+    IsActive,
+    IsDeleted,
+    CreatedDate
+)
+
+VALUES
+(
+    @GalleryTitle,
+    @GalleryCategory,
+    @GalleryImage,
+    @Description,
+    @DisplayOrder,
+    @IsActive,
+    0,
+    @CreatedDate
+)";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+
+                cmd.Parameters.AddWithValue("@GalleryTitle", model.GalleryTitle);
+
+                cmd.Parameters.AddWithValue("@GalleryCategory", model.GalleryCategory);
+
+                cmd.Parameters.AddWithValue("@GalleryImage", fileName);
+
+                cmd.Parameters.AddWithValue("@Description",
+                    string.IsNullOrWhiteSpace(model.Description)
+                    ? (object)DBNull.Value
+                    : model.Description);
+
+                cmd.Parameters.AddWithValue("@DisplayOrder", model.DisplayOrder);
+
+                cmd.Parameters.AddWithValue("@IsActive", model.IsActive);
+
+                cmd.Parameters.AddWithValue("@CreatedDate", DateTime.Now);
+
+                int result = cmd.ExecuteNonQuery();
+
+                if (result > 0)
+                {
+                    TempData["Success"] = "Gallery added successfully.";
+
+                    return RedirectToAction("ManageGallery");
+                }
+                else
+                {
+                    TempData["Error"] = "Unable to add gallery.";
+                }
+            }
+
+            return View(model);
+        }
+
+        [HttpGet]
+        public IActionResult ViewGallery(long id)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            GalleryModel model = new GalleryModel();
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+                string query = @"
+
+SELECT *
+
+FROM tbl_Gallery
+
+WHERE
+
+GalleryId = @GalleryId
+AND IsDeleted = 0";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+
+                cmd.Parameters.AddWithValue("@GalleryId", id);
+
+                SqlDataReader dr = cmd.ExecuteReader();
+
+                if (dr.Read())
+                {
+                    model.GalleryId = Convert.ToInt64(dr["GalleryId"]);
+
+                    model.GalleryTitle = dr["GalleryTitle"].ToString();
+
+                    model.GalleryCategory = dr["GalleryCategory"].ToString();
+
+                    model.GalleryImage = dr["GalleryImage"].ToString();
+
+                    model.Description = dr["Description"] == DBNull.Value
+                        ? ""
+                        : dr["Description"].ToString();
+
+                    model.DisplayOrder = Convert.ToInt32(dr["DisplayOrder"]);
+
+                    model.IsActive = Convert.ToBoolean(dr["IsActive"]);
+
+                    model.IsDeleted = Convert.ToBoolean(dr["IsDeleted"]);
+
+                    model.CreatedDate = Convert.ToDateTime(dr["CreatedDate"]);
+
+                    if (dr["UpdatedDate"] != DBNull.Value)
+                    {
+                        model.UpdatedDate = Convert.ToDateTime(dr["UpdatedDate"]);
+                    }
+                }
+                else
+                {
+                    TempData["Error"] = "Gallery record not found.";
+
+                    return RedirectToAction("ManageGallery");
+                }
+
+                dr.Close();
+            }
+
+            return View(model);
+        }
+        
+        [HttpGet]
+        public IActionResult EditGallery(long id)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            GalleryModel model = new GalleryModel();
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+                string query = @"
+
+SELECT *
+
+FROM tbl_Gallery
+
+WHERE
+
+GalleryId = @GalleryId
+AND IsDeleted = 0";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+
+                cmd.Parameters.AddWithValue("@GalleryId", id);
+
+                SqlDataReader dr = cmd.ExecuteReader();
+
+                if (dr.Read())
+                {
+                    model.GalleryId = Convert.ToInt64(dr["GalleryId"]);
+
+                    model.GalleryTitle = dr["GalleryTitle"].ToString();
+
+                    model.GalleryCategory = dr["GalleryCategory"].ToString();
+
+                    model.GalleryImage = dr["GalleryImage"].ToString();
+
+                    model.Description = dr["Description"] == DBNull.Value
+                        ? ""
+                        : dr["Description"].ToString();
+
+                    model.DisplayOrder = Convert.ToInt32(dr["DisplayOrder"]);
+
+                    model.IsActive = Convert.ToBoolean(dr["IsActive"]);
+
+                    model.IsDeleted = Convert.ToBoolean(dr["IsDeleted"]);
+
+                    model.CreatedDate = Convert.ToDateTime(dr["CreatedDate"]);
+
+                    if (dr["UpdatedDate"] != DBNull.Value)
+                    {
+                        model.UpdatedDate = Convert.ToDateTime(dr["UpdatedDate"]);
+                    }
+                }
+                else
+                {
+                    dr.Close();
+
+                    TempData["Error"] = "Gallery record not found.";
+
+                    return RedirectToAction("ManageGallery");
+                }
+
+                dr.Close();
+            }
+
+            return View(model);
+        }
+      
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult EditGallery(GalleryModel model)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            ModelState.Remove("ImageFile");
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+
+                string oldImage = "";
+
+                string getImageQuery = @"SELECT GalleryImage
+                                 FROM tbl_Gallery
+                                 WHERE GalleryId=@GalleryId";
+
+                SqlCommand imgCmd = new SqlCommand(getImageQuery, con);
+
+                imgCmd.Parameters.AddWithValue("@GalleryId", model.GalleryId);
+
+                object result = imgCmd.ExecuteScalar();
+
+                if (result != null)
+                {
+                    oldImage = result.ToString();
+                }
+
+                string fileName = oldImage;
+
+
+                if (model.ImageFile != null && model.ImageFile.Length > 0)
+                {
+                    string folderPath = Path.Combine(env.WebRootPath, "GalleryImages");
+
+                    if (!Directory.Exists(folderPath))
+                    {
+                        Directory.CreateDirectory(folderPath);
+                    }
+
+                    fileName = Guid.NewGuid().ToString()
+                             + Path.GetExtension(model.ImageFile.FileName);
+
+                    string filePath = Path.Combine(folderPath, fileName);
+
+                    using (FileStream stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        model.ImageFile.CopyTo(stream);
+                    }
+
+                    
+                    if (!string.IsNullOrEmpty(oldImage))
+                    {
+                        string oldFile = Path.Combine(folderPath, oldImage);
+
+                        if (System.IO.File.Exists(oldFile))
+                        {
+                            System.IO.File.Delete(oldFile);
+                        }
+                    }
+                }
+
+
+                string query = @"
+
+UPDATE tbl_Gallery
+
+SET
+
+GalleryTitle=@GalleryTitle,
+GalleryCategory=@GalleryCategory,
+GalleryImage=@GalleryImage,
+Description=@Description,
+DisplayOrder=@DisplayOrder,
+IsActive=@IsActive,
+UpdatedDate=@UpdatedDate
+
+WHERE
+
+GalleryId=@GalleryId";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+
+                cmd.Parameters.AddWithValue("@GalleryId", model.GalleryId);
+
+                cmd.Parameters.AddWithValue("@GalleryTitle", model.GalleryTitle);
+
+                cmd.Parameters.AddWithValue("@GalleryCategory", model.GalleryCategory);
+
+                cmd.Parameters.AddWithValue("@GalleryImage", fileName);
+
+                cmd.Parameters.AddWithValue("@Description",
+                    string.IsNullOrWhiteSpace(model.Description)
+                    ? (object)DBNull.Value
+                    : model.Description);
+
+                cmd.Parameters.AddWithValue("@DisplayOrder", model.DisplayOrder);
+
+                cmd.Parameters.AddWithValue("@IsActive", model.IsActive);
+
+                cmd.Parameters.AddWithValue("@UpdatedDate", DateTime.Now);
+
+                int update = cmd.ExecuteNonQuery();
+
+                if (update > 0)
+                {
+                    TempData["Success"] = "Gallery updated successfully.";
+
+                    return RedirectToAction("ManageGallery");
+                }
+                else
+                {
+                    TempData["Error"] = "Unable to update gallery.";
+                }
+            }
+
+            return View(model);
+        }
+
+        [HttpGet]
+        public IActionResult ChangeGalleryStatus(long id)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+                string getStatusQuery = @"
+        SELECT IsActive
+        FROM tbl_Gallery
+        WHERE GalleryId = @GalleryId
+        AND IsDeleted = 0";
+
+                SqlCommand getCmd = new SqlCommand(getStatusQuery, con);
+                getCmd.Parameters.AddWithValue("@GalleryId", id);
+
+                object result = getCmd.ExecuteScalar();
+
+                if (result == null)
+                {
+                    TempData["Error"] = "Gallery record not found.";
+                    return RedirectToAction("ManageGallery");
+                }
+
+                bool currentStatus = Convert.ToBoolean(result);
+
+                bool newStatus = !currentStatus;
+
+               
+                string updateQuery = @"
+
+UPDATE tbl_Gallery
+
+SET
+
+IsActive = @IsActive,
+UpdatedDate = @UpdatedDate
+
+WHERE
+
+GalleryId = @GalleryId";
+
+                SqlCommand updateCmd = new SqlCommand(updateQuery, con);
+
+                updateCmd.Parameters.AddWithValue("@GalleryId", id);
+                updateCmd.Parameters.AddWithValue("@IsActive", newStatus);
+                updateCmd.Parameters.AddWithValue("@UpdatedDate", DateTime.Now);
+
+                int rows = updateCmd.ExecuteNonQuery();
+
+                if (rows > 0)
+                {
+                    TempData["Success"] = newStatus
+                        ? "Gallery activated successfully."
+                        : "Gallery deactivated successfully.";
+                }
+                else
+                {
+                    TempData["Error"] = "Unable to change gallery status.";
+                }
+            }
+
+            return RedirectToAction("ManageGallery");
+        }
+
+        
+        [HttpGet]
+        public IActionResult DeleteGallery(long id)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+              
+                string checkQuery = @"
+            SELECT GalleryImage
+            FROM tbl_Gallery
+            WHERE GalleryId = @GalleryId
+            AND IsDeleted = 0";
+
+                SqlCommand checkCmd = new SqlCommand(checkQuery, con);
+                checkCmd.Parameters.AddWithValue("@GalleryId", id);
+
+                object obj = checkCmd.ExecuteScalar();
+
+                if (obj == null)
+                {
+                    TempData["Error"] = "Gallery not found.";
+
+                    return RedirectToAction("ManageGallery");
+                }
+
+              
+                string query = @"
+
+UPDATE tbl_Gallery
+
+SET
+
+    IsDeleted = 1,
+    UpdatedDate = @UpdatedDate
+
+WHERE
+
+    GalleryId = @GalleryId";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+
+                cmd.Parameters.AddWithValue("@GalleryId", id);
+                cmd.Parameters.AddWithValue("@UpdatedDate", DateTime.Now);
+
+                int result = cmd.ExecuteNonQuery();
+
+                if (result > 0)
+                {
+                    TempData["Success"] = "Gallery deleted successfully.";
+                }
+                else
+                {
+                    TempData["Error"] = "Unable to delete gallery.";
+                }
+            }
+
+            return RedirectToAction("ManageGallery");
+        }
+      
+        [HttpGet]
+        public IActionResult ManageFeedback(string search = "")
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            List<FeedbackModel> list = new List<FeedbackModel>();
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+                string query = @"
+
+SELECT
+
+F.FeedbackId,
+F.CustomerId,
+F.AppointmentId,
+F.DoctorId,
+F.Rating,
+F.Subject,
+F.FeedbackMessage,
+F.ReplyMessage,
+F.IsApproved,
+F.IsActive,
+F.IsDeleted,
+F.CreatedDate,
+F.UpdatedDate,
+
+C.FullName AS CustomerName,
+
+D.DoctorName,
+
+A.AppointmentNo,
+
+DP.DepartmentName
+
+FROM tbl_Feedback F
+
+INNER JOIN tbl_Customer C
+ON F.CustomerId = C.CustomerId
+
+INNER JOIN tbl_Doctor D
+ON F.DoctorId = D.DoctorId
+
+LEFT JOIN tbl_Department DP
+ON D.DepartmentId = DP.DepartmentId
+
+INNER JOIN tbl_Appointment A
+ON F.AppointmentId = A.AppointmentId
+
+WHERE
+
+F.IsDeleted = 0
+
+AND
+(
+    @Search = ''
+
+    OR C.FullName LIKE @SearchText
+
+    OR D.DoctorName LIKE @SearchText
+
+    OR A.AppointmentNo LIKE @SearchText
+
+    OR F.Subject LIKE @SearchText
+)
+
+ORDER BY
+
+F.FeedbackId DESC";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+
+                cmd.Parameters.AddWithValue("@Search", search ?? "");
+
+                cmd.Parameters.AddWithValue("@SearchText", "%" + (search ?? "") + "%");
+
+                SqlDataReader dr = cmd.ExecuteReader();
+
+                while (dr.Read())
+                {
+                    FeedbackModel model = new FeedbackModel();
+
+                    model.FeedbackId = Convert.ToInt64(dr["FeedbackId"]);
+
+                    model.CustomerId = Convert.ToInt64(dr["CustomerId"]);
+
+                    model.AppointmentId = Convert.ToInt64(dr["AppointmentId"]);
+
+                    model.DoctorId = Convert.ToInt64(dr["DoctorId"]);
+
+                    model.CustomerName = dr["CustomerName"].ToString();
+
+                    model.DoctorName = dr["DoctorName"].ToString();
+
+                    model.AppointmentNo = dr["AppointmentNo"].ToString();
+
+                    model.DepartmentName = dr["DepartmentName"] == DBNull.Value
+                        ? ""
+                        : dr["DepartmentName"].ToString();
+
+                    model.Rating = Convert.ToInt32(dr["Rating"]);
+
+                    model.Subject = dr["Subject"].ToString();
+
+                    model.FeedbackMessage = dr["FeedbackMessage"].ToString();
+
+                    model.ReplyMessage = dr["ReplyMessage"] == DBNull.Value
+                        ? ""
+                        : dr["ReplyMessage"].ToString();
+
+                    model.IsApproved = Convert.ToBoolean(dr["IsApproved"]);
+
+                    model.IsActive = Convert.ToBoolean(dr["IsActive"]);
+
+                    model.IsDeleted = Convert.ToBoolean(dr["IsDeleted"]);
+
+                    model.CreatedDate = Convert.ToDateTime(dr["CreatedDate"]);
+
+                    if (dr["UpdatedDate"] != DBNull.Value)
+                    {
+                        model.UpdatedDate = Convert.ToDateTime(dr["UpdatedDate"]);
+                    }
+
+                    list.Add(model);
+                }
+
+                dr.Close();
+            }
+
+            ViewBag.Search = search;
+
+            return View(list);
+        }
+       
+        [HttpGet]
+        public IActionResult ViewFeedback(long id)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            FeedbackModel model = new FeedbackModel();
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+                string query = @"
+
+SELECT
+
+F.FeedbackId,
+F.CustomerId,
+F.AppointmentId,
+F.DoctorId,
+F.Rating,
+F.Subject,
+F.FeedbackMessage,
+F.ReplyMessage,
+F.IsApproved,
+F.IsActive,
+F.CreatedDate,
+F.UpdatedDate,
+
+C.FullName AS CustomerName,
+
+A.AppointmentNo,
+A.AppointmentDate,
+
+D.DoctorName,
+D.Specialization,
+
+DP.DepartmentName
+
+FROM tbl_Feedback F
+
+INNER JOIN tbl_Customer C
+ON F.CustomerId = C.CustomerId
+
+INNER JOIN tbl_Appointment A
+ON F.AppointmentId = A.AppointmentId
+
+INNER JOIN tbl_Doctor D
+ON F.DoctorId = D.DoctorId
+
+LEFT JOIN tbl_Department DP
+ON D.DepartmentId = DP.DepartmentId
+
+WHERE
+
+F.FeedbackId = @FeedbackId
+AND F.IsDeleted = 0";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+
+                cmd.Parameters.AddWithValue("@FeedbackId", id);
+
+                SqlDataReader dr = cmd.ExecuteReader();
+
+                if (dr.Read())
+                {
+                    model.FeedbackId = Convert.ToInt64(dr["FeedbackId"]);
+
+                    model.CustomerId = Convert.ToInt64(dr["CustomerId"]);
+
+                    model.AppointmentId = Convert.ToInt64(dr["AppointmentId"]);
+
+                    model.DoctorId = Convert.ToInt64(dr["DoctorId"]);
+
+                    model.CustomerName = dr["CustomerName"].ToString();
+
+                    model.AppointmentNo = dr["AppointmentNo"].ToString();
+
+                    model.AppointmentDate = Convert.ToDateTime(dr["AppointmentDate"]);
+
+                    model.DoctorName = dr["DoctorName"].ToString();
+
+                    model.DoctorSpecialization = dr["Specialization"].ToString();
+
+                    model.DepartmentName = dr["DepartmentName"] == DBNull.Value
+                        ? ""
+                        : dr["DepartmentName"].ToString();
+
+                    model.Rating = Convert.ToInt32(dr["Rating"]);
+
+                    model.Subject = dr["Subject"].ToString();
+
+                    model.FeedbackMessage = dr["FeedbackMessage"].ToString();
+
+                    model.ReplyMessage = dr["ReplyMessage"] == DBNull.Value
+                        ? ""
+                        : dr["ReplyMessage"].ToString();
+
+                    model.IsApproved = Convert.ToBoolean(dr["IsApproved"]);
+
+                    model.IsActive = Convert.ToBoolean(dr["IsActive"]);
+
+                    model.CreatedDate = Convert.ToDateTime(dr["CreatedDate"]);
+
+                    if (dr["UpdatedDate"] != DBNull.Value)
+                    {
+                        model.UpdatedDate = Convert.ToDateTime(dr["UpdatedDate"]);
+                    }
+                }
+                else
+                {
+                    dr.Close();
+
+                    TempData["Error"] = "Feedback not found.";
+
+                    return RedirectToAction("ManageFeedback");
+                }
+
+                dr.Close();
+            }
+
+            return View(model);
+        }
+      
+        [HttpGet]
+        public IActionResult ReplyFeedback(long id)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            FeedbackModel model = new FeedbackModel();
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+                string query = @"
+
+SELECT
+
+F.FeedbackId,
+F.CustomerId,
+F.AppointmentId,
+F.DoctorId,
+F.Rating,
+F.Subject,
+F.FeedbackMessage,
+F.ReplyMessage,
+F.IsApproved,
+F.IsActive,
+F.CreatedDate,
+F.UpdatedDate,
+
+C.FullName AS CustomerName,
+
+A.AppointmentNo,
+A.AppointmentDate,
+
+D.DoctorName,
+D.Specialization,
+
+DP.DepartmentName
+
+FROM tbl_Feedback F
+
+INNER JOIN tbl_Customer C
+ON F.CustomerId = C.CustomerId
+
+INNER JOIN tbl_Appointment A
+ON F.AppointmentId = A.AppointmentId
+
+INNER JOIN tbl_Doctor D
+ON F.DoctorId = D.DoctorId
+
+LEFT JOIN tbl_Department DP
+ON D.DepartmentId = DP.DepartmentId
+
+WHERE
+
+F.FeedbackId=@FeedbackId
+AND F.IsDeleted=0";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+
+                cmd.Parameters.AddWithValue("@FeedbackId", id);
+
+                SqlDataReader dr = cmd.ExecuteReader();
+
+                if (dr.Read())
+                {
+                    model.FeedbackId = Convert.ToInt64(dr["FeedbackId"]);
+
+                    model.CustomerId = Convert.ToInt64(dr["CustomerId"]);
+
+                    model.AppointmentId = Convert.ToInt64(dr["AppointmentId"]);
+
+                    model.DoctorId = Convert.ToInt64(dr["DoctorId"]);
+
+                    model.CustomerName = dr["CustomerName"].ToString();
+
+                    model.AppointmentNo = dr["AppointmentNo"].ToString();
+
+                    model.AppointmentDate = Convert.ToDateTime(dr["AppointmentDate"]);
+
+                    model.DoctorName = dr["DoctorName"].ToString();
+
+                    model.DoctorSpecialization = dr["Specialization"].ToString();
+
+                    model.DepartmentName = dr["DepartmentName"] == DBNull.Value
+                        ? ""
+                        : dr["DepartmentName"].ToString();
+
+                    model.Rating = Convert.ToInt32(dr["Rating"]);
+
+                    model.Subject = dr["Subject"].ToString();
+
+                    model.FeedbackMessage = dr["FeedbackMessage"].ToString();
+
+                    model.ReplyMessage = dr["ReplyMessage"] == DBNull.Value
+                        ? ""
+                        : dr["ReplyMessage"].ToString();
+
+                    model.IsApproved = Convert.ToBoolean(dr["IsApproved"]);
+
+                    model.IsActive = Convert.ToBoolean(dr["IsActive"]);
+
+                    model.CreatedDate = Convert.ToDateTime(dr["CreatedDate"]);
+
+                    if (dr["UpdatedDate"] != DBNull.Value)
+                    {
+                        model.UpdatedDate = Convert.ToDateTime(dr["UpdatedDate"]);
+                    }
+                }
+                else
+                {
+                    dr.Close();
+
+                    TempData["Error"] = "Feedback not found.";
+
+                    return RedirectToAction("ManageFeedback");
+                }
+
+                dr.Close();
+            }
+
+            return View(model);
+        }
+     
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult ReplyFeedback(FeedbackModel model)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            ModelState.Remove("CustomerName");
+            ModelState.Remove("DoctorName");
+            ModelState.Remove("AppointmentNo");
+            ModelState.Remove("DepartmentName");
+            ModelState.Remove("DoctorSpecialization");
+            ModelState.Remove("CustomerImage");
+            ModelState.Remove("DoctorImage");
+            ModelState.Remove("FeedbackMessage");
+            ModelState.Remove("Subject");
+
+            if (!ModelState.IsValid)
+            {
+                return ReplyFeedback(model.FeedbackId);
+            }
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+
+                string checkQuery = @"
+
+SELECT COUNT(*)
+
+FROM tbl_Feedback
+
+WHERE
+
+FeedbackId=@FeedbackId
+AND IsDeleted=0";
+
+                SqlCommand checkCmd = new SqlCommand(checkQuery, con);
+
+                checkCmd.Parameters.AddWithValue("@FeedbackId", model.FeedbackId);
+
+                int count = Convert.ToInt32(checkCmd.ExecuteScalar());
+
+                if (count == 0)
+                {
+                    TempData["Error"] = "Feedback not found.";
+
+                    return RedirectToAction("ManageFeedback");
+                }
+
+
+                string query = @"
+
+UPDATE tbl_Feedback
+
+SET
+
+ReplyMessage=@ReplyMessage,
+IsApproved=@IsApproved,
+UpdatedDate=@UpdatedDate
+
+WHERE
+
+FeedbackId=@FeedbackId
+AND IsDeleted=0";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+
+                cmd.Parameters.AddWithValue("@FeedbackId", model.FeedbackId);
+
+                cmd.Parameters.AddWithValue("@ReplyMessage", model.ReplyMessage);
+
+                cmd.Parameters.AddWithValue("@IsApproved", true);
+
+                cmd.Parameters.AddWithValue("@UpdatedDate", DateTime.Now);
+
+                int result = cmd.ExecuteNonQuery();
+
+                if (result > 0)
+                {
+                    TempData["Success"] = "Reply submitted successfully.";
+
+                    return RedirectToAction("ManageFeedback");
+                }
+                else
+                {
+                    TempData["Error"] = "Unable to submit reply.";
+                }
+            }
+
+            return RedirectToAction("ManageFeedback");
+        }
+       
+        [HttpGet]
+        public IActionResult ChangeFeedbackStatus(long id)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+
+                string checkQuery = @"
+
+SELECT IsApproved
+
+FROM tbl_Feedback
+
+WHERE
+
+FeedbackId=@FeedbackId
+AND IsDeleted=0";
+
+                SqlCommand checkCmd = new SqlCommand(checkQuery, con);
+
+                checkCmd.Parameters.AddWithValue("@FeedbackId", id);
+
+                object result = checkCmd.ExecuteScalar();
+
+                if (result == null)
+                {
+                    TempData["Error"] = "Feedback not found.";
+
+                    return RedirectToAction("ManageFeedback");
+                }
+
+                bool currentStatus = Convert.ToBoolean(result);
+
+                bool newStatus = !currentStatus;
+
+
+                string query = @"
+
+UPDATE tbl_Feedback
+
+SET
+
+IsApproved=@IsApproved,
+UpdatedDate=@UpdatedDate
+
+WHERE
+
+FeedbackId=@FeedbackId";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+
+                cmd.Parameters.AddWithValue("@FeedbackId", id);
+
+                cmd.Parameters.AddWithValue("@IsApproved", newStatus);
+
+                cmd.Parameters.AddWithValue("@UpdatedDate", DateTime.Now);
+
+                int update = cmd.ExecuteNonQuery();
+
+                if (update > 0)
+                {
+                    TempData["Success"] = newStatus
+                        ? "Feedback approved successfully."
+                        : "Feedback marked as pending successfully.";
+                }
+                else
+                {
+                    TempData["Error"] = "Unable to update feedback status.";
+                }
+            }
+
+            return RedirectToAction("ManageFeedback");
+        }
+        
+        [HttpGet]
+        public IActionResult DeleteFeedback(long id)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+
+                string checkQuery = @"
+
+SELECT COUNT(*)
+
+FROM tbl_Feedback
+
+WHERE
+
+FeedbackId=@FeedbackId
+AND IsDeleted=0";
+
+                SqlCommand checkCmd = new SqlCommand(checkQuery, con);
+
+                checkCmd.Parameters.AddWithValue("@FeedbackId", id);
+
+                int count = Convert.ToInt32(checkCmd.ExecuteScalar());
+
+                if (count == 0)
+                {
+                    TempData["Error"] = "Feedback not found.";
+
+                    return RedirectToAction("ManageFeedback");
+                }
+
+
+                string query = @"
+
+UPDATE tbl_Feedback
+
+SET
+
+IsDeleted=@IsDeleted,
+UpdatedDate=@UpdatedDate
+
+WHERE
+
+FeedbackId=@FeedbackId";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+
+                cmd.Parameters.AddWithValue("@FeedbackId", id);
+
+                cmd.Parameters.AddWithValue("@IsDeleted", true);
+
+                cmd.Parameters.AddWithValue("@UpdatedDate", DateTime.Now);
+
+                int result = cmd.ExecuteNonQuery();
+
+                if (result > 0)
+                {
+                    TempData["Success"] = "Feedback deleted successfully.";
+                }
+                else
+                {
+                    TempData["Error"] = "Unable to delete feedback.";
+                }
+            }
+
+            return RedirectToAction("ManageFeedback");
+        }
+      
+        [HttpGet]
+        public IActionResult ManageContactInquiry(string search = "")
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            List<ContactInquiryModel> list = new List<ContactInquiryModel>();
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+                string query = @"
+
+SELECT
+
+InquiryId,
+CustomerId,
+FullName,
+Email,
+MobileNo,
+Subject,
+Message,
+ReplyMessage,
+IsReplied,
+IsActive,
+IsDeleted,
+CreatedDate,
+UpdatedDate
+
+FROM tbl_ContactInquiry
+
+WHERE
+
+IsDeleted = 0
+
+AND
+(
+    @Search = ''
+
+    OR FullName LIKE @SearchText
+
+    OR Email LIKE @SearchText
+
+    OR Subject LIKE @SearchText
+
+    OR MobileNo LIKE @SearchText
+)
+
+ORDER BY InquiryId DESC";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+
+                cmd.Parameters.AddWithValue("@Search", search ?? "");
+
+                cmd.Parameters.AddWithValue("@SearchText", "%" + (search ?? "") + "%");
+
+                SqlDataReader dr = cmd.ExecuteReader();
+
+                while (dr.Read())
+                {
+                    ContactInquiryModel model = new ContactInquiryModel();
+
+                    model.InquiryId = Convert.ToInt64(dr["InquiryId"]);
+
+                    model.CustomerId = dr["CustomerId"] == DBNull.Value
+                        ? null
+                        : Convert.ToInt64(dr["CustomerId"]);
+
+                    model.FullName = dr["FullName"].ToString();
+
+                    model.Email = dr["Email"].ToString();
+
+                    model.MobileNo = dr["MobileNo"].ToString();
+
+                    model.Subject = dr["Subject"].ToString();
+
+                    model.Message = dr["Message"].ToString();
+
+                    model.ReplyMessage = dr["ReplyMessage"] == DBNull.Value
+                        ? ""
+                        : dr["ReplyMessage"].ToString();
+
+                    model.IsReplied = Convert.ToBoolean(dr["IsReplied"]);
+
+                    model.IsActive = Convert.ToBoolean(dr["IsActive"]);
+
+                    model.IsDeleted = Convert.ToBoolean(dr["IsDeleted"]);
+
+                    model.CreatedDate = Convert.ToDateTime(dr["CreatedDate"]);
+
+                    if (dr["UpdatedDate"] != DBNull.Value)
+                    {
+                        model.UpdatedDate = Convert.ToDateTime(dr["UpdatedDate"]);
+                    }
+
+                    list.Add(model);
+                }
+
+                dr.Close();
+            }
+
+            ViewBag.Search = search;
+
+            return View(list);
+        }
+ 
+        [HttpGet]
+        public IActionResult ViewContactInquiry(long id)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            ContactInquiryModel model = new ContactInquiryModel();
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+                string query = @"
+
+SELECT
+
+InquiryId,
+CustomerId,
+FullName,
+Email,
+MobileNo,
+Subject,
+Message,
+ReplyMessage,
+IsReplied,
+IsActive,
+IsDeleted,
+CreatedDate,
+UpdatedDate
+
+FROM tbl_ContactInquiry
+
+WHERE
+
+InquiryId=@InquiryId
+AND IsDeleted=0";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+
+                cmd.Parameters.AddWithValue("@InquiryId", id);
+
+                SqlDataReader dr = cmd.ExecuteReader();
+
+                if (dr.Read())
+                {
+                    model.InquiryId = Convert.ToInt64(dr["InquiryId"]);
+
+                    model.CustomerId = dr["CustomerId"] == DBNull.Value
+                        ? null
+                        : Convert.ToInt64(dr["CustomerId"]);
+
+                    model.FullName = dr["FullName"].ToString();
+
+                    model.Email = dr["Email"].ToString();
+
+                    model.MobileNo = dr["MobileNo"].ToString();
+
+                    model.Subject = dr["Subject"].ToString();
+
+                    model.Message = dr["Message"].ToString();
+
+                    model.ReplyMessage = dr["ReplyMessage"] == DBNull.Value
+                        ? ""
+                        : dr["ReplyMessage"].ToString();
+
+                    model.IsReplied = Convert.ToBoolean(dr["IsReplied"]);
+
+                    model.IsActive = Convert.ToBoolean(dr["IsActive"]);
+
+                    model.IsDeleted = Convert.ToBoolean(dr["IsDeleted"]);
+
+                    model.CreatedDate = Convert.ToDateTime(dr["CreatedDate"]);
+
+                    if (dr["UpdatedDate"] != DBNull.Value)
+                    {
+                        model.UpdatedDate = Convert.ToDateTime(dr["UpdatedDate"]);
+                    }
+                }
+                else
+                {
+                    dr.Close();
+
+                    TempData["Error"] = "Contact inquiry not found.";
+
+                    return RedirectToAction("ManageContactInquiry");
+                }
+
+                dr.Close();
+            }
+
+            return View(model);
+        }
+    
+        [HttpGet]
+        public IActionResult ReplyContactInquiry(long id)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            ContactInquiryModel model = new ContactInquiryModel();
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+                string query = @"
+
+SELECT
+
+InquiryId,
+CustomerId,
+FullName,
+Email,
+MobileNo,
+Subject,
+Message,
+ReplyMessage,
+IsReplied,
+IsActive,
+IsDeleted,
+CreatedDate,
+UpdatedDate
+
+FROM tbl_ContactInquiry
+
+WHERE
+
+InquiryId = @InquiryId
+AND IsDeleted = 0";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+
+                cmd.Parameters.AddWithValue("@InquiryId", id);
+
+                SqlDataReader dr = cmd.ExecuteReader();
+
+                if (dr.Read())
+                {
+                    model.InquiryId = Convert.ToInt64(dr["InquiryId"]);
+
+                    model.CustomerId = dr["CustomerId"] == DBNull.Value
+                                        ? null
+                                        : Convert.ToInt64(dr["CustomerId"]);
+
+                    model.FullName = dr["FullName"].ToString();
+
+                    model.Email = dr["Email"].ToString();
+
+                    model.MobileNo = dr["MobileNo"].ToString();
+
+                    model.Subject = dr["Subject"].ToString();
+
+                    model.Message = dr["Message"].ToString();
+
+                    model.ReplyMessage = dr["ReplyMessage"] == DBNull.Value
+                                            ? ""
+                                            : dr["ReplyMessage"].ToString();
+
+                    model.IsReplied = Convert.ToBoolean(dr["IsReplied"]);
+
+                    model.IsActive = Convert.ToBoolean(dr["IsActive"]);
+
+                    model.IsDeleted = Convert.ToBoolean(dr["IsDeleted"]);
+
+                    model.CreatedDate = Convert.ToDateTime(dr["CreatedDate"]);
+
+                    if (dr["UpdatedDate"] != DBNull.Value)
+                    {
+                        model.UpdatedDate = Convert.ToDateTime(dr["UpdatedDate"]);
+                    }
+                }
+                else
+                {
+                    dr.Close();
+
+                    TempData["Error"] = "Contact inquiry not found.";
+
+                    return RedirectToAction("ManageContactInquiry");
+                }
+
+                dr.Close();
+            }
+
+            return View(model);
+        }
+   
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult ReplyContactInquiry(ContactInquiryModel model)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            ModelState.Remove("FullName");
+            ModelState.Remove("Email");
+            ModelState.Remove("MobileNo");
+            ModelState.Remove("Subject");
+            ModelState.Remove("Message");
+            ModelState.Remove("CustomerName");
+            ModelState.Remove("CustomerImage");
+            ModelState.Remove("StatusText");
+
+            if (!ModelState.IsValid)
+            {
+                return ReplyContactInquiry(model.InquiryId);
+            }
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+
+                string checkQuery = @"
+
+SELECT COUNT(*)
+
+FROM tbl_ContactInquiry
+
+WHERE
+
+InquiryId=@InquiryId
+AND IsDeleted=0";
+
+                SqlCommand checkCmd = new SqlCommand(checkQuery, con);
+
+                checkCmd.Parameters.AddWithValue("@InquiryId", model.InquiryId);
+
+                int count = Convert.ToInt32(checkCmd.ExecuteScalar());
+
+                if (count == 0)
+                {
+                    TempData["Error"] = "Contact inquiry not found.";
+
+                    return RedirectToAction("ManageContactInquiry");
+                }
+
+
+                string query = @"
+
+UPDATE tbl_ContactInquiry
+
+SET
+
+ReplyMessage=@ReplyMessage,
+IsReplied=@IsReplied,
+UpdatedDate=@UpdatedDate
+
+WHERE
+
+InquiryId=@InquiryId
+AND IsDeleted=0";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+
+                cmd.Parameters.AddWithValue("@InquiryId", model.InquiryId);
+
+                cmd.Parameters.AddWithValue("@ReplyMessage", model.ReplyMessage);
+
+                cmd.Parameters.AddWithValue("@IsReplied", true);
+
+                cmd.Parameters.AddWithValue("@UpdatedDate", DateTime.Now);
+
+                int result = cmd.ExecuteNonQuery();
+
+                if (result > 0)
+                {
+                    TempData["Success"] = "Reply sent successfully.";
+
+                    return RedirectToAction("ManageContactInquiry");
+                }
+                else
+                {
+                    TempData["Error"] = "Unable to send reply.";
+                }
+            }
+
+            return RedirectToAction("ManageContactInquiry");
+        }
+      
+        [HttpGet]
+        public IActionResult ChangeInquiryStatus(long id)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+
+                string checkQuery = @"
+
+SELECT IsReplied
+
+FROM tbl_ContactInquiry
+
+WHERE
+
+InquiryId=@InquiryId
+AND IsDeleted=0";
+
+                SqlCommand checkCmd = new SqlCommand(checkQuery, con);
+
+                checkCmd.Parameters.AddWithValue("@InquiryId", id);
+
+                object result = checkCmd.ExecuteScalar();
+
+                if (result == null)
+                {
+                    TempData["Error"] = "Contact inquiry not found.";
+
+                    return RedirectToAction("ManageContactInquiry");
+                }
+
+                bool currentStatus = Convert.ToBoolean(result);
+
+                bool newStatus = !currentStatus;
+
+
+                string query = @"
+
+UPDATE tbl_ContactInquiry
+
+SET
+
+IsReplied=@IsReplied,
+UpdatedDate=@UpdatedDate
+
+WHERE
+
+InquiryId=@InquiryId
+AND IsDeleted=0";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+
+                cmd.Parameters.AddWithValue("@InquiryId", id);
+
+                cmd.Parameters.AddWithValue("@IsReplied", newStatus);
+
+                cmd.Parameters.AddWithValue("@UpdatedDate", DateTime.Now);
+
+                int update = cmd.ExecuteNonQuery();
+
+                if (update > 0)
+                {
+                    TempData["Success"] = newStatus
+                        ? "Inquiry marked as replied successfully."
+                        : "Inquiry marked as pending successfully.";
+                }
+                else
+                {
+                    TempData["Error"] = "Unable to update inquiry status.";
+                }
+            }
+
+            return RedirectToAction("ManageContactInquiry");
+        }
+       
+        [HttpGet]
+        public IActionResult DeleteContactInquiry(long id)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+
+                string checkQuery = @"
+
+SELECT COUNT(*)
+
+FROM tbl_ContactInquiry
+
+WHERE
+
+InquiryId=@InquiryId
+AND IsDeleted=0";
+
+                SqlCommand checkCmd = new SqlCommand(checkQuery, con);
+
+                checkCmd.Parameters.AddWithValue("@InquiryId", id);
+
+                int count = Convert.ToInt32(checkCmd.ExecuteScalar());
+
+                if (count == 0)
+                {
+                    TempData["Error"] = "Contact inquiry not found.";
+
+                    return RedirectToAction("ManageContactInquiry");
+                }
+
+
+                string query = @"
+
+UPDATE tbl_ContactInquiry
+
+SET
+
+IsDeleted=@IsDeleted,
+UpdatedDate=@UpdatedDate
+
+WHERE
+
+InquiryId=@InquiryId";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+
+                cmd.Parameters.AddWithValue("@InquiryId", id);
+
+                cmd.Parameters.AddWithValue("@IsDeleted", true);
+
+                cmd.Parameters.AddWithValue("@UpdatedDate", DateTime.Now);
+
+                int result = cmd.ExecuteNonQuery();
+
+                if (result > 0)
+                {
+                    TempData["Success"] = "Contact inquiry deleted successfully.";
+                }
+                else
+                {
+                    TempData["Error"] = "Unable to delete contact inquiry.";
+                }
+            }
+
+            return RedirectToAction("ManageContactInquiry");
+        }
+       
+        [HttpGet]
+        public IActionResult ManageHealthTips(string search = "")
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            List<HealthTipModel> list = new List<HealthTipModel>();
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+                string query = @"
+
+SELECT
+
+HealthTipId,
+Category,
+Title,
+ShortDescription,
+Description,
+TipImage,
+AuthorName,
+DisplayOrder,
+IsFeatured,
+IsActive,
+IsDeleted,
+CreatedDate,
+UpdatedDate
+
+FROM tbl_HealthTip
+
+WHERE
+
+IsDeleted = 0
+
+AND
+(
+    @Search = ''
+
+    OR Title LIKE @SearchText
+
+    OR Category LIKE @SearchText
+
+    OR AuthorName LIKE @SearchText
+)
+
+ORDER BY
+
+DisplayOrder ASC,
+HealthTipId DESC";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+
+                cmd.Parameters.AddWithValue("@Search", search ?? "");
+
+                cmd.Parameters.AddWithValue("@SearchText", "%" + (search ?? "") + "%");
+
+                SqlDataReader dr = cmd.ExecuteReader();
+
+                while (dr.Read())
+                {
+                    HealthTipModel model = new HealthTipModel();
+
+                    model.HealthTipId = Convert.ToInt64(dr["HealthTipId"]);
+
+                    model.Category = dr["Category"].ToString();
+
+                    model.Title = dr["Title"].ToString();
+
+                    model.ShortDescription = dr["ShortDescription"].ToString();
+
+                    model.Description = dr["Description"].ToString();
+
+                    model.TipImage = dr["TipImage"] == DBNull.Value
+                                        ? ""
+                                        : dr["TipImage"].ToString();
+
+                    model.AuthorName = dr["AuthorName"].ToString();
+
+                    model.DisplayOrder = Convert.ToInt32(dr["DisplayOrder"]);
+
+                    model.IsFeatured = Convert.ToBoolean(dr["IsFeatured"]);
+
+                    model.IsActive = Convert.ToBoolean(dr["IsActive"]);
+
+                    model.IsDeleted = Convert.ToBoolean(dr["IsDeleted"]);
+
+                    model.CreatedDate = Convert.ToDateTime(dr["CreatedDate"]);
+
+                    if (dr["UpdatedDate"] != DBNull.Value)
+                    {
+                        model.UpdatedDate = Convert.ToDateTime(dr["UpdatedDate"]);
+                    }
+
+                    list.Add(model);
+                }
+
+                dr.Close();
+            }
+
+            ViewBag.Search = search;
+
+            return View(list);
+        }
+       
+        [HttpGet]
+        public IActionResult AddHealthTip()
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            HealthTipModel model = new HealthTipModel();
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+
+                string query = @"
+
+SELECT ISNULL(MAX(DisplayOrder),0)+1
+
+FROM tbl_HealthTip
+
+WHERE IsDeleted=0";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+
+                model.DisplayOrder = Convert.ToInt32(cmd.ExecuteScalar());
+
+                model.IsActive = true;
+                model.IsFeatured = false;
+            }
+
+            return View(model);
+        }
+      
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult AddHealthTip(HealthTipModel model)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            ModelState.Remove("TipImage");
+            ModelState.Remove("ImageUrl");
+            ModelState.Remove("StatusText");
+            ModelState.Remove("FeaturedText");
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+
+                string fileName = "";
+
+                if (model.TipImageFile != null)
+                {
+                    string folderPath = Path.Combine(env.WebRootPath, "HealthTips");
+
+                    if (!Directory.Exists(folderPath))
+                    {
+                        Directory.CreateDirectory(folderPath);
+                    }
+
+                    fileName = Guid.NewGuid().ToString() +
+                               Path.GetExtension(model.TipImageFile.FileName);
+
+                    string filePath = Path.Combine(folderPath, fileName);
+
+                    using (FileStream stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        model.TipImageFile.CopyTo(stream);
+                    }
+                }
+
+
+                string query = @"
+
+INSERT INTO tbl_HealthTip
+(
+Category,
+Title,
+ShortDescription,
+Description,
+TipImage,
+AuthorName,
+DisplayOrder,
+IsFeatured,
+IsActive,
+IsDeleted,
+CreatedDate
+)
+
+VALUES
+(
+@Category,
+@Title,
+@ShortDescription,
+@Description,
+@TipImage,
+@AuthorName,
+@DisplayOrder,
+@IsFeatured,
+@IsActive,
+@IsDeleted,
+@CreatedDate
+)";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+
+                cmd.Parameters.AddWithValue("@Category", model.Category);
+
+                cmd.Parameters.AddWithValue("@Title", model.Title);
+
+                cmd.Parameters.AddWithValue("@ShortDescription", model.ShortDescription);
+
+                cmd.Parameters.AddWithValue("@Description", model.Description);
+
+                if (string.IsNullOrEmpty(fileName))
+                {
+                    cmd.Parameters.AddWithValue("@TipImage", DBNull.Value);
+                }
+                else
+                {
+                    cmd.Parameters.AddWithValue("@TipImage", fileName);
+                }
+
+                cmd.Parameters.AddWithValue("@AuthorName", model.AuthorName);
+
+                cmd.Parameters.AddWithValue("@DisplayOrder", model.DisplayOrder);
+
+                cmd.Parameters.AddWithValue("@IsFeatured", model.IsFeatured);
+
+                cmd.Parameters.AddWithValue("@IsActive", model.IsActive);
+
+                cmd.Parameters.AddWithValue("@IsDeleted", false);
+
+                cmd.Parameters.AddWithValue("@CreatedDate", DateTime.Now);
+
+                int result = cmd.ExecuteNonQuery();
+
+                if (result > 0)
+                {
+                    TempData["Success"] = "Health Tip added successfully.";
+
+                    return RedirectToAction("ManageHealthTips");
+                }
+                else
+                {
+                    TempData["Error"] = "Unable to add Health Tip.";
+                }
+            }
+
+            return View(model);
+        }
+     
+        [HttpGet]
+        public IActionResult EditHealthTip(long id)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            HealthTipModel model = new HealthTipModel();
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+                string query = @"
+
+SELECT
+
+HealthTipId,
+Category,
+Title,
+ShortDescription,
+Description,
+TipImage,
+AuthorName,
+DisplayOrder,
+IsFeatured,
+IsActive,
+IsDeleted,
+CreatedDate,
+UpdatedDate
+
+FROM tbl_HealthTip
+
+WHERE
+
+HealthTipId=@HealthTipId
+AND IsDeleted=0";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+
+                cmd.Parameters.AddWithValue("@HealthTipId", id);
+
+                SqlDataReader dr = cmd.ExecuteReader();
+
+                if (dr.Read())
+                {
+                    model.HealthTipId = Convert.ToInt64(dr["HealthTipId"]);
+
+                    model.Category = dr["Category"].ToString();
+
+                    model.Title = dr["Title"].ToString();
+
+                    model.ShortDescription = dr["ShortDescription"].ToString();
+
+                    model.Description = dr["Description"].ToString();
+
+                    model.TipImage = dr["TipImage"] == DBNull.Value
+                                        ? ""
+                                        : dr["TipImage"].ToString();
+
+                    model.AuthorName = dr["AuthorName"].ToString();
+
+                    model.DisplayOrder = Convert.ToInt32(dr["DisplayOrder"]);
+
+                    model.IsFeatured = Convert.ToBoolean(dr["IsFeatured"]);
+
+                    model.IsActive = Convert.ToBoolean(dr["IsActive"]);
+
+                    model.IsDeleted = Convert.ToBoolean(dr["IsDeleted"]);
+
+                    model.CreatedDate = Convert.ToDateTime(dr["CreatedDate"]);
+
+                    if (dr["UpdatedDate"] != DBNull.Value)
+                    {
+                        model.UpdatedDate = Convert.ToDateTime(dr["UpdatedDate"]);
+                    }
+                }
+                else
+                {
+                    dr.Close();
+
+                    TempData["Error"] = "Health Tip not found.";
+
+                    return RedirectToAction("ManageHealthTips");
+                }
+
+                dr.Close();
+            }
+
+            return View(model);
+        }
+     
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult EditHealthTip(HealthTipModel model)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            ModelState.Remove("TipImage");
+            ModelState.Remove("ImageUrl");
+            ModelState.Remove("StatusText");
+            ModelState.Remove("FeaturedText");
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+
+                string oldImage = "";
+
+                string getQuery = @"
+
+SELECT TipImage
+
+FROM tbl_HealthTip
+
+WHERE
+
+HealthTipId=@HealthTipId
+AND IsDeleted=0";
+
+                SqlCommand getCmd = new SqlCommand(getQuery, con);
+
+                getCmd.Parameters.AddWithValue("@HealthTipId", model.HealthTipId);
+
+                object img = getCmd.ExecuteScalar();
+
+                if (img == null)
+                {
+                    TempData["Error"] = "Health Tip not found.";
+
+                    return RedirectToAction("ManageHealthTips");
+                }
+
+                if (img != DBNull.Value)
+                {
+                    oldImage = img.ToString();
+                }
+
+
+                string fileName = oldImage;
+
+                if (model.TipImageFile != null)
+                {
+                    string folderPath = Path.Combine(env.WebRootPath, "HealthTips");
+
+                    if (!Directory.Exists(folderPath))
+                    {
+                        Directory.CreateDirectory(folderPath);
+                    }
+
+                    if (!string.IsNullOrEmpty(oldImage))
+                    {
+                        string oldFilePath = Path.Combine(folderPath, oldImage);
+
+                        if (System.IO.File.Exists(oldFilePath))
+                        {
+                            System.IO.File.Delete(oldFilePath);
+                        }
+                    }
+
+                   
+                    fileName = Guid.NewGuid().ToString() +
+                               Path.GetExtension(model.TipImageFile.FileName);
+
+                    string filePath = Path.Combine(folderPath, fileName);
+
+                    using (FileStream stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        model.TipImageFile.CopyTo(stream);
+                    }
+                }
+
+
+                string updateQuery = @"
+
+UPDATE tbl_HealthTip
+
+SET
+
+Category=@Category,
+Title=@Title,
+ShortDescription=@ShortDescription,
+Description=@Description,
+TipImage=@TipImage,
+AuthorName=@AuthorName,
+DisplayOrder=@DisplayOrder,
+IsFeatured=@IsFeatured,
+IsActive=@IsActive,
+UpdatedDate=@UpdatedDate
+
+WHERE
+
+HealthTipId=@HealthTipId
+AND IsDeleted=0";
+
+                SqlCommand cmd = new SqlCommand(updateQuery, con);
+
+                cmd.Parameters.AddWithValue("@HealthTipId", model.HealthTipId);
+
+                cmd.Parameters.AddWithValue("@Category", model.Category);
+
+                cmd.Parameters.AddWithValue("@Title", model.Title);
+
+                cmd.Parameters.AddWithValue("@ShortDescription", model.ShortDescription);
+
+                cmd.Parameters.AddWithValue("@Description", model.Description);
+
+                if (string.IsNullOrEmpty(fileName))
+                {
+                    cmd.Parameters.AddWithValue("@TipImage", DBNull.Value);
+                }
+                else
+                {
+                    cmd.Parameters.AddWithValue("@TipImage", fileName);
+                }
+
+                cmd.Parameters.AddWithValue("@AuthorName", model.AuthorName);
+
+                cmd.Parameters.AddWithValue("@DisplayOrder", model.DisplayOrder);
+
+                cmd.Parameters.AddWithValue("@IsFeatured", model.IsFeatured);
+
+                cmd.Parameters.AddWithValue("@IsActive", model.IsActive);
+
+                cmd.Parameters.AddWithValue("@UpdatedDate", DateTime.Now);
+
+                int result = cmd.ExecuteNonQuery();
+
+                if (result > 0)
+                {
+                    TempData["Success"] = "Health Tip updated successfully.";
+
+                    return RedirectToAction("ManageHealthTips");
+                }
+                else
+                {
+                    TempData["Error"] = "Unable to update Health Tip.";
+                }
+            }
+
+            return View(model);
+        }
+      
+        [HttpGet]
+        public IActionResult ViewHealthTip(long id)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            HealthTipModel model = new HealthTipModel();
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+                string query = @"
+
+SELECT
+
+HealthTipId,
+Category,
+Title,
+ShortDescription,
+Description,
+TipImage,
+AuthorName,
+DisplayOrder,
+IsFeatured,
+IsActive,
+IsDeleted,
+CreatedDate,
+UpdatedDate
+
+FROM tbl_HealthTip
+
+WHERE
+
+HealthTipId=@HealthTipId
+AND IsDeleted=0";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+
+                cmd.Parameters.AddWithValue("@HealthTipId", id);
+
+                SqlDataReader dr = cmd.ExecuteReader();
+
+                if (dr.Read())
+                {
+                    model.HealthTipId = Convert.ToInt64(dr["HealthTipId"]);
+
+                    model.Category = dr["Category"].ToString();
+
+                    model.Title = dr["Title"].ToString();
+
+                    model.ShortDescription = dr["ShortDescription"].ToString();
+
+                    model.Description = dr["Description"].ToString();
+
+                    model.TipImage = dr["TipImage"] == DBNull.Value
+                                        ? ""
+                                        : dr["TipImage"].ToString();
+
+                    model.AuthorName = dr["AuthorName"].ToString();
+
+                    model.DisplayOrder = Convert.ToInt32(dr["DisplayOrder"]);
+
+                    model.IsFeatured = Convert.ToBoolean(dr["IsFeatured"]);
+
+                    model.IsActive = Convert.ToBoolean(dr["IsActive"]);
+
+                    model.IsDeleted = Convert.ToBoolean(dr["IsDeleted"]);
+
+                    model.CreatedDate = Convert.ToDateTime(dr["CreatedDate"]);
+
+                    if (dr["UpdatedDate"] != DBNull.Value)
+                    {
+                        model.UpdatedDate = Convert.ToDateTime(dr["UpdatedDate"]);
+                    }
+                }
+                else
+                {
+                    dr.Close();
+
+                    TempData["Error"] = "Health Tip not found.";
+
+                    return RedirectToAction("ManageHealthTips");
+                }
+
+                dr.Close();
+            }
+
+            return View(model);
+        }
+  
+        [HttpGet]
+        public IActionResult ChangeHealthTipStatus(long id)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+
+                string checkQuery = @"
+
+SELECT IsActive
+
+FROM tbl_HealthTip
+
+WHERE
+
+HealthTipId=@HealthTipId
+AND IsDeleted=0";
+
+                SqlCommand checkCmd = new SqlCommand(checkQuery, con);
+
+                checkCmd.Parameters.AddWithValue("@HealthTipId", id);
+
+                object result = checkCmd.ExecuteScalar();
+
+                if (result == null)
+                {
+                    TempData["Error"] = "Health Tip not found.";
+
+                    return RedirectToAction("ManageHealthTips");
+                }
+
+                bool currentStatus = Convert.ToBoolean(result);
+
+                bool newStatus = !currentStatus;
+
+
+                string updateQuery = @"
+
+UPDATE tbl_HealthTip
+
+SET
+
+IsActive=@IsActive,
+UpdatedDate=@UpdatedDate
+
+WHERE
+
+HealthTipId=@HealthTipId
+AND IsDeleted=0";
+
+                SqlCommand cmd = new SqlCommand(updateQuery, con);
+
+                cmd.Parameters.AddWithValue("@HealthTipId", id);
+
+                cmd.Parameters.AddWithValue("@IsActive", newStatus);
+
+                cmd.Parameters.AddWithValue("@UpdatedDate", DateTime.Now);
+
+                int update = cmd.ExecuteNonQuery();
+
+                if (update > 0)
+                {
+                    TempData["Success"] = newStatus
+                        ? "Health Tip activated successfully."
+                        : "Health Tip deactivated successfully.";
+                }
+                else
+                {
+                    TempData["Error"] = "Unable to update Health Tip status.";
+                }
+            }
+
+            return RedirectToAction("ManageHealthTips");
+        }
+       
+        [HttpGet]
+        public IActionResult ChangeFeaturedStatus(long id)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+
+                string checkQuery = @"
+
+SELECT IsFeatured
+
+FROM tbl_HealthTip
+
+WHERE
+
+HealthTipId=@HealthTipId
+AND IsDeleted=0";
+
+                SqlCommand checkCmd = new SqlCommand(checkQuery, con);
+
+                checkCmd.Parameters.AddWithValue("@HealthTipId", id);
+
+                object result = checkCmd.ExecuteScalar();
+
+                if (result == null)
+                {
+                    TempData["Error"] = "Health Tip not found.";
+
+                    return RedirectToAction("ManageHealthTips");
+                }
+
+                bool currentStatus = Convert.ToBoolean(result);
+
+                bool newStatus = !currentStatus;
+
+
+                string updateQuery = @"
+
+UPDATE tbl_HealthTip
+
+SET
+
+IsFeatured=@IsFeatured,
+UpdatedDate=@UpdatedDate
+
+WHERE
+
+HealthTipId=@HealthTipId
+AND IsDeleted=0";
+
+                SqlCommand cmd = new SqlCommand(updateQuery, con);
+
+                cmd.Parameters.AddWithValue("@HealthTipId", id);
+
+                cmd.Parameters.AddWithValue("@IsFeatured", newStatus);
+
+                cmd.Parameters.AddWithValue("@UpdatedDate", DateTime.Now);
+
+                int update = cmd.ExecuteNonQuery();
+
+                if (update > 0)
+                {
+                    TempData["Success"] = newStatus
+                        ? "Health Tip marked as Featured successfully."
+                        : "Health Tip removed from Featured successfully.";
+                }
+                else
+                {
+                    TempData["Error"] = "Unable to update Featured status.";
+                }
+            }
+
+            return RedirectToAction("ManageHealthTips");
+        }
+
+        [HttpGet]
+        public IActionResult DeleteHealthTip(long id)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+
+                string checkQuery = @"
+
+SELECT COUNT(*)
+
+FROM tbl_HealthTip
+
+WHERE
+
+HealthTipId=@HealthTipId
+AND IsDeleted=0";
+
+                SqlCommand checkCmd = new SqlCommand(checkQuery, con);
+
+                checkCmd.Parameters.AddWithValue("@HealthTipId", id);
+
+                int count = Convert.ToInt32(checkCmd.ExecuteScalar());
+
+                if (count == 0)
+                {
+                    TempData["Error"] = "Health Tip not found.";
+
+                    return RedirectToAction("ManageHealthTips");
+                }
+
+
+                string imageQuery = @"
+
+SELECT TipImage
+
+FROM tbl_HealthTip
+
+WHERE
+
+HealthTipId=@HealthTipId";
+
+                SqlCommand imageCmd = new SqlCommand(imageQuery, con);
+
+                imageCmd.Parameters.AddWithValue("@HealthTipId", id);
+
+                object imageObj = imageCmd.ExecuteScalar();
+
+                string imageName = "";
+
+                if (imageObj != null && imageObj != DBNull.Value)
+                {
+                    imageName = imageObj.ToString();
+                }
+
+
+                string deleteQuery = @"
+
+UPDATE tbl_HealthTip
+
+SET
+
+IsDeleted=@IsDeleted,
+UpdatedDate=@UpdatedDate
+
+WHERE
+
+HealthTipId=@HealthTipId";
+
+                SqlCommand cmd = new SqlCommand(deleteQuery, con);
+
+                cmd.Parameters.AddWithValue("@HealthTipId", id);
+
+                cmd.Parameters.AddWithValue("@IsDeleted", true);
+
+                cmd.Parameters.AddWithValue("@UpdatedDate", DateTime.Now);
+
+                int result = cmd.ExecuteNonQuery();
+
+                if (result > 0)
+                {
+
+                    if (!string.IsNullOrEmpty(imageName))
+                    {
+                        string imagePath = Path.Combine(env.WebRootPath, "HealthTips", imageName);
+
+                        if (System.IO.File.Exists(imagePath))
+                        {
+                            System.IO.File.Delete(imagePath);
+                        }
+                    }
+
+                    TempData["Success"] = "Health Tip deleted successfully.";
+                }
+                else
+                {
+                    TempData["Error"] = "Unable to delete Health Tip.";
+                }
+            }
+
+            return RedirectToAction("ManageHealthTips");
         }
         // ===========================
         // Logout

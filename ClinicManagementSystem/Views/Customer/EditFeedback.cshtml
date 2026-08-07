@@ -1,0 +1,432 @@
+﻿@model ClinicManagementSystem.Models.FeedbackModel
+
+@{
+    ViewData["Title"] = "Edit Feedback";
+    Layout = "~/Views/Shared/_CustomerLayout.cshtml";
+}
+
+<div class="container py-5">
+
+    <div class="row justify-content-center">
+
+        <div class="col-lg-9">
+
+            <div class="card shadow-lg border-0">
+
+                <div class="card-header bg-warning text-dark">
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <h3 class="mb-0">
+
+                            <i class="fa-solid fa-pen-to-square me-2"></i>
+
+                            Edit Feedback
+
+                        </h3>
+
+                        <a asp-action="MyFeedback"
+                           class="btn btn-dark">
+
+                            <i class="fa-solid fa-arrow-left me-2"></i>
+
+                            Back
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+                <div class="card-body">
+
+                    <form asp-action="EditFeedback"
+                          method="post">
+
+                        @Html.AntiForgeryToken()
+
+                        <input asp-for="FeedbackId" type="hidden" />
+
+                        <input asp-for="AppointmentId" type="hidden" />
+
+                        <input asp-for="CustomerId" type="hidden" />
+
+                        <input asp-for="DoctorId" type="hidden" />
+
+                        <div asp-validation-summary="ModelOnly"
+                             class="text-danger mb-3">
+                        </div>
+
+                        <div class="row">
+
+                            <!-- Doctor Name -->
+
+                            <div class="col-md-6 mb-3">
+
+                                <label class="form-label fw-bold">
+
+                                    Doctor
+
+                                </label>
+
+                                <input class="form-control"
+                                       value="@Model.DoctorName"
+                                       readonly />
+
+                            </div>
+
+                            <!-- Appointment No -->
+
+                            <div class="col-md-6 mb-3">
+
+                                <label class="form-label fw-bold">
+
+                                    Appointment No
+
+                                </label>
+
+                                <input class="form-control"
+                                       value="@Model.AppointmentNo"
+                                       readonly />
+
+                            </div>
+
+                            <!-- Appointment Date -->
+
+                            <div class="col-md-6 mb-3">
+
+                                <label class="form-label fw-bold">
+
+                                    Appointment Date
+
+                                </label>
+
+                                <input class="form-control"
+                                       value="@Model.AppointmentDate.ToString("dd MMM yyyy")"
+                                       readonly />
+
+                            </div>
+
+                            <!-- Department -->
+
+                            <div class="col-md-6 mb-3">
+
+                                <label class="form-label fw-bold">
+
+                                    Department
+
+                                </label>
+
+                                <input class="form-control"
+                                       value="@Model.DepartmentName"
+                                       readonly />
+
+                            </div>
+
+                            <!-- Rating -->
+
+                            <div class="col-12 mb-4">
+
+                                <label class="form-label fw-bold">
+
+                                    Rating
+
+                                </label>
+
+                                <br />
+
+                                <div class="rating-stars">
+
+                                    @for (int i = 1; i <= 5; i++)
+                                    {
+                                        <i class="fa-solid fa-star star @(i <= Model.Rating ? "active" : "")"
+                                           data-value="@i"></i>
+                                    }
+
+                                </div>
+
+                                <input asp-for="Rating"
+                                       type="hidden"
+                                       id="Rating" />
+
+                                <span asp-validation-for="Rating"
+                                      class="text-danger"></span>
+
+                            </div>
+                            <!-- Subject -->
+
+                            <div class="col-12 mb-3">
+
+                                <label asp-for="Subject"
+                                       class="form-label fw-bold">
+
+                                    Subject
+
+                                </label>
+
+                                <input asp-for="Subject"
+                                       class="form-control"
+                                       placeholder="Enter Feedback Subject" />
+
+                                <span asp-validation-for="Subject"
+                                      class="text-danger"></span>
+
+                            </div>
+
+                            <!-- Feedback Message -->
+
+                            <div class="col-12 mb-4">
+
+                                <label asp-for="FeedbackMessage"
+                                       class="form-label fw-bold">
+
+                                    Feedback Message
+
+                                </label>
+
+                                <textarea asp-for="FeedbackMessage"
+                                          rows="6"
+                                          class="form-control"
+                                          placeholder="Write your valuable feedback here..."></textarea>
+
+                                <span asp-validation-for="FeedbackMessage"
+                                      class="text-danger"></span>
+
+                            </div>
+
+                        </div>
+
+                        <hr />
+
+                        <div class="text-center">
+
+                            <button type="submit"
+                                    class="btn btn-warning px-5">
+
+                                <i class="fa-solid fa-floppy-disk me-2"></i>
+
+                                Update Feedback
+
+                            </button>
+
+                            <button type="reset"
+                                    class="btn btn-secondary px-5 ms-2">
+
+                                <i class="fa-solid fa-rotate-right me-2"></i>
+
+                                Reset
+
+                            </button>
+
+                            <a asp-action="MyFeedback"
+                               class="btn btn-dark px-5 ms-2">
+
+                                <i class="fa-solid fa-arrow-left me-2"></i>
+
+                                Back
+
+                            </a>
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+@section Styles {
+
+    <style>
+
+        body {
+            background: #f5f7fb;
+        }
+
+        .card {
+            border: none;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 12px 30px rgba(0,0,0,.08);
+        }
+
+        .card-header {
+            font-weight: 600;
+        }
+
+        .form-control,
+        textarea {
+            border-radius: 10px;
+            min-height: 46px;
+        }
+
+            .form-control:focus,
+            textarea:focus {
+                border-color: #ffc107;
+                box-shadow: 0 0 0 .15rem rgba(255,193,7,.25);
+            }
+
+        textarea {
+            resize: none;
+        }
+
+        .rating-stars {
+            display: flex;
+            gap: 10px;
+            font-size: 35px;
+        }
+
+        .star {
+            color: #d6d6d6;
+            cursor: pointer;
+            transition: .30s;
+        }
+
+            .star:hover {
+                transform: scale(1.20);
+            }
+
+            .star.active {
+                color: #ffc107;
+            }
+
+        .btn {
+            border-radius: 10px;
+            transition: .30s;
+        }
+
+            .btn:hover {
+                transform: translateY(-2px);
+            }
+
+        @@media(max-width:768px) {
+
+            .rating-stars {
+                justify-content: center;
+                font-size: 28px;
+            }
+
+            .btn {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+        }
+
+    </style>
+
+}
+
+@section Scripts {
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+
+        $(document).ready(function () {
+
+            $(".star").click(function () {
+
+                var rating = $(this).data("value");
+
+                $("#Rating").val(rating);
+
+                $(".star").removeClass("active");
+
+                $(".star").each(function () {
+
+                    if ($(this).data("value") <= rating) {
+
+                        $(this).addClass("active");
+
+                    }
+
+                });
+
+            });
+
+            $(".star").mouseenter(function () {
+
+                var rating = $(this).data("value");
+
+                $(".star").removeClass("active");
+
+                $(".star").each(function () {
+
+                    if ($(this).data("value") <= rating) {
+
+                        $(this).addClass("active");
+
+                    }
+
+                });
+
+            });
+
+            $(".rating-stars").mouseleave(function () {
+
+                var rating = $("#Rating").val();
+
+                $(".star").removeClass("active");
+
+                $(".star").each(function () {
+
+                    if ($(this).data("value") <= rating) {
+
+                        $(this).addClass("active");
+
+                    }
+
+                });
+
+            });
+
+        });
+
+    </script>
+
+    @if (TempData["Success"] != null)
+    {
+        <script>
+
+            Swal.fire({
+
+                icon:'success',
+
+                title:'Success',
+
+                text:'@TempData["Success"]',
+
+                confirmButtonColor:'#198754'
+
+            });
+
+        </script>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <script>
+
+            Swal.fire({
+
+                icon:'error',
+
+                title:'Error',
+
+                text:'@TempData["Error"]',
+
+                confirmButtonColor:'#dc3545'
+
+            });
+
+        </script>
+    }
+
+}

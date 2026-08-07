@@ -1,0 +1,401 @@
+﻿@model IEnumerable<ClinicManagementSystem.Models.GalleryModel>
+
+@{
+    ViewData["Title"] = "Gallery";
+    Layout = "~/Views/Shared/_CustomerLayout.cshtml";
+}
+
+<div class="container py-5">
+
+    <!-- Page Header -->
+
+    <div class="row mb-5">
+
+        <div class="col-lg-12 text-center">
+
+            <h1 class="fw-bold text-primary">
+
+                <i class="fa-solid fa-images me-2"></i>
+
+                Clinic Gallery
+
+            </h1>
+
+            <p class="text-muted">
+
+                Explore our clinic infrastructure, doctors, laboratory, pharmacy and healthcare facilities.
+
+            </p>
+
+        </div>
+
+    </div>
+
+    <!-- Search & Filter -->
+
+    <div class="card shadow border-0 mb-5">
+
+        <div class="card-body">
+
+            <form method="get"
+                  asp-action="Gallery">
+
+                <div class="row">
+
+                    <div class="col-md-5 mb-3">
+
+                        <label class="form-label fw-bold">
+
+                            Search Gallery
+
+                        </label>
+
+                        <input type="text"
+                               name="search"
+                               value="@ViewBag.Search"
+                               class="form-control"
+                               placeholder="Search Gallery..." />
+
+                    </div>
+
+                    <div class="col-md-5 mb-3">
+
+                        <label class="form-label fw-bold">
+
+                            Category
+
+                        </label>
+
+                        <select name="category"
+                                class="form-select">
+
+                            <option value="">All Categories</option>
+
+                            <option value="Reception">Reception</option>
+
+                            <option value="Consultation Room">Consultation Room</option>
+
+                            <option value="Laboratory">Laboratory</option>
+
+                            <option value="Pharmacy">Pharmacy</option>
+
+                            <option value="Medical Equipment">Medical Equipment</option>
+
+                            <option value="Operation Theatre">Operation Theatre</option>
+
+                            <option value="Doctors">Doctors</option>
+
+                            <option value="Staff">Staff</option>
+
+                            <option value="Health Camp">Health Camp</option>
+
+                            <option value="Events">Events</option>
+
+                            <option value="Clinic Building">Clinic Building</option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-md-2 d-grid mb-3">
+
+                        <label>&nbsp;</label>
+
+                        <button class="btn btn-primary">
+
+                            <i class="fa-solid fa-magnifying-glass me-2"></i>
+
+                            Search
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+    <!-- Gallery Cards -->
+
+    <div class="row">
+
+@if(Model != null && Model.Any())
+        {@foreach (var item in Model)
+            {
+                <div class="col-lg-4 col-md-6 mb-4">
+
+                    <div class="card gallery-card shadow-sm border-0 h-100">
+
+                        @if (!string.IsNullOrEmpty(item.GalleryImage))
+                        {
+                            <img src="~/GalleryImages/@item.GalleryImage"
+                                 class="card-img-top gallery-image"
+                                 alt="@item.GalleryTitle" />
+                        }
+                        else
+                        {
+                            <img src="~/images/no-image.png"
+                                 class="card-img-top gallery-image"
+                                 alt="No Image" />
+                        }
+
+                <div class="card-body">
+
+                    <span class="badge bg-primary mb-2">
+
+                        @item.GalleryCategory
+
+                    </span>
+
+                    <h5 class="fw-bold">
+
+                        @item.GalleryTitle
+
+                    </h5>
+
+                    <p class="text-muted">
+
+                        @(string.IsNullOrWhiteSpace(item.Description)
+                                                ? "No description available."
+                                                : (item.Description.Length > 100
+                                                ? item.Description.Substring(0, 100) + "..."
+                                                : item.Description))
+
+                    </p>
+
+                        </div>
+
+                        <div class="card-footer bg-white border-0">
+
+                            <div class="d-flex justify-content-between">
+
+                                <a asp-action="GalleryDetails"
+                                   asp-route-id="@item.GalleryId"
+                                   class="btn btn-primary">
+
+                                    <i class="fa-solid fa-eye me-2"></i>
+
+                                    View Details
+
+                                </a>
+
+                                <button type="button"
+                                        class="btn btn-outline-success btn-preview"
+                                        data-image="@Url.Content("~/Department/" + item.GalleryImage)"
+                                        data-title="@item.GalleryTitle">
+
+                                    <i class="fa-solid fa-image"></i>
+
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+                }
+
+        }
+        else
+        {
+
+            <div class="col-12">
+
+                <div class="card border-0 shadow">
+
+                    <div class="card-body text-center py-5">
+
+                        <i class="fa-solid fa-images fa-5x text-secondary mb-3"></i>
+
+                        <h3>
+
+                            No Gallery Found
+
+                        </h3>
+
+                        <p class="text-muted">
+
+                            No gallery images are available at the moment.
+
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        }
+
+    </div>
+
+</div>
+@section Styles {
+
+    <style>
+
+        body {
+            background: #f5f7fb;
+        }
+
+        .gallery-card {
+            border-radius: 18px;
+            overflow: hidden;
+            transition: .35s;
+        }
+
+            .gallery-card:hover {
+                transform: translateY(-8px);
+                box-shadow: 0 15px 35px rgba(0,0,0,.15);
+            }
+
+        .gallery-image {
+            height: 260px;
+            width: 100%;
+            object-fit: cover;
+            transition: .40s;
+            cursor: pointer;
+        }
+
+        .gallery-card:hover .gallery-image {
+            transform: scale(1.08);
+        }
+
+        .card-body h5 {
+            min-height: 55px;
+        }
+
+        .badge {
+            font-size: 13px;
+            padding: 8px 15px;
+            border-radius: 25px;
+        }
+
+        .btn {
+            border-radius: 10px;
+        }
+
+        .form-control,
+        .form-select {
+            min-height: 46px;
+            border-radius: 10px;
+        }
+
+            .form-control:focus,
+            .form-select:focus {
+                border-color: #0d6efd;
+                box-shadow: 0 0 0 .15rem rgba(13,110,253,.20);
+            }
+
+        @@media(max-width:768px) {
+
+            .gallery-image {
+                height: 220px;
+            }
+        }
+
+    </style>
+
+}
+
+@section Scripts {
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    @if (TempData["Success"] != null)
+    {
+        <script>
+
+            Swal.fire({
+
+                icon:'success',
+
+                title:'Success',
+
+                text:'@TempData["Success"]',
+
+                confirmButtonColor:'#198754'
+
+            });
+
+        </script>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <script>
+
+            Swal.fire({
+
+                icon:'error',
+
+                title:'Error',
+
+                text:'@TempData["Error"]',
+
+                confirmButtonColor:'#dc3545'
+
+            });
+
+        </script>
+    }
+
+    <script>
+
+        $(document).ready(function(){
+
+            $(".btn-preview").click(function(){
+
+                var image=$(this).data("image");
+
+                var title=$(this).data("title");
+
+                Swal.fire({
+
+                    title:title,
+
+                    imageUrl:image,
+
+                    imageAlt:title,
+
+                    width:800,
+
+                    showCloseButton:true,
+
+                    showConfirmButton:false
+
+                });
+
+            });
+
+            $(".gallery-image").click(function(){
+
+                Swal.fire({
+
+                    imageUrl:$(this).attr("src"),
+
+                    imageAlt:"Gallery Image",
+
+                    width:800,
+
+                    showCloseButton:true,
+
+                    showConfirmButton:false
+
+                });
+
+            });
+
+        });
+
+    </script>
+
+}

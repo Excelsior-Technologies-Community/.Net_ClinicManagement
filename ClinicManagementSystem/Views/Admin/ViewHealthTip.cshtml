@@ -1,0 +1,567 @@
+﻿@model ClinicManagementSystem.Models.HealthTipModel
+
+@{
+    ViewData["Title"] = "View Health Tip";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid py-4">
+
+    <!-- Page Header -->
+
+    <div class="row mb-4">
+
+        <div class="col-lg-12">
+
+            <div class="card shadow border-0">
+
+                <div class="card-body bg-info text-white rounded">
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <div>
+
+                            <h2 class="fw-bold mb-1">
+
+                                <i class="fa-solid fa-book-medical me-2"></i>
+
+                                View Health Tip
+
+                            </h2>
+
+                            <p class="mb-0">
+
+                                Complete information about the selected health tip.
+
+                            </p>
+
+                        </div>
+
+                        <div>
+
+                            <a asp-action="ManageHealthTips"
+                               class="btn btn-light">
+
+                                <i class="fa-solid fa-arrow-left me-2"></i>
+
+                                Back
+
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Health Tip Details -->
+
+    <div class="card shadow border-0">
+
+        <div class="card-body">
+
+            <div class="row">
+
+                <!-- Health Tip Image -->
+
+                <div class="col-lg-4 text-center mb-4">
+
+                    @if (!string.IsNullOrEmpty(Model.TipImage))
+                    {
+                        <img src="~/HealthTips/@Model.TipImage"
+                             asp-append-version="true"
+                             class="img-fluid rounded shadow"
+                             style="width:300px;height:300px;object-fit:cover;" />
+                    }
+                    else
+                    {
+                        <img src="~/images/no-image.png"
+                             class="img-fluid rounded shadow"
+                             style="width:300px;height:300px;object-fit:cover;" />
+                    }
+
+                </div>
+
+                <!-- Basic Details -->
+
+                <div class="col-lg-8">
+
+                    <table class="table table-bordered align-middle">
+
+                        <tr>
+
+                            <th width="220">
+
+                                Health Tip ID
+
+                            </th>
+
+                            <td>
+
+                                @Model.HealthTipId
+
+                            </td>
+
+                        </tr>
+
+                        <tr>
+
+                            <th>
+
+                                Category
+
+                            </th>
+
+                            <td>
+
+                                <span class="badge bg-primary">
+
+                                    @Model.Category
+
+                                </span>
+
+                            </td>
+
+                        </tr>
+
+                        <tr>
+
+                            <th>
+
+                                Health Tip Title
+
+                            </th>
+
+                            <td>
+
+                                <strong class="text-primary">
+
+                                    @Model.Title
+
+                                </strong>
+
+                            </td>
+
+                        </tr>
+
+                        <tr>
+
+                            <th>
+
+                                Author Name
+
+                            </th>
+
+                            <td>
+
+                                <i class="fa-solid fa-user-doctor text-success me-2"></i>
+
+                                @Model.AuthorName
+
+                            </td>
+
+                        </tr>
+
+                        <tr>
+
+                            <th>
+
+                                Featured
+
+                            </th>
+
+                            <td>
+
+                                @if (Model.IsFeatured)
+                                {
+                                    <span class="badge bg-warning text-dark">
+
+                                        <i class="fa-solid fa-star me-1"></i>
+
+                                        Featured
+
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">
+
+                                        Normal
+
+                                    </span>
+                                }
+
+                            </td>
+
+                        </tr>
+
+                        <tr>
+
+                            <th>
+
+                                Status
+
+                            </th>
+
+                            <td>
+
+                                @if (Model.IsActive)
+                                {
+                                    <span class="badge bg-success">
+
+                                        <i class="fa-solid fa-circle-check me-1"></i>
+
+                                        Active
+
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">
+
+                                        <i class="fa-solid fa-circle-xmark me-1"></i>
+
+                                        Inactive
+
+                                    </span>
+                                }
+
+                            </td>
+
+                        </tr>
+
+                    </table>
+
+                </div>
+                <div class="row mt-3">
+
+                    <!-- Short Description -->
+
+                    <div class="col-lg-12 mb-4">
+
+                        <div class="card border-0 bg-light">
+
+                            <div class="card-body">
+
+                                <h5 class="text-primary mb-3">
+
+                                    <i class="fa-solid fa-align-left me-2"></i>
+
+                                    Short Description
+
+                                </h5>
+
+                                <div class="border rounded p-3 bg-white">
+
+                                    @Model.ShortDescription
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- Full Description -->
+
+                    <div class="col-lg-12 mb-4">
+
+                        <div class="card border-0 bg-light">
+
+                            <div class="card-body">
+
+                                <h5 class="text-success mb-3">
+
+                                    <i class="fa-solid fa-file-lines me-2"></i>
+
+                                    Full Description
+
+                                </h5>
+
+                                <div class="border rounded p-4 bg-white">
+
+                                    @Html.Raw(Model.Description)
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- Other Details -->
+
+                    <div class="col-lg-12">
+
+                        <div class="card border-0 bg-light">
+
+                            <div class="card-body">
+
+                                <h5 class="text-dark mb-3">
+
+                                    <i class="fa-solid fa-circle-info me-2"></i>
+
+                                    Additional Information
+
+                                </h5>
+
+                                <table class="table table-bordered mb-0">
+
+                                    <tr>
+
+                                        <th width="220">
+
+                                            Display Order
+
+                                        </th>
+
+                                        <td>
+
+                                            @Model.DisplayOrder
+
+                                        </td>
+
+                                    </tr>
+
+                                    <tr>
+
+                                        <th>
+
+                                            Created Date
+
+                                        </th>
+
+                                        <td>
+
+                                            @Model.CreatedDate.ToString("dd MMM yyyy hh:mm tt")
+
+                                        </td>
+
+                                    </tr>
+
+                                    <tr>
+
+                                        <th>
+
+                                            Last Updated
+
+                                        </th>
+
+                                        <td>
+
+                                            @if (Model.UpdatedDate != null)
+                                            {
+                                                @Model.UpdatedDate.Value.ToString("dd MMM yyyy hh:mm tt")
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">
+
+                                                    Not Updated
+
+                                                </span>
+                                            }
+
+                                        </td>
+
+                                    </tr>
+
+                                </table>
+
+                                <div class="text-center mt-4">
+
+                                    <a asp-action="EditHealthTip"
+                                       asp-route-id="@Model.HealthTipId"
+                                       class="btn btn-warning px-4 me-2">
+
+                                        <i class="fa-solid fa-pen-to-square me-2"></i>
+
+                                        Edit
+
+                                    </a>
+
+                                    <a asp-action="ManageHealthTips"
+                                       class="btn btn-secondary px-4">
+
+                                        <i class="fa-solid fa-arrow-left me-2"></i>
+
+                                        Back
+
+                                    </a>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+@section Styles {
+
+    <style>
+
+        body {
+            background: #f5f7fb;
+        }
+
+        .card {
+            border: none;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0,0,0,.08);
+        }
+
+        .card-header {
+            font-weight: 600;
+        }
+
+        .card.bg-light {
+            border-radius: 12px;
+        }
+
+        .table th {
+            width: 220px;
+            background: #f8f9fa;
+            font-weight: 600;
+            vertical-align: middle;
+        }
+
+        .table td {
+            vertical-align: middle;
+        }
+
+        .badge {
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 13px;
+        }
+
+        .border.rounded {
+            border-radius: 12px !important;
+            background: #fff;
+            line-height: 28px;
+            white-space: pre-line;
+        }
+
+        img {
+            border-radius: 15px;
+            transition: .4s;
+            box-shadow: 0 8px 20px rgba(0,0,0,.15);
+        }
+
+            img:hover {
+                transform: scale(1.04);
+            }
+
+        .btn {
+            border-radius: 10px;
+            transition: .3s;
+        }
+
+            .btn:hover {
+                transform: translateY(-2px);
+            }
+
+        .alert {
+            border-radius: 12px;
+        }
+
+        @@media(max-width:768px) {
+
+            img {
+                width: 220px !important;
+                height: 220px !important;
+            }
+
+            .table th {
+                width: 130px;
+                font-size: 14px;
+            }
+
+            .table td {
+                font-size: 14px;
+            }
+
+            .btn {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+        }
+
+    </style>
+
+}
+
+@section Scripts {
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    @if (TempData["Success"] != null)
+    {
+        <script>
+
+            Swal.fire({
+
+                icon:'success',
+
+                title:'Success',
+
+                text:'@TempData["Success"]',
+
+                confirmButtonColor:'#198754'
+
+            });
+
+        </script>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <script>
+
+            Swal.fire({
+
+                icon:'error',
+
+                title:'Error',
+
+                text:'@TempData["Error"]',
+
+                confirmButtonColor:'#dc3545'
+
+            });
+
+        </script>
+    }
+
+    <script>
+
+        $(document).ready(function(){
+
+            $(".card").hide().fadeIn(500);
+
+        });
+
+    </script>
+
+}

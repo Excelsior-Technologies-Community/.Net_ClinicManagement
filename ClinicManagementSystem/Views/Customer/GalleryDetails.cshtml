@@ -1,0 +1,438 @@
+﻿@model ClinicManagementSystem.Models.GalleryModel
+
+@{
+    ViewData["Title"] = "Gallery Details";
+    Layout = "~/Views/Shared/_CustomerLayout.cshtml";
+}
+
+<div class="container py-5">
+
+    <div class="row justify-content-center">
+
+        <div class="col-lg-11">
+
+            <div class="card shadow-lg border-0">
+
+                <div class="card-header bg-primary text-white">
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <h3 class="mb-0">
+
+                            <i class="fa-solid fa-image me-2"></i>
+
+                            Gallery Details
+
+                        </h3>
+
+                        <a asp-action="Gallery"
+                           class="btn btn-light">
+
+                            <i class="fa-solid fa-arrow-left me-2"></i>
+
+                            Back to Gallery
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+                <div class="card-body">
+
+                    <div class="row">
+
+                        <!-- Gallery Image -->
+
+                        <div class="col-lg-6 mb-4 text-center">
+
+                            @if (!string.IsNullOrEmpty(Model.GalleryImage))
+                            {
+                                <img src="~/GalleryImages/@Model.GalleryImage"
+                                     id="GalleryImage"
+                                     class="img-fluid rounded shadow gallery-img"
+                                     style="height:450px;
+                                                width:100%;
+                                                object-fit:cover;
+                                                cursor:pointer;" />
+                            }
+                            else
+                            {
+                                <img src="~/images/no-image.png"
+                                     class="img-fluid rounded shadow"
+                                     style="height:450px;
+                                                width:100%;
+                                                object-fit:cover;" />
+                            }
+
+                        </div>
+
+                        <!-- Gallery Information -->
+
+                        <div class="col-lg-6">
+
+                            <table class="table table-bordered">
+
+                                <tr>
+
+                                    <th width="180">
+
+                                        Gallery Title
+
+                                    </th>
+
+                                    <td>
+
+                                        @Model.GalleryTitle
+
+                                    </td>
+
+                                </tr>
+
+                                <tr>
+
+                                    <th>
+
+                                        Category
+
+                                    </th>
+
+                                    <td>
+
+                                        <span class="badge bg-primary">
+
+                                            @Model.GalleryCategory
+
+                                        </span>
+
+                                    </td>
+
+                                </tr>
+
+                                <tr>
+
+                                    <th>
+
+                                        Display Order
+
+                                    </th>
+
+                                    <td>
+
+                                        @Model.DisplayOrder
+
+                                    </td>
+
+                                </tr>
+
+                                <tr>
+
+                                    <th>
+
+                                        Status
+
+                                    </th>
+
+                                    <td>
+                                        @if (Model.IsActive)
+                                        {
+                                            <span class="badge bg-success">
+
+                                                <i class="fa-solid fa-circle-check me-1"></i>
+
+                                                Active
+
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger">
+
+                                                <i class="fa-solid fa-circle-xmark me-1"></i>
+
+                                                Inactive
+
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                </tr>
+
+                                <tr>
+
+                                    <th>
+
+                                        Description
+
+                                    </th>
+
+                                    <td>
+
+                                        @if (!string.IsNullOrWhiteSpace(Model.Description))
+                                        {
+                                            @Model.Description
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+
+                                                No description available.
+
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                </tr>
+
+                                <tr>
+
+                                    <th>
+
+                                        Created Date
+
+                                    </th>
+
+                                    <td>
+
+                                        @Model.CreatedDate.ToString("dd MMM yyyy hh:mm tt")
+
+                                    </td>
+
+                                </tr>
+
+                                <tr>
+
+                                    <th>
+
+                                        Updated Date
+
+                                    </th>
+
+                                    <td>
+
+                                        @if (Model.UpdatedDate != null)
+                                        {
+                                            @Model.UpdatedDate.Value.ToString("dd MMM yyyy hh:mm tt")
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+
+                                                Not Updated
+
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                </tr>
+
+                            </table>
+
+                            <div class="mt-4">
+
+                                <a asp-action="Gallery"
+                                   class="btn btn-secondary">
+
+                                    <i class="fa-solid fa-arrow-left me-2"></i>
+
+                                    Back to Gallery
+
+                                </a>
+
+                                <button type="button"
+                                        class="btn btn-primary ms-2"
+                                        id="btnViewImage">
+
+                                    <i class="fa-solid fa-expand me-2"></i>
+
+                                    View Full Image
+
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+@section Styles {
+
+    <style>
+
+        body {
+            background: #f5f7fb;
+        }
+
+        .card {
+            border: none;
+            border-radius: 18px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            font-weight: 600;
+        }
+
+        .gallery-img {
+            transition: .40s;
+            border: 5px solid #fff;
+        }
+
+            .gallery-img:hover {
+                transform: scale(1.03);
+                box-shadow: 0 15px 35px rgba(0,0,0,.18);
+            }
+
+        .table th {
+            width: 180px;
+            background: #f8f9fa;
+            vertical-align: middle;
+        }
+
+        .table td {
+            vertical-align: middle;
+        }
+
+        .badge {
+            padding: 8px 15px;
+            border-radius: 25px;
+            font-size: 13px;
+        }
+
+        .btn {
+            border-radius: 10px;
+            transition: .30s;
+        }
+
+            .btn:hover {
+                transform: translateY(-2px);
+            }
+
+        @@media(max-width:991px) {
+
+            .gallery-img {
+                height: 320px !important;
+            }
+        }
+
+        @@media(max-width:768px) {
+
+            .gallery-img {
+                height: 250px !important;
+            }
+
+            .btn {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+        }
+
+    </style>
+
+}
+
+@section Scripts {
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    @if (TempData["Success"] != null)
+    {
+        <script>
+
+            Swal.fire({
+
+                icon:'success',
+
+                title:'Success',
+
+                text:'@TempData["Success"]',
+
+                confirmButtonColor:'#198754'
+
+            });
+
+        </script>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <script>
+
+            Swal.fire({
+
+                icon:'error',
+
+                title:'Error',
+
+                text:'@TempData["Error"]',
+
+                confirmButtonColor:'#dc3545'
+
+            });
+
+        </script>
+    }
+
+    <script>
+
+        $(document).ready(function(){
+
+            $("#btnViewImage").click(function(){
+
+                Swal.fire({
+
+                    imageUrl: $("#GalleryImage").attr("src"),
+
+                    imageAlt: "Gallery Image",
+
+                    title: "@Model.GalleryTitle",
+
+                    width:900,
+
+                    showCloseButton:true,
+
+                    showConfirmButton:false
+
+                });
+
+            });
+
+            $("#GalleryImage").click(function(){
+
+                Swal.fire({
+
+                    imageUrl: $(this).attr("src"),
+
+                    imageAlt: "Gallery Image",
+
+                    title: "@Model.GalleryTitle",
+
+                    width:900,
+
+                    showCloseButton:true,
+
+                    showConfirmButton:false
+
+                });
+
+            });
+
+        });
+
+    </script>
+
+}

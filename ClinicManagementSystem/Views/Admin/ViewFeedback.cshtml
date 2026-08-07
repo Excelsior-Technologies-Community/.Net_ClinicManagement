@@ -1,0 +1,580 @@
+﻿@model ClinicManagementSystem.Models.FeedbackModel
+
+@{
+    ViewData["Title"] = "View Feedback";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid py-4">
+
+    <div class="row justify-content-center">
+
+        <div class="col-lg-10">
+
+            <div class="card shadow border-0">
+
+                <div class="card-header bg-primary text-white">
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <h3 class="mb-0">
+
+                            <i class="fa-solid fa-comments me-2"></i>
+
+                            Feedback Details
+
+                        </h3>
+
+                        <a asp-action="ManageFeedback"
+                           class="btn btn-light">
+
+                            <i class="fa-solid fa-arrow-left me-2"></i>
+
+                            Back
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+                <div class="card-body">
+
+                    <div class="row">
+
+                        <!-- Customer Information -->
+
+                        <div class="col-md-6 mb-4">
+
+                            <div class="card border-0 bg-light h-100">
+
+                                <div class="card-body">
+
+                                    <h5 class="text-primary mb-3">
+
+                                        <i class="fa-solid fa-user me-2"></i>
+
+                                        Customer Information
+
+                                    </h5>
+
+                                    <table class="table table-borderless mb-0">
+
+                                        <tr>
+
+                                            <th width="160">
+
+                                                Customer Name
+
+                                            </th>
+
+                                            <td>
+
+                                                @Model.CustomerName
+
+                                            </td>
+
+                                        </tr>
+
+                                        <tr>
+
+                                            <th>
+
+                                                Appointment No
+
+                                            </th>
+
+                                            <td>
+
+                                                @Model.AppointmentNo
+
+                                            </td>
+
+                                        </tr>
+
+                                        <tr>
+
+                                            <th>
+
+                                                Appointment Date
+
+                                            </th>
+
+                                            <td>
+
+                                                @Model.AppointmentDate.ToString("dd MMM yyyy")
+
+                                            </td>
+
+                                        </tr>
+
+                                    </table>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <!-- Doctor Information -->
+
+                        <div class="col-md-6 mb-4">
+
+                            <div class="card border-0 bg-light h-100">
+
+                                <div class="card-body">
+
+                                    <h5 class="text-success mb-3">
+
+                                        <i class="fa-solid fa-user-doctor me-2"></i>
+
+                                        Doctor Information
+
+                                    </h5>
+
+                                    <table class="table table-borderless mb-0">
+
+                                        <tr>
+
+                                            <th width="160">
+
+                                                Doctor Name
+
+                                            </th>
+
+                                            <td>
+
+                                                Dr. @Model.DoctorName
+
+                                            </td>
+
+                                        </tr>
+
+                                        <tr>
+
+                                            <th>
+
+                                                Department
+
+                                            </th>
+
+                                            <td>
+
+                                                @Model.DepartmentName
+
+                                            </td>
+
+                                        </tr>
+
+                                        <tr>
+
+                                            <th>
+
+                                                Specialization
+
+                                            </th>
+
+                                            <td>
+
+                                                @Model.DoctorSpecialization
+
+                                            </td>
+
+                                        </tr>
+
+                                    </table>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+                        <div class="row">
+
+                            <div class="col-lg-12">
+
+                                <div class="card border-0 bg-light">
+
+                                    <div class="card-body">
+
+                                        <h5 class="text-primary mb-4">
+
+                                            <i class="fa-solid fa-star me-2"></i>
+
+                                            Feedback Information
+
+                                        </h5>
+
+                                        <table class="table table-bordered">
+
+                                            <!-- Rating -->
+
+                                            <tr>
+
+                                                <th width="220">
+
+                                                    Rating
+
+                                                </th>
+
+                                                <td>
+
+                                                    @for (int i = 1; i <= 5; i++)
+                                                    {
+                                                        if (i <= Model.Rating)
+                                                        {
+                                                            <i class="fa-solid fa-star text-warning fs-5"></i>
+                                                        }
+                                                        else
+                                                        {
+                                                            <i class="fa-regular fa-star text-secondary fs-5"></i>
+                                                        }
+                                                    }
+
+                                                    <span class="ms-2 fw-bold">
+
+                                                        (@Model.Rating / 5)
+
+                                                    </span>
+
+                                                </td>
+
+                                            </tr>
+
+                                            <!-- Subject -->
+
+                                            <tr>
+
+                                                <th>
+
+                                                    Subject
+
+                                                </th>
+
+                                                <td>
+
+                                                    @Model.Subject
+
+                                                </td>
+
+                                            </tr>
+
+                                            <!-- Feedback -->
+
+                                            <tr>
+
+                                                <th>
+
+                                                    Customer Feedback
+
+                                                </th>
+
+                                                <td>
+
+                                                    @Model.FeedbackMessage
+
+                                                </td>
+
+                                            </tr>
+
+                                            <!-- Admin Reply -->
+
+                                            <tr>
+
+                                                <th>
+
+                                                    Admin Reply
+
+                                                </th>
+
+                                                <td>
+
+                                                    @if (!string.IsNullOrWhiteSpace(Model.ReplyMessage))
+                                                    {
+                                                        <div class="alert alert-success mb-0">
+
+                                                            <i class="fa-solid fa-reply me-2"></i>
+
+                                                            @Model.ReplyMessage
+
+                                                        </div>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="text-muted">
+
+                                                            No reply has been given yet.
+
+                                                        </span>
+                                                    }
+
+                                                </td>
+
+                                            </tr>
+
+                                            <!-- Approval Status -->
+
+                                            <tr>
+
+                                                <th>
+
+                                                    Approval Status
+
+                                                </th>
+
+                                                <td>
+
+                                                    @if (Model.IsApproved)
+                                                    {
+                                                        <span class="badge bg-success fs-6">
+
+                                                            <i class="fa-solid fa-circle-check me-1"></i>
+
+                                                            Approved
+
+                                                        </span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="badge bg-warning text-dark fs-6">
+
+                                                            <i class="fa-solid fa-clock me-1"></i>
+
+                                                            Pending
+
+                                                        </span>
+                                                    }
+
+                                                </td>
+
+                                            </tr>
+
+                                            <!-- Created Date -->
+
+                                            <tr>
+
+                                                <th>
+
+                                                    Submitted On
+
+                                                </th>
+
+                                                <td>
+
+                                                    @Model.CreatedDate.ToString("dd MMM yyyy hh:mm tt")
+
+                                                </td>
+
+                                            </tr>
+
+                                            <!-- Updated Date -->
+
+                                            <tr>
+
+                                                <th>
+
+                                                    Last Updated
+
+                                                </th>
+
+                                                <td>
+
+                                                    @if (Model.UpdatedDate != null)
+                                                    {
+                                                        @Model.UpdatedDate.Value.ToString("dd MMM yyyy hh:mm tt")
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="text-muted">
+
+                                                            Not Updated
+
+                                                        </span>
+                                                    }
+
+                                                </td>
+
+                                            </tr>
+
+                                        </table>
+
+                                        <div class="text-center mt-4">
+
+                                            <a asp-action="ManageFeedback"
+                                               class="btn btn-secondary px-4 me-2">
+
+                                                <i class="fa-solid fa-arrow-left me-2"></i>
+
+                                                Back
+
+                                            </a>
+
+                                            @if (string.IsNullOrWhiteSpace(Model.ReplyMessage))
+                                            {
+                                                <a asp-action="ReplyFeedback"
+                                                   asp-route-id="@Model.FeedbackId"
+                                                   class="btn btn-primary px-4">
+
+                                                    <i class="fa-solid fa-reply me-2"></i>
+
+                                                    Reply Feedback
+
+                                                </a>
+                                            }
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+@section Styles{
+
+        <style>
+
+            body {
+                background: #f4f7fc;
+            }
+
+            .card {
+                border: none;
+                border-radius: 18px;
+                overflow: hidden;
+                box-shadow: 0 10px 25px rgba(0,0,0,.08);
+            }
+
+            .card-header {
+                font-weight: 600;
+            }
+
+            .table th {
+                width: 220px;
+                background: #f8f9fa;
+                vertical-align: middle;
+                font-weight: 600;
+            }
+
+            .table td {
+                vertical-align: middle;
+            }
+
+            .badge {
+                padding: 8px 16px;
+                border-radius: 25px;
+                font-size: 13px;
+            }
+
+            .fa-star {
+                margin-right: 3px;
+            }
+
+            .alert {
+                border-radius: 12px;
+            }
+
+            .btn {
+                border-radius: 10px;
+                transition: .3s;
+            }
+
+                .btn:hover {
+                    transform: translateY(-2px);
+                }
+
+            .table {
+                margin-bottom: 0;
+            }
+
+            .bg-light {
+                border-radius: 12px;
+            }
+
+            @@media(max-width:768px) {
+
+                .table th {
+                    width: 130px;
+                    font-size: 14px;
+                }
+
+                .table td {
+                    font-size: 14px;
+                }
+
+                .btn {
+                    width: 100%;
+                    margin-bottom: 10px;
+                }
+            }
+
+        </style>
+
+}
+
+@section Scripts{
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    @if (TempData["Success"] != null)
+    {
+            <script>
+
+                Swal.fire({
+
+                    icon:'success',
+
+                    title:'Success',
+
+                    text:'@TempData["Success"]',
+
+                    confirmButtonColor:'#198754'
+
+                });
+
+            </script>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+            <script>
+
+                Swal.fire({
+
+                    icon:'error',
+
+                    title:'Error',
+
+                    text:'@TempData["Error"]',
+
+                    confirmButtonColor:'#dc3545'
+
+                });
+
+            </script>
+    }
+
+        <script>
+
+            $(document).ready(function(){
+
+                $(".card").hide().fadeIn(500);
+
+            });
+
+        </script>
+
+}

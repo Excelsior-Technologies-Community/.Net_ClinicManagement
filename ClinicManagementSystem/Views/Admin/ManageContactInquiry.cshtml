@@ -1,0 +1,570 @@
+﻿@model List<ClinicManagementSystem.Models.ContactInquiryModel>
+
+@{
+    ViewData["Title"] = "Manage Contact Inquiry";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid py-4">
+
+    <!-- Page Header -->
+
+    <div class="row mb-4">
+
+        <div class="col-lg-12">
+
+            <div class="card border-0 shadow">
+
+                <div class="card-body bg-primary text-white rounded">
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <div>
+
+                            <h2 class="fw-bold mb-1">
+
+                                <i class="fa-solid fa-envelope-open-text me-2"></i>
+
+                                Manage Contact Inquiry
+
+                            </h2>
+
+                            <p class="mb-0">
+
+                                View, manage and reply to customer contact inquiries.
+
+                            </p>
+
+                        </div>
+
+                        <div>
+
+                            <span class="badge bg-light text-dark fs-6">
+
+                                Total Inquiry :
+                                <strong>@Model.Count</strong>
+
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Success Message -->
+@if (TempData["Success"] != null)
+{
+        <div class="alert alert-success alert-dismissible fade show">
+
+            <i class="fa-solid fa-circle-check me-2"></i>
+
+            @TempData["Success"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+}
+
+    <!-- Error Message -->
+@if (TempData["Error"] != null)
+{
+        <div class="alert alert-danger alert-dismissible fade show">
+
+            <i class="fa-solid fa-circle-xmark me-2"></i>
+
+            @TempData["Error"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+}
+
+    <!-- Search -->
+
+    <div class="card shadow border-0 mb-4">
+
+        <div class="card-body">
+
+            <form method="get"
+                  asp-action="ManageContactInquiry">
+
+                <div class="row">
+
+                    <div class="col-md-10">
+
+                        <input type="text"
+                               name="search"
+                               value="@ViewBag.Search"
+                               class="form-control"
+                               placeholder="Search by Name, Email, Mobile or Subject..." />
+
+                    </div>
+
+                    <div class="col-md-2 d-grid">
+
+                        <button type="submit"
+                                class="btn btn-primary">
+
+                            <i class="fa-solid fa-magnifying-glass me-2"></i>
+
+                            Search
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+    <!-- Inquiry Table -->
+
+    <div class="card shadow border-0">
+
+        <div class="card-header bg-success text-white">
+
+            <h5 class="mb-0">
+
+                <i class="fa-solid fa-list me-2"></i>
+
+                Contact Inquiry List
+
+            </h5>
+
+        </div>
+
+        <div class="card-body p-0">
+
+            <div class="table-responsive">
+
+                <table class="table table-bordered table-hover align-middle mb-0">
+
+                    <thead class="table-primary">
+
+                        <tr>
+
+                            <th width="60">#</th>
+
+                            <th>Customer</th>
+
+                            <th>Email</th>
+
+                            <th>Mobile</th>
+
+                            <th>Subject</th>
+
+                            <th>Status</th>
+
+                            <th>Date</th>
+
+                            <th width="180">Action</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+@{
+    int sr = 1;
+}
+                        @if (Model != null && Model.Any())
+                        {
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+
+                                    <!-- Sr No -->
+
+                                    <td class="text-center">
+
+                                        @sr
+
+                                    </td>
+
+                                    <!-- Customer Name -->
+
+                                    <td>
+
+                                        <strong class="text-primary">
+
+                                            @item.FullName
+
+                                        </strong>
+
+                                    </td>
+
+                                    <!-- Email -->
+
+                                    <td>
+
+                                        @item.Email
+
+                                    </td>
+
+                                    <!-- Mobile -->
+
+                                    <td>
+
+                                        @item.MobileNo
+
+                                    </td>
+
+                                    <!-- Subject -->
+
+                                    <td>
+
+                                        <strong>
+
+                                            @item.Subject
+
+                                        </strong>
+
+                                        <br />
+
+                                        <small class="text-muted">
+
+                                            @(item.Message.Length > 40
+                                                                                ? item.Message.Substring(0, 40) + "..."
+                                                                                : item.Message)
+
+                                </small>
+
+                                    </td>
+
+                                    <!-- Status -->
+
+                                    <td class="text-center">
+
+                                @if (item.IsReplied)
+                                        {
+                                            <span class="badge bg-success">
+
+                                                <i class="fa-solid fa-circle-check me-1"></i>
+
+                                                Replied
+
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning text-dark">
+
+                                                <i class="fa-solid fa-clock me-1"></i>
+
+                                                Pending
+
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                    <!-- Date -->
+
+                                    <td>
+
+                                        @item.CreatedDate.ToString("dd MMM yyyy")
+
+                                        <br />
+
+                                        <small class="text-muted">
+
+                                            @item.CreatedDate.ToString("hh:mm tt")
+
+                                        </small>
+
+                                    </td>
+
+                                    <!-- Action -->
+
+                                    <td class="text-center">
+
+                                        <!-- View -->
+
+                                        <a asp-action="ViewContactInquiry"
+                                           asp-route-id="@item.InquiryId"
+                                           class="btn btn-info btn-sm mb-1"
+                                           title="View">
+
+                                            <i class="fa-solid fa-eye"></i>
+
+                                        </a>
+
+                                        <!-- Reply -->
+
+                                        <a asp-action="ReplyContactInquiry"
+                                           asp-route-id="@item.InquiryId"
+                                           class="btn btn-primary btn-sm mb-1"
+                                           title="Reply">
+
+                                            <i class="fa-solid fa-reply"></i>
+
+                                        </a>
+
+                                        <!-- Change Status -->
+                                        @if (item.IsReplied)
+                                        {
+                                            <a asp-action="ChangeInquiryStatus"
+                                               asp-route-id="@item.InquiryId"
+                                               class="btn btn-warning btn-sm mb-1"
+                                               title="Mark as Pending">
+
+                                                <i class="fa-solid fa-toggle-on"></i>
+
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <a asp-action="ChangeInquiryStatus"
+                                               asp-route-id="@item.InquiryId"
+                                               class="btn btn-success btn-sm mb-1"
+                                               title="Mark as Replied">
+
+                                                <i class="fa-solid fa-toggle-off"></i>
+
+                                            </a>
+                                        }
+
+                                        <!-- Delete -->
+
+                                        <a href="@Url.Action("DeleteContactInquiry", "Admin", new { id = item.InquiryId })"
+                                           class="btn btn-danger btn-sm btn-delete"
+                                           title="Delete">
+
+                                            <i class="fa-solid fa-trash"></i>
+
+                                        </a>
+
+                                    </td>
+
+                                </tr>
+
+                                sr++;
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+
+                                <td colspan="8"
+                                    class="text-center py-5">
+
+                                    <i class="fa-solid fa-envelope-open-text
+                          fa-5x text-secondary mb-3"></i>
+
+                                    <h4>
+
+                                        No Contact Inquiry Found
+
+                                    </h4>
+
+                                    <p class="text-muted mb-0">
+
+                                        There are no contact inquiries available.
+
+                                    </p>
+
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+@section Styles {
+
+    <style>
+
+        body {
+            background: #f5f7fb;
+        }
+
+        .card {
+            border: none;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0,0,0,.08);
+        }
+
+        .card-header {
+            font-weight: 600;
+        }
+
+        .table th {
+            white-space: nowrap;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .table td {
+            vertical-align: middle;
+        }
+
+        .table tbody tr {
+            transition: .3s;
+        }
+
+            .table tbody tr:hover {
+                background: #f8fbff;
+            }
+
+        .badge {
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+        }
+
+        .form-control {
+            border-radius: 10px;
+        }
+
+            .form-control:focus {
+                border-color: #0d6efd;
+                box-shadow: 0 0 0 .15rem rgba(13,110,253,.20);
+            }
+
+        .btn {
+            border-radius: 8px;
+            transition: .3s;
+        }
+
+            .btn:hover {
+                transform: translateY(-2px);
+            }
+
+        .alert {
+            border-radius: 12px;
+        }
+
+        @@media(max-width:991px) {
+
+            .table {
+                min-width: 1200px;
+            }
+        }
+
+        @@media(max-width:768px) {
+
+            .btn {
+                margin-bottom: 5px;
+            }
+        }
+
+    </style>
+
+}
+
+@section Scripts {
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+
+        $(document).ready(function () {
+
+            $(".btn-delete").click(function (e) {
+
+                e.preventDefault();
+
+                var url = $(this).attr("href");
+
+                Swal.fire({
+
+                    title: "Delete Contact Inquiry?",
+
+                    text: "This inquiry will be moved to deleted records.",
+
+                    icon: "warning",
+
+                    showCancelButton: true,
+
+                    confirmButtonColor: "#dc3545",
+
+                    cancelButtonColor: "#6c757d",
+
+                    confirmButtonText: "Yes, Delete",
+
+                    cancelButtonText: "Cancel"
+
+                }).then((result) => {
+
+                    if (result.isConfirmed) {
+
+                        window.location.href = url;
+
+                    }
+
+                });
+
+            });
+
+        });
+
+    </script>
+    @if (TempData["Success"] != null)
+    {
+        <script>
+
+            Swal.fire({
+
+                icon:'success',
+
+                title:'Success',
+
+                text:'@TempData["Success"]',
+
+                confirmButtonColor:'#198754'
+
+            });
+
+        </script>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <script>
+
+            Swal.fire({
+
+                icon:'error',
+
+                title:'Error',
+
+                text:'@TempData["Error"]',
+
+                confirmButtonColor:'#dc3545'
+
+            });
+
+        </script>
+    }
+
+}

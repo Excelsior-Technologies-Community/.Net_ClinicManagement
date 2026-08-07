@@ -1,0 +1,476 @@
+﻿@model List<ClinicManagementSystem.Models.ContactInquiryModel>
+
+@{
+    ViewData["Title"] = "My Contact Inquiry";
+    Layout = "~/Views/Shared/_CustomerLayout.cshtml";
+}
+
+<div class="container py-5">
+
+    <!-- Page Header -->
+
+    <div class="row mb-4">
+
+        <div class="col-lg-12">
+
+            <div class="card border-0 shadow">
+
+                <div class="card-body bg-primary text-white rounded">
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <div>
+
+                            <h2 class="fw-bold mb-1">
+
+                                <i class="fa-solid fa-envelope-open-text me-2"></i>
+
+                                My Contact Inquiry
+
+                            </h2>
+
+                            <p class="mb-0">
+
+                                View all your submitted inquiries and admin replies.
+
+                            </p>
+
+                        </div>
+
+                        <div>
+
+                            <a asp-action="Contact"
+                               class="btn btn-light">
+
+                                <i class="fa-solid fa-plus me-2"></i>
+
+                                New Inquiry
+
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Success Message -->
+@if (TempData["Success"] != null)
+{
+        <div class="alert alert-success alert-dismissible fade show">
+
+            <i class="fa-solid fa-circle-check me-2"></i>
+
+            @TempData["Success"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+}
+
+    <!-- Error Message -->
+@if (TempData["Error"] != null)
+{
+        <div class="alert alert-danger alert-dismissible fade show">
+
+            <i class="fa-solid fa-circle-xmark me-2"></i>
+
+            @TempData["Error"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+}
+
+    <!-- Search -->
+
+    <div class="card shadow border-0 mb-4">
+
+        <div class="card-body">
+
+            <form method="get"
+                  asp-action="MyContactInquiry">
+
+                <div class="row">
+
+                    <div class="col-md-10">
+
+                        <input type="text"
+                               name="search"
+                               value="@ViewBag.Search"
+                               class="form-control"
+                               placeholder="Search by Subject or Message..." />
+
+                    </div>
+
+                    <div class="col-md-2 d-grid">
+
+                        <button type="submit"
+                                class="btn btn-primary">
+
+                            <i class="fa-solid fa-magnifying-glass me-2"></i>
+
+                            Search
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+    <!-- Inquiry Table -->
+
+    <div class="card shadow border-0">
+
+        <div class="card-header bg-success text-white">
+
+            <h5 class="mb-0">
+
+                <i class="fa-solid fa-list me-2"></i>
+
+                Inquiry List
+
+            </h5>
+
+        </div>
+
+        <div class="card-body p-0">
+
+            <div class="table-responsive">
+
+                <table class="table table-bordered table-hover align-middle mb-0">
+
+                    <thead class="table-primary">
+
+                        <tr>
+
+                            <th width="60">#</th>
+
+                            <th>Subject</th>
+
+                            <th>Message</th>
+
+                            <th>Status</th>
+
+                            <th>Date</th>
+
+                            <th width="120">Action</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+@{
+    int sr = 1;
+}
+                        @if (Model != null && Model.Any())
+                        {
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+
+                                    <!-- Sr No -->
+
+                                    <td class="text-center">
+
+                                        @sr
+
+                                    </td>
+
+                                    <!-- Subject -->
+
+                                    <td>
+
+                                        <strong class="text-primary">
+
+                                            @item.Subject
+
+                                        </strong>
+
+                                    </td>
+
+                                    <!-- Message -->
+
+                                    <td>
+
+                                        @if (item.Message.Length > 60)
+                                        {
+                                            @(item.Message.Substring(0, 60) + "...")
+                                        }
+                                        else
+                                        {
+                                            @item.Message
+                                        }
+
+                                    </td>
+
+                                    <!-- Status -->
+
+                                    <td class="text-center">
+
+                                        @if (item.IsReplied)
+                                        {
+                                            <span class="badge bg-success">
+
+                                                <i class="fa-solid fa-circle-check me-1"></i>
+
+                                                Replied
+
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning text-dark">
+
+                                                <i class="fa-solid fa-clock me-1"></i>
+
+                                                Pending
+
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                    <!-- Created Date -->
+
+                                    <td>
+
+                                        @item.CreatedDate.ToString("dd MMM yyyy")
+
+                                        <br />
+
+                                        <small class="text-muted">
+
+                                            @item.CreatedDate.ToString("hh:mm tt")
+
+                                        </small>
+
+                                    </td>
+
+                                    <!-- Action -->
+
+                                    <td class="text-center">
+
+                                        <!-- View -->
+
+                                        <a asp-action="ViewContactInquiry"
+                                           asp-route-id="@item.InquiryId"
+                                           class="btn btn-info btn-sm"
+                                           title="View Inquiry">
+
+                                            <i class="fa-solid fa-eye"></i>
+
+                                        </a>
+
+                                    </td>
+
+                                </tr>
+
+                                sr++;
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+
+                                <td colspan="6"
+                                    class="text-center py-5">
+
+                                    <i class="fa-solid fa-envelope-open-text
+                          fa-5x text-secondary mb-3"></i>
+
+                                    <h4>
+
+                                        No Contact Inquiry Found
+
+                                    </h4>
+
+                                    <p class="text-muted">
+
+                                        You have not submitted any contact inquiry yet.
+
+                                    </p>
+
+                                    <a asp-action="Contact"
+                                       class="btn btn-primary mt-2">
+
+                                        <i class="fa-solid fa-plus me-2"></i>
+
+                                        Send New Inquiry
+
+                                    </a>
+
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+@section Styles {
+
+    <style>
+
+        body {
+            background: #f5f7fb;
+        }
+
+        .card {
+            border: none;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0,0,0,.08);
+        }
+
+        .card-header {
+            font-weight: 600;
+        }
+
+        .table th {
+            white-space: nowrap;
+            vertical-align: middle;
+            text-align: center;
+        }
+
+        .table td {
+            vertical-align: middle;
+        }
+
+        .table tbody tr {
+            transition: .3s;
+        }
+
+            .table tbody tr:hover {
+                background: #f8fbff;
+            }
+
+        .badge {
+            padding: 8px 15px;
+            border-radius: 25px;
+            font-size: 13px;
+        }
+
+        .btn {
+            border-radius: 10px;
+            transition: .3s;
+        }
+
+            .btn:hover {
+                transform: translateY(-2px);
+            }
+
+        .form-control {
+            border-radius: 10px;
+        }
+
+            .form-control:focus {
+                border-color: #0d6efd;
+                box-shadow: 0 0 0 .15rem rgba(13,110,253,.20);
+            }
+
+        .alert {
+            border-radius: 12px;
+        }
+
+        @@media(max-width:991px) {
+
+            .table {
+                min-width: 900px;
+            }
+        }
+
+        @@media(max-width:768px) {
+
+            .btn {
+                margin-bottom: 5px;
+            }
+        }
+
+    </style>
+
+}
+
+@section Scripts {
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    @if (TempData["Success"] != null)
+    {
+        <script>
+
+            Swal.fire({
+
+                icon:'success',
+
+                title:'Success',
+
+                text:'@TempData["Success"]',
+
+                confirmButtonColor:'#198754'
+
+            });
+
+        </script>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <script>
+
+            Swal.fire({
+
+                icon:'error',
+
+                title:'Error',
+
+                text:'@TempData["Error"]',
+
+                confirmButtonColor:'#dc3545'
+
+            });
+
+        </script>
+    }
+
+    <script>
+
+        $(document).ready(function(){
+
+            $(".card").hide().fadeIn(500);
+
+        });
+
+    </script>
+
+}

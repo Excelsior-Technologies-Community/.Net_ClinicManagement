@@ -145,6 +145,39 @@
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "HealthTips" ? "active" : "")"
+                               asp-controller="Customer"
+                               asp-action="HealthTips">
+
+                                <i class="fa-solid fa-book-medical me-2"></i>
+
+                                Health Tips
+
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active"
+                               asp-controller="Customer"
+                               asp-action="Gallery">
+
+                                <i class="fa-solid fa-images me-1"></i>
+
+                                Gallery
+
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link"
+                               asp-controller="Customer"
+                               asp-action="Contact">
+
+                                <i class="fa-solid fa-envelope me-1"></i>
+
+                                Contact Us
+
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link" asp-controller="Customer" asp-action="EditProfile">
                                 <i class="fa-solid fa-user-pen me-1"></i> My Profile
                             </a>
@@ -171,6 +204,14 @@
                                         <i class="fa-solid fa-user-gear me-2 text-info"></i> Edit Profile
                                     </a>
                                 </li>
+
+                                <li>
+                                    <a class="dropdown-item py-2" asp-controller="Customer" asp-action="MyBills">
+                                        <i class="fa-solid fa-file-invoice-dollar me-2"></i> My Bills
+                                    </a>
+                                </li>
+                                
+                               
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
                                     <a class="dropdown-item py-2 text-danger fw-semibold" asp-controller="Customer" asp-action="Logout">
