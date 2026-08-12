@@ -1,0 +1,491 @@
+﻿@model List<ClinicManagementSystem.Models.HospitalHolidayModel>
+
+@{
+    ViewData["Title"] = "Manage Hospital Holiday";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid py-4">
+
+    <!-- Page Header -->
+
+    <div class="row mb-4">
+
+        <div class="col-lg-12">
+
+            <div class="card border-0 shadow">
+
+                <div class="card-body bg-primary text-white rounded">
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <div>
+
+                            <h2 class="fw-bold mb-1">
+
+                                <i class="fa-solid fa-calendar-days me-2"></i>
+
+                                Hospital Holiday Management
+
+                            </h2>
+
+                            <p class="mb-0">
+
+                                Manage hospital holidays and unavailable dates.
+
+                            </p>
+
+                        </div>
+
+                        <div>
+
+                            <a asp-action="AddHospitalHoliday"
+                               class="btn btn-light">
+
+                                <i class="fa-solid fa-plus me-2"></i>
+
+                                Add Holiday
+
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Search Section -->
+
+    <div class="card border-0 shadow mb-4">
+
+        <div class="card-body">
+
+            <form method="get"
+                  asp-action="ManageHospitalHoliday">
+
+                <div class="row">
+
+                    <div class="col-md-5 mb-3">
+
+                        <label class="form-label fw-bold">
+
+                            Holiday Title
+
+                        </label>
+
+                        <input type="text"
+                               name="search"
+                               value="@ViewBag.Search"
+                               class="form-control"
+                               placeholder="Search Holiday..." />
+
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+
+                        <label class="form-label fw-bold">
+
+                            Holiday Date
+
+                        </label>
+
+                        <input type="date"
+                               name="holidayDate"
+                               value="@ViewBag.HolidayDate"
+                               class="form-control" />
+
+                    </div>
+
+                    <div class="col-md-3 d-grid mb-3">
+
+                        <label class="form-label">&nbsp;</label>
+
+                        <button class="btn btn-primary">
+
+                            <i class="fa-solid fa-search me-2"></i>
+
+                            Search
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+    <!-- Holiday List -->
+
+    <div class="card border-0 shadow">
+
+        <div class="card-body">
+
+            <div class="table-responsive">
+
+                <table class="table table-bordered table-hover align-middle">
+
+                    <thead class="table-primary">
+
+                        <tr>
+
+                            <th width="70">#</th>
+
+                            <th>Holiday Title</th>
+
+                            <th width="170">Holiday Date</th>
+
+                            <th>Description</th>
+
+                            <th width="120">Status</th>
+
+                            <th width="230" class="text-center">
+
+                                Action
+
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        @{
+                            int sr = 1;
+                        }
+
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+
+                                <td>
+
+                                    @(sr++)
+
+                                </td>
+
+                                <td>
+
+                                    <strong>
+
+                                        @item.HolidayTitle
+
+                                    </strong>
+
+                                </td>
+
+                                <td>
+
+                                    @item.HolidayDate.ToString("dd MMM yyyy")
+
+                                </td>
+
+                                <td>
+
+                                    @item.HolidayDescription
+
+                                </td>
+                                <td>
+
+                                    @if (item.IsActive)
+                                    {
+                                        <span class="badge bg-success">
+
+                                            <i class="fa-solid fa-circle-check me-1"></i>
+
+                                            Active
+
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">
+
+                                            <i class="fa-solid fa-circle-xmark me-1"></i>
+
+                                            Inactive
+
+                                        </span>
+                                    }
+
+                                </td>
+
+                                <td class="text-center">
+
+                                    <a asp-action="ViewHospitalHoliday"
+                                       asp-route-id="@item.HolidayId"
+                                       class="btn btn-info btn-sm"
+                                       title="View">
+
+                                        <i class="fa-solid fa-eye"></i>
+
+                                    </a>
+
+                                    <a asp-action="EditHospitalHoliday"
+                                       asp-route-id="@item.HolidayId"
+                                       class="btn btn-warning btn-sm"
+                                       title="Edit">
+
+                                        <i class="fa-solid fa-pen-to-square"></i>
+
+                                    </a>
+
+                                    @if (item.IsActive)
+                                    {
+                                        <a asp-action="ChangeHolidayStatus"
+                                           asp-route-id="@item.HolidayId"
+                                           class="btn btn-secondary btn-sm"
+                                           title="Deactivate">
+
+                                            <i class="fa-solid fa-toggle-on"></i>
+
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <a asp-action="ChangeHolidayStatus"
+                                           asp-route-id="@item.HolidayId"
+                                           class="btn btn-success btn-sm"
+                                           title="Activate">
+
+                                            <i class="fa-solid fa-toggle-off"></i>
+
+                                        </a>
+                                    }
+
+                                    <a asp-action="DeleteHospitalHoliday"
+                                       asp-route-id="@item.HolidayId"
+                                       class="btn btn-danger btn-sm btn-delete"
+                                       title="Delete">
+
+                                        <i class="fa-solid fa-trash"></i>
+
+                                    </a>
+
+                                </td>
+
+                            </tr>
+                        }
+
+                        @if (Model.Count == 0)
+                        {
+                            <tr>
+
+                                <td colspan="6" class="text-center py-4">
+
+                                    <h5 class="text-muted mb-2">
+
+                                        <i class="fa-solid fa-calendar-xmark me-2"></i>
+
+                                        No Hospital Holiday Found
+
+                                    </h5>
+
+                                    <p class="mb-0 text-secondary">
+
+                                        There are no holiday records available.
+
+                                    </p>
+
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+@section Styles {
+
+    <style>
+
+        body {
+            background: #f5f7fb;
+        }
+
+        .card {
+            border: none;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0,0,0,.08);
+        }
+
+        .card-header {
+            font-weight: 600;
+        }
+
+        .table {
+            margin-bottom: 0;
+        }
+
+            .table th {
+                white-space: nowrap;
+                text-align: center;
+                vertical-align: middle;
+            }
+
+            .table td {
+                vertical-align: middle;
+            }
+
+            .table tbody tr {
+                transition: .3s;
+            }
+
+                .table tbody tr:hover {
+                    background: #f8fbff;
+                }
+
+        .badge {
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 13px;
+        }
+
+        .btn {
+            border-radius: 8px;
+            transition: .3s;
+        }
+
+            .btn:hover {
+                transform: translateY(-2px);
+            }
+
+        .form-control {
+            border-radius: 10px;
+        }
+
+            .form-control:focus {
+                border-color: #0d6efd;
+                box-shadow: 0 0 0 .15rem rgba(13,110,253,.20);
+            }
+
+        .alert {
+            border-radius: 12px;
+        }
+
+        @@media(max-width:992px) {
+
+            .table {
+                min-width: 1100px;
+            }
+        }
+
+        @@media(max-width:768px) {
+
+            .btn {
+                margin-bottom: 5px;
+            }
+        }
+
+    </style>
+
+}
+
+@section Scripts {
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+
+        $(document).ready(function () {
+
+            $(".btn-delete").click(function (e) {
+
+                e.preventDefault();
+
+                var url = $(this).attr("href");
+
+                Swal.fire({
+
+                    title: "Delete Holiday?",
+
+                    text: "This holiday record will be moved to deleted records.",
+
+                    icon: "warning",
+
+                    showCancelButton: true,
+
+                    confirmButtonColor: "#dc3545",
+
+                    cancelButtonColor: "#6c757d",
+
+                    confirmButtonText: "Yes, Delete",
+
+                    cancelButtonText: "Cancel"
+
+                }).then((result) => {
+
+                    if (result.isConfirmed) {
+
+                        window.location.href = url;
+
+                    }
+
+                });
+
+            });
+
+        });
+
+    </script>
+
+    @if (TempData["Success"] != null)
+    {
+        <script>
+
+            Swal.fire({
+
+                icon:'success',
+
+                title:'Success',
+
+                text:'@TempData["Success"]',
+
+                confirmButtonColor:'#198754'
+
+            });
+
+        </script>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <script>
+
+            Swal.fire({
+
+                icon:'error',
+
+                title:'Error',
+
+                text:'@TempData["Error"]',
+
+                confirmButtonColor:'#dc3545'
+
+            });
+
+        </script>
+    }
+
+}

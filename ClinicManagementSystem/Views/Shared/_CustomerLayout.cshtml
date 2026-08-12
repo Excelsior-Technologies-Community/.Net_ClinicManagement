@@ -133,17 +133,7 @@
                                 <i class="fa-solid fa-calendar-check me-1"></i> My Appointments
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a asp-controller="Customer"
-                               asp-action="MyPrescriptions"
-                               class="nav-link">
-
-                                <i class="fa-solid fa-file-prescription"></i>
-
-                                My Prescriptions
-
-                            </a>
-                        </li>
+                        
                         <li class="nav-item">
                             <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "HealthTips" ? "active" : "")"
                                asp-controller="Customer"
@@ -152,6 +142,17 @@
                                 <i class="fa-solid fa-book-medical me-2"></i>
 
                                 Health Tips
+
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "HospitalHolidays" ? "active" : "")"
+                               asp-controller="Customer"
+                               asp-action="HospitalHolidays">
+
+                                <i class="fa-solid fa-calendar-days me-2"></i>
+
+                                Hospital Holidays
 
                             </a>
                         </li>
@@ -176,6 +177,19 @@
                                 Contact Us
 
                             </a>
+                        </li>
+                        <li class="nav-item">
+
+                            <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "AboutUs" ? "active" : "")"
+                               asp-controller="Customer"
+                               asp-action="AboutUs">
+
+                                <i class="fa-solid fa-circle-info me-2"></i>
+
+                                About Us
+
+                            </a>
+
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" asp-controller="Customer" asp-action="EditProfile">
@@ -208,6 +222,11 @@
                                 <li>
                                     <a class="dropdown-item py-2" asp-controller="Customer" asp-action="MyBills">
                                         <i class="fa-solid fa-file-invoice-dollar me-2"></i> My Bills
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item py-2" asp-controller="Customer" asp-action="MyPrescriptions">
+                                        <i class="fa-solid fa-file-prescription"></i> My Prescriptions
                                     </a>
                                 </li>
                                 

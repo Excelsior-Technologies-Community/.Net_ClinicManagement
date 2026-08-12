@@ -1,0 +1,411 @@
+﻿@model ClinicManagementSystem.Models.HospitalHolidayModel
+
+@{
+    ViewData["Title"] = "View Hospital Holiday";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid py-4">
+
+    <!-- Page Header -->
+
+    <div class="row mb-4">
+
+        <div class="col-lg-12">
+
+            <div class="card shadow border-0">
+
+                <div class="card-body bg-info text-white rounded">
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <div>
+
+                            <h2 class="fw-bold mb-1">
+
+                                <i class="fa-solid fa-calendar-days me-2"></i>
+
+                                Hospital Holiday Details
+
+                            </h2>
+
+                            <p class="mb-0">
+
+                                View complete hospital holiday information.
+
+                            </p>
+
+                        </div>
+
+                        <div>
+
+                            <a asp-action="ManageHospitalHoliday"
+                               class="btn btn-light">
+
+                                <i class="fa-solid fa-arrow-left me-2"></i>
+
+                                Back
+
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Holiday Details -->
+
+    <div class="card shadow border-0">
+
+        <div class="card-body">
+
+            <div class="row">
+
+                <div class="col-lg-12">
+
+                    <table class="table table-bordered table-striped align-middle">
+
+                        <tr>
+
+                            <th width="250">
+
+                                Holiday ID
+
+                            </th>
+
+                            <td>
+
+                                @Model.HolidayId
+
+                            </td>
+
+                        </tr>
+
+                        <tr>
+
+                            <th>
+
+                                Holiday Title
+
+                            </th>
+
+                            <td>
+
+                                <i class="fa-solid fa-calendar-day text-primary me-2"></i>
+
+                                <strong>
+
+                                    @Model.HolidayTitle
+
+                                </strong>
+
+                            </td>
+
+                        </tr>
+
+                        <tr>
+
+                            <th>
+
+                                Holiday Date
+
+                            </th>
+
+                            <td>
+
+                                @Model.HolidayDate.ToString("dd MMM yyyy")
+
+                            </td>
+
+                        </tr>
+
+                        <tr>
+
+                            <th>
+
+                                Holiday Description
+
+                            </th>
+
+                            <td>
+
+                                @if (!string.IsNullOrWhiteSpace(Model.HolidayDescription))
+                                {
+                                    @Model.HolidayDescription
+                                }
+                                else
+                                {
+                                    <span class="text-muted">
+
+                                        No description available.
+
+                                    </span>
+                                }
+
+                            </td>
+
+                        </tr>
+                        <tr>
+
+                            <th>
+
+                                Status
+
+                            </th>
+
+                            <td>
+
+                                @if (Model.IsActive)
+                                {
+                                    <span class="badge bg-success">
+
+                                        <i class="fa-solid fa-circle-check me-1"></i>
+
+                                        Active
+
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">
+
+                                        <i class="fa-solid fa-circle-xmark me-1"></i>
+
+                                        Inactive
+
+                                    </span>
+                                }
+
+                            </td>
+
+                        </tr>
+
+                        <tr>
+
+                            <th>
+
+                                Created Date
+
+                            </th>
+
+                            <td>
+
+                                @Model.CreatedDate.ToString("dd MMM yyyy hh:mm tt")
+
+                            </td>
+
+                        </tr>
+
+                        <tr>
+
+                            <th>
+
+                                Last Updated
+
+                            </th>
+
+                            <td>
+
+                                @if (Model.UpdatedDate != null)
+                                {
+                                    @Model.UpdatedDate.Value.ToString("dd MMM yyyy hh:mm tt")
+                                }
+                                else
+                                {
+                                    <span class="text-muted">
+
+                                        Not Updated
+
+                                    </span>
+                                }
+
+                            </td>
+
+                        </tr>
+
+                    </table>
+
+                    <!-- Action Buttons -->
+
+                    <div class="text-center mt-4">
+
+                        <a asp-action="EditHospitalHoliday"
+                           asp-route-id="@Model.HolidayId"
+                           class="btn btn-warning px-4 me-2">
+
+                            <i class="fa-solid fa-pen-to-square me-2"></i>
+
+                            Edit
+
+                        </a>
+
+                        <a asp-action="ManageHospitalHoliday"
+                           class="btn btn-secondary px-4">
+
+                            <i class="fa-solid fa-arrow-left me-2"></i>
+
+                            Back
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+@section Styles {
+
+    <style>
+
+        body {
+            background: #f5f7fb;
+        }
+
+        .card {
+            border: none;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0,0,0,.08);
+        }
+
+        .card-header {
+            font-weight: 600;
+        }
+
+        .table {
+            margin-bottom: 0;
+        }
+
+            .table th {
+                width: 250px;
+                background: #f8f9fa;
+                font-weight: 600;
+                vertical-align: middle;
+            }
+
+            .table td {
+                vertical-align: middle;
+            }
+
+            .table tbody tr {
+                transition: .3s;
+            }
+
+                .table tbody tr:hover {
+                    background: #f8fbff;
+                }
+
+        .badge {
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 13px;
+        }
+
+        .btn {
+            border-radius: 10px;
+            transition: .3s;
+        }
+
+            .btn:hover {
+                transform: translateY(-2px);
+            }
+
+        .alert {
+            border-radius: 12px;
+        }
+
+        .border {
+            border-radius: 10px !important;
+        }
+
+        @@media(max-width:992px) {
+
+            .table {
+                min-width: 700px;
+            }
+        }
+
+        @@media(max-width:768px) {
+
+            .table th {
+                width: 170px;
+            }
+
+            .btn {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+        }
+
+    </style>
+
+}
+
+@section Scripts {
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    @if (TempData["Success"] != null)
+    {
+        <script>
+
+            Swal.fire({
+
+                icon:'success',
+
+                title:'Success',
+
+                text:'@TempData["Success"]',
+
+                confirmButtonColor:'#198754'
+
+            });
+
+        </script>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <script>
+
+            Swal.fire({
+
+                icon:'error',
+
+                title:'Error',
+
+                text:'@TempData["Error"]',
+
+                confirmButtonColor:'#dc3545'
+
+            });
+
+        </script>
+    }
+
+    <script>
+
+        $(document).ready(function(){
+
+            $(".card").hide().fadeIn(500);
+
+        });
+
+    </script>
+
+}

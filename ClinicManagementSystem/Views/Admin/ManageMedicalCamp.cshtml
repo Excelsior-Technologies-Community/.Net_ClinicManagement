@@ -1,0 +1,543 @@
+﻿@model List<ClinicManagementSystem.Models.MedicalCampModel>
+
+@{
+    ViewData["Title"] = "Manage Medical Camp";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid py-4">
+
+    <!-- Page Header -->
+
+    <div class="card border-0 shadow mb-4">
+
+        <div class="card-body text-white rounded"
+             style="background:linear-gradient(135deg,#0d6efd,#2563eb);">
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <div>
+
+                    <h2 class="fw-bold mb-2">
+
+                        <i class="fa-solid fa-kit-medical me-2"></i>
+
+                        Manage Medical Camps
+
+                    </h2>
+
+                    <p class="mb-0">
+
+                        Manage all medical camps, registration details and camp information.
+
+                    </p>
+
+                </div>
+
+                <div>
+
+                    <a asp-action="AddMedicalCamp"
+                       class="btn btn-light">
+
+                        <i class="fa-solid fa-plus me-2"></i>
+
+                        Add Medical Camp
+
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Search -->
+
+    <div class="card border-0 shadow mb-4">
+
+        <div class="card-body">
+
+            <form method="get"
+                  asp-action="ManageMedicalCamp">
+
+                <div class="row">
+
+                    <div class="col-md-10">
+
+                        <input type="text"
+                               name="search"
+                               value="@ViewBag.Search"
+                               class="form-control"
+                               placeholder="Search by Camp, Doctor or Department..." />
+
+                    </div>
+
+                    <div class="col-md-2 d-grid">
+
+                        <button class="btn btn-primary">
+
+                            <i class="fa-solid fa-search me-2"></i>
+
+                            Search
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+    <!-- Camp List -->
+
+    <div class="card border-0 shadow">
+
+        <div class="card-body table-responsive">
+
+            <table class="table table-bordered table-hover align-middle">
+
+                <thead class="table-primary text-center">
+
+                    <tr>
+
+                        <th>Image</th>
+
+                        <th>Camp</th>
+
+                        <th>Date</th>
+
+                        <th>Time</th>
+
+                        <th>Doctor</th>
+
+                        <th>Department</th>
+
+                        <th>Fee</th>
+
+                        <th>Seats</th>
+
+                        <th>Featured</th>
+
+                        <th>Status</th>
+
+                        <th width="220">Action</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    @if (Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+
+                                <td class="text-center">
+
+                                    @if (!string.IsNullOrEmpty(item.CampImage))
+                                    {
+                                        <img src="~/MedicalCamp/@item.CampImage"
+                                             style="width:70px;height:70px;border-radius:10px;object-fit:cover;" />
+                                    }
+                                    else
+                                    {
+                                        <img src="https://cdn-icons-png.flaticon.com/512/2966/2966483.png"
+                                             style="width:70px;height:70px;border-radius:10px;" />
+                                    }
+
+                                </td>
+
+                                <td>
+
+                                    <strong>
+
+                                        @item.CampTitle
+
+                                    </strong>
+
+                                    <br />
+
+                                    <small class="text-muted">
+
+                                        @item.Venue
+
+                                    </small>
+
+                                </td>
+
+                                <td class="text-center">
+
+                                    @item.CampDate?.ToString("dd MMM yyyy")
+
+                                </td>
+
+                                <td class="text-center">
+
+                                    @item.StartTime -
+
+                                    @item.EndTime
+
+                                </td>
+
+                                <td>
+
+                                    @item.DoctorName
+
+                                </td>
+
+                                <td>
+
+                                    @item.DepartmentName
+
+                                </td>
+                                <!-- Registration Fee -->
+
+                                <td class="text-center">
+
+                                    @if (item.RegistrationFee == 0)
+                                    {
+                                        <span class="badge bg-success">
+
+                                            Free
+
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="fw-bold text-success">
+
+                                            ₹ @item.RegistrationFee
+
+                                        </span>
+                                    }
+
+                                </td>
+
+                                <!-- Available Seats -->
+
+                                <td class="text-center">
+
+                                    <span class="badge bg-info">
+
+                                        @item.AvailableSeats / @item.MaxParticipants
+
+                                    </span>
+
+                                </td>
+
+                                <!-- Featured Status -->
+
+                                <td class="text-center">
+
+                                    @if (item.IsFeatured)
+                                    {
+                                        <span class="badge bg-warning text-dark">
+
+                                            <i class="fa-solid fa-star me-1"></i>
+
+                                            Featured
+
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">
+
+                                            Normal
+
+                                        </span>
+                                    }
+
+                                </td>
+
+                                <!-- Active Status -->
+
+                                <td class="text-center">
+
+                                    @if (item.IsActive)
+                                    {
+                                        <span class="badge bg-success">
+
+                                            Active
+
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">
+
+                                            Inactive
+
+                                        </span>
+                                    }
+
+                                </td>
+
+                                <!-- Action Buttons -->
+
+                                <td class="text-center">
+
+                                    <a asp-action="ViewMedicalCamp"
+                                       asp-route-id="@item.CampId"
+                                       class="btn btn-info btn-sm"
+                                       title="View">
+
+                                        <i class="fa-solid fa-eye"></i>
+
+                                    </a>
+
+                                    <a asp-action="EditMedicalCamp"
+                                       asp-route-id="@item.CampId"
+                                       class="btn btn-warning btn-sm"
+                                       title="Edit">
+
+                                        <i class="fa-solid fa-pen"></i>
+
+                                    </a>
+
+                                    <a asp-action="ChangeFeaturedStatus"
+                                       asp-route-id="@item.CampId"
+                                       class="btn btn-dark btn-sm"
+                                       title="Featured">
+
+                                        <i class="fa-solid fa-star"></i>
+
+                                    </a>
+
+                                    <a asp-action="ChangeCampStatus"
+                                       asp-route-id="@item.CampId"
+                                       class="btn btn-secondary btn-sm"
+                                       title="Status">
+
+                                        @if (item.IsActive)
+                                        {
+                                            <i class="fa-solid fa-toggle-on"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="fa-solid fa-toggle-off"></i>
+                                        }
+
+                                    </a>
+
+                                    <a asp-action="DeleteMedicalCamp"
+                                       asp-route-id="@item.CampId"
+                                       class="btn btn-danger btn-sm btn-delete"
+                                       title="Delete">
+
+                                        <i class="fa-solid fa-trash"></i>
+
+                                    </a>
+
+                                </td>
+
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+
+                            <td colspan="11" class="text-center py-5">
+
+                                <i class="fa-solid fa-kit-medical fa-4x text-muted mb-3"></i>
+
+                                <h4 class="text-muted">
+
+                                    No Medical Camps Found
+
+                                </h4>
+
+                            </td>
+
+                        </tr>
+                    }
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+@section Styles {
+
+    <style>
+
+        body {
+            background: #f5f7fb;
+        }
+
+        .card {
+            border: none;
+            border-radius: 18px;
+            box-shadow: 0 10px 25px rgba(0,0,0,.08);
+        }
+
+        .table {
+            margin-bottom: 0;
+        }
+
+            .table thead th {
+                white-space: nowrap;
+                vertical-align: middle;
+                text-align: center;
+            }
+
+            .table tbody td {
+                vertical-align: middle;
+            }
+
+            .table tbody tr {
+                transition: .3s;
+            }
+
+                .table tbody tr:hover {
+                    background: #f8fbff;
+                }
+
+        .badge {
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+        }
+
+        .btn {
+            border-radius: 8px;
+            transition: .3s;
+        }
+
+            .btn:hover {
+                transform: translateY(-2px);
+            }
+
+        .form-control {
+            border-radius: 10px;
+        }
+
+            .form-control:focus {
+                border-color: #0d6efd;
+                box-shadow: 0 0 0 .15rem rgba(13,110,253,.20);
+            }
+
+        img {
+            border: 2px solid #e9ecef;
+        }
+
+        @@media(max-width:992px) {
+
+            .table {
+                min-width: 1300px;
+            }
+        }
+
+        @@media(max-width:768px) {
+
+            .btn {
+                margin-bottom: 5px;
+            }
+        }
+
+    </style>
+
+}
+
+@section Scripts {
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+
+        $(document).ready(function () {
+
+            $(".btn-delete").click(function (e) {
+
+                e.preventDefault();
+
+                var url = $(this).attr("href");
+
+                Swal.fire({
+
+                    title: "Delete Medical Camp?",
+
+                    text: "This medical camp will be moved to deleted records.",
+
+                    icon: "warning",
+
+                    showCancelButton: true,
+
+                    confirmButtonColor: "#dc3545",
+
+                    cancelButtonColor: "#6c757d",
+
+                    confirmButtonText: "Yes, Delete",
+
+                    cancelButtonText: "Cancel"
+
+                }).then((result) => {
+
+                    if(result.isConfirmed){
+
+                        window.location.href = url;
+
+                    }
+
+                });
+
+            });
+
+        });
+
+    </script>
+
+    @if (TempData["Success"] != null)
+    {
+        <script>
+
+            Swal.fire({
+
+                icon:'success',
+
+                title:'Success',
+
+                text:'@TempData["Success"]',
+
+                confirmButtonColor:'#198754'
+
+            });
+
+        </script>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <script>
+
+            Swal.fire({
+
+                icon:'error',
+
+                title:'Error',
+
+                text:'@TempData["Error"]',
+
+                confirmButtonColor:'#dc3545'
+
+            });
+
+        </script>
+    }
+
+}

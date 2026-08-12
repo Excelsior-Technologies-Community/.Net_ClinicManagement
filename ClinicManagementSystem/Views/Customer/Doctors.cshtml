@@ -77,6 +77,7 @@
 
                     </div>
 
+
                     <div class="col-md-2 d-grid align-self-end mb-3">
 
                         <button class="btn btn-primary">
@@ -138,6 +139,30 @@
                                 <span class="badge bg-primary">
                                     @item.DepartmentName
                                 </span>
+
+                                <br />
+                                <br />
+
+                                @if (item.IsOnLeave)
+                                {
+                                    <span class="badge bg-danger">
+
+                                        <i class="fa-solid fa-calendar-xmark me-1"></i>
+
+                                        On Leave
+
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success">
+
+                                        <i class="fa-solid fa-circle-check me-1"></i>
+
+                                        Available
+
+                                    </span>
+                                }
 
                             </div>
 
@@ -212,15 +237,28 @@
 
                                 </a>
 
-                                <a asp-action="BookAppointment"
-                                   asp-route-doctorId="@item.DoctorId"
-                                   class="btn btn-primary">
+                                @if (item.IsOnLeave)
+                                {
+                                    <button class="btn btn-danger" disabled>
 
-                                    <i class="fa fa-calendar-check me-2"></i>
+                                        <i class="fa-solid fa-calendar-xmark me-2"></i>
 
-                                    Book Appointment
+                                        Doctor On Leave
 
-                                </a>
+                                    </button>
+                                }
+                                else
+                                {
+                                    <a asp-action="BookAppointment"
+                                       asp-route-doctorId="@item.DoctorId"
+                                       class="btn btn-primary">
+
+                                        <i class="fa fa-calendar-check me-2"></i>
+
+                                        Book Appointment
+
+                                    </a>
+                                }
 
                             </div>
 

@@ -1,0 +1,644 @@
+﻿@model ClinicManagementSystem.Models.MedicalCampModel
+
+@{
+    ViewData["Title"] = "Add Medical Camp";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid py-4">
+
+    <!-- Page Header -->
+
+    <div class="card border-0 shadow mb-4">
+
+        <div class="card-body text-white rounded"
+             style="background:linear-gradient(135deg,#0d6efd,#2563eb);">
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <div>
+
+                    <h2 class="fw-bold mb-2">
+
+                        <i class="fa-solid fa-kit-medical me-2"></i>
+
+                        Add Medical Camp
+
+                    </h2>
+
+                    <p class="mb-0">
+
+                        Create a new medical camp with complete information.
+
+                    </p>
+
+                </div>
+
+                <a asp-action="ManageMedicalCamp"
+                   class="btn btn-light">
+
+                    <i class="fa-solid fa-arrow-left me-2"></i>
+
+                    Back
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Form -->
+
+    <div class="card shadow border-0">
+
+        <div class="card-body">
+
+            <form asp-action="AddMedicalCamp"
+                  method="post"
+                  enctype="multipart/form-data">
+
+                @Html.AntiForgeryToken()
+
+                <div asp-validation-summary="ModelOnly"
+                     class="text-danger mb-3">
+                </div>
+
+                <div class="row">
+
+                    <!-- Camp Title -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="CampTitle"
+                               class="form-label fw-bold">
+
+                            Camp Title
+
+                        </label>
+
+                        <input asp-for="CampTitle"
+                               class="form-control"
+                               placeholder="Enter Camp Title" />
+
+                        <span asp-validation-for="CampTitle"
+                              class="text-danger"></span>
+
+                    </div>
+
+                    <!-- Camp Date -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="CampDate"
+                               class="form-label fw-bold">
+
+                            Camp Date
+
+                        </label>
+
+                        <input asp-for="CampDate"
+                               type="date"
+                               class="form-control" />
+
+                        <span asp-validation-for="CampDate"
+                              class="text-danger"></span>
+
+                    </div>
+
+                    <!-- Doctor -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="DoctorId"
+                               class="form-label fw-bold">
+
+                            Doctor
+
+                        </label>
+
+                        <select asp-for="DoctorId"
+                                asp-items="Model.DoctorList"
+                                class="form-select">
+
+                            <option value="">
+
+                                -- Select Doctor --
+
+                            </option>
+
+                        </select>
+
+                        <span asp-validation-for="DoctorId"
+                              class="text-danger"></span>
+
+                    </div>
+
+                    <!-- Department -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="DepartmentId"
+                               class="form-label fw-bold">
+
+                            Department
+
+                        </label>
+
+                        <select asp-for="DepartmentId"
+                                asp-items="Model.DepartmentList"
+                                class="form-select">
+
+                            <option value="">
+
+                                -- Select Department --
+
+                            </option>
+
+                        </select>
+
+                        <span asp-validation-for="DepartmentId"
+                              class="text-danger"></span>
+
+                    </div>
+
+                    <!-- Description -->
+
+                    <div class="col-12 mb-3">
+
+                        <label asp-for="CampDescription"
+                               class="form-label fw-bold">
+
+                            Camp Description
+
+                        </label>
+
+                        <textarea asp-for="CampDescription"
+                                  rows="5"
+                                  class="form-control"
+                                  placeholder="Enter Medical Camp Description"></textarea>
+
+                        <span asp-validation-for="CampDescription"
+                              class="text-danger"></span>
+
+                    </div>
+
+                    <!-- Venue -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="Venue"
+                               class="form-label fw-bold">
+
+                            Venue
+
+                        </label>
+
+                        <input asp-for="Venue"
+                               class="form-control"
+                               placeholder="Enter Venue" />
+
+                        <span asp-validation-for="Venue"
+                              class="text-danger"></span>
+
+                    </div>
+
+                    <!-- Organizer -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="Organizer"
+                               class="form-label fw-bold">
+
+                            Organizer
+
+                        </label>
+
+                        <input asp-for="Organizer"
+                               class="form-control"
+                               placeholder="Organizer Name" />
+
+                    </div>
+                    <!-- Start Time -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="StartTime"
+                               class="form-label fw-bold">
+
+                            Start Time
+
+                        </label>
+
+                        <input asp-for="StartTime"
+                               type="time"
+                               class="form-control" />
+
+                        <span asp-validation-for="StartTime"
+                              class="text-danger"></span>
+
+                    </div>
+
+                    <!-- End Time -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="EndTime"
+                               class="form-label fw-bold">
+
+                            End Time
+
+                        </label>
+
+                        <input asp-for="EndTime"
+                               type="time"
+                               class="form-control" />
+
+                        <span asp-validation-for="EndTime"
+                              class="text-danger"></span>
+
+                    </div>
+
+                    <!-- Registration Fee -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="RegistrationFee"
+                               class="form-label fw-bold">
+
+                            Registration Fee (₹)
+
+                        </label>
+
+                        <input asp-for="RegistrationFee"
+                               type="number"
+                               step="0.01"
+                               min="0"
+                               class="form-control"
+                               placeholder="0 = Free Camp" />
+
+                        <span asp-validation-for="RegistrationFee"
+                              class="text-danger"></span>
+
+                    </div>
+
+                    <!-- Maximum Participants -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="MaxParticipants"
+                               class="form-label fw-bold">
+
+                            Maximum Participants
+
+                        </label>
+
+                        <input asp-for="MaxParticipants"
+                               type="number"
+                               min="1"
+                               class="form-control"
+                               placeholder="Enter Maximum Participants" />
+
+                        <span asp-validation-for="MaxParticipants"
+                              class="text-danger"></span>
+
+                    </div>
+
+                    <!-- Contact Number -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="ContactNumber"
+                               class="form-label fw-bold">
+
+                            Contact Number
+
+                        </label>
+
+                        <input asp-for="ContactNumber"
+                               class="form-control"
+                               placeholder="Enter Contact Number" />
+
+                        <span asp-validation-for="ContactNumber"
+                              class="text-danger"></span>
+
+                    </div>
+
+                    <!-- Email -->
+
+                    <div class="col-md-6 mb-3">
+
+                        <label asp-for="Email"
+                               class="form-label fw-bold">
+
+                            Email Address
+
+                        </label>
+
+                        <input asp-for="Email"
+                               class="form-control"
+                               placeholder="Enter Email Address" />
+
+                        <span asp-validation-for="Email"
+                              class="text-danger"></span>
+
+                    </div>
+
+                    <!-- Benefits -->
+
+                    <div class="col-12 mb-3">
+
+                        <label asp-for="Benefits"
+                               class="form-label fw-bold">
+
+                            Camp Benefits
+
+                        </label>
+
+                        <textarea asp-for="Benefits"
+                                  rows="4"
+                                  class="form-control"
+                                  placeholder="Enter benefits of this medical camp"></textarea>
+
+                    </div>
+
+                    <!-- Instructions -->
+
+                    <div class="col-12 mb-3">
+
+                        <label asp-for="Instructions"
+                               class="form-label fw-bold">
+
+                            Instructions
+
+                        </label>
+
+                        <textarea asp-for="Instructions"
+                                  rows="4"
+                                  class="form-control"
+                                  placeholder="Enter important instructions for participants"></textarea>
+
+                    </div>
+
+                    <!-- Featured -->
+
+                    <div class="col-md-6 mb-4">
+
+                        <div class="form-check form-switch mt-4">
+
+                            <input asp-for="IsFeatured"
+                                   class="form-check-input" />
+
+                            <label asp-for="IsFeatured"
+                                   class="form-check-label fw-bold">
+
+                                Featured Medical Camp
+
+                            </label>
+
+                        </div>
+
+                    </div>
+
+                    <!-- Active -->
+
+                    <div class="col-md-6 mb-4">
+
+                        <div class="form-check form-switch mt-4">
+
+                            <input asp-for="IsActive"
+                                   class="form-check-input" />
+
+                            <label asp-for="IsActive"
+                                   class="form-check-label fw-bold">
+
+                                Active Camp
+
+                            </label>
+
+                        </div>
+
+                    </div>
+                    <!-- Camp Image -->
+
+                    <div class="col-md-6 mb-4">
+
+                        <label asp-for="CampImageFile"
+                               class="form-label fw-bold">
+
+                            Camp Image
+
+                        </label>
+
+                        <input asp-for="CampImageFile"
+                               type="file"
+                               class="form-control"
+                               accept="image/*" />
+
+                        <span asp-validation-for="CampImageFile"
+                              class="text-danger"></span>
+
+                        <img id="CampImagePreview"
+                             src="~/images/no-image.png"
+                             class="img-thumbnail mt-3 d-none"
+                             style="width:180px;height:150px;object-fit:cover;" />
+
+                    </div>
+
+                    <!-- Camp Banner -->
+
+                    <div class="col-md-6 mb-4">
+
+                        <label asp-for="CampBannerFile"
+                               class="form-label fw-bold">
+
+                            Camp Banner
+
+                        </label>
+
+                        <input asp-for="CampBannerFile"
+                               type="file"
+                               class="form-control"
+                               accept="image/*" />
+
+                        <span asp-validation-for="CampBannerFile"
+                              class="text-danger"></span>
+
+                        <img id="CampBannerPreview"
+                             src="~/images/no-image.png"
+                             class="img-thumbnail mt-3 d-none"
+                             style="width:250px;height:150px;object-fit:cover;" />
+
+                    </div>
+
+                </div>
+
+                <hr />
+
+                <div class="text-center">
+
+                    <button type="submit"
+                            class="btn btn-success px-5">
+
+                        <i class="fa-solid fa-floppy-disk me-2"></i>
+
+                        Save Medical Camp
+
+                    </button>
+
+                    <button type="reset"
+                            class="btn btn-warning px-5 ms-2">
+
+                        <i class="fa-solid fa-rotate me-2"></i>
+
+                        Reset
+
+                    </button>
+
+                    <a asp-action="ManageMedicalCamp"
+                       class="btn btn-secondary px-5 ms-2">
+
+                        <i class="fa-solid fa-arrow-left me-2"></i>
+
+                        Back
+
+                    </a>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Styles {
+
+    <style>
+
+        body {
+            background: #f5f7fb;
+        }
+
+        .card {
+            border: none;
+            border-radius: 18px;
+            box-shadow: 0 10px 25px rgba(0,0,0,.08);
+        }
+
+        .form-control,
+        .form-select {
+            border-radius: 10px;
+        }
+
+            .form-control:focus,
+            .form-select:focus {
+                border-color: #0d6efd;
+                box-shadow: 0 0 0 .15rem rgba(13,110,253,.20);
+            }
+
+        textarea {
+            resize: none;
+        }
+
+        .btn {
+            border-radius: 10px;
+            transition: .3s;
+        }
+
+            .btn:hover {
+                transform: translateY(-2px);
+            }
+
+        .img-thumbnail {
+            border-radius: 12px;
+            object-fit: cover;
+        }
+
+        .form-check-input {
+            width: 50px;
+            height: 24px;
+        }
+
+        @@media(max-width:768px) {
+
+            .btn {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+        }
+
+    </style>
+
+}
+
+@section Scripts {
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+
+        $("#CampImageFile").change(function () {
+
+            if(this.files && this.files[0]){
+
+                $("#CampImagePreview")
+                .removeClass("d-none")
+                .attr("src",URL.createObjectURL(this.files[0]));
+            }
+
+        });
+
+        $("#CampBannerFile").change(function () {
+
+            if(this.files && this.files[0]){
+
+                $("#CampBannerPreview")
+                .removeClass("d-none")
+                .attr("src",URL.createObjectURL(this.files[0]));
+            }
+
+        });
+
+    </script>
+
+    @if (TempData["Success"] != null)
+    {
+        <script>
+
+            Swal.fire({
+
+            icon:'success',
+
+            title:'Success',
+
+            text:'@TempData["Success"]'
+
+            });
+
+        </script>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <script>
+
+            Swal.fire({
+
+            icon:'error',
+
+            title:'Error',
+
+            text:'@TempData["Error"]'
+
+            });
+
+        </script>
+    }
+
+}

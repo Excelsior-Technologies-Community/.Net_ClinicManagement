@@ -8044,6 +8044,3620 @@ HealthTipId=@HealthTipId";
 
             return RedirectToAction("ManageHealthTips");
         }
+      
+        [HttpGet]
+        public IActionResult ManageDoctorLeave(string search = "")
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            List<DoctorLeaveModel> list = new List<DoctorLeaveModel>();
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+                string query = @"
+
+SELECT
+
+DL.LeaveId,
+DL.DoctorId,
+DL.LeaveFromDate,
+DL.LeaveToDate,
+DL.LeaveReason,
+DL.IsActive,
+DL.IsDeleted,
+DL.CreatedDate,
+DL.UpdatedDate,
+
+D.DoctorName,
+
+DP.DepartmentName
+
+FROM tbl_DoctorLeave DL
+
+INNER JOIN tbl_Doctor D
+ON DL.DoctorId = D.DoctorId
+
+LEFT JOIN tbl_Department DP
+ON D.DepartmentId = DP.DepartmentId
+
+WHERE
+
+DL.IsDeleted = 0
+
+AND
+(
+    @Search = ''
+
+    OR D.DoctorName LIKE @SearchText
+
+    OR DP.DepartmentName LIKE @SearchText
+
+    OR DL.LeaveReason LIKE @SearchText
+)
+
+ORDER BY
+
+DL.LeaveId DESC";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+
+                cmd.Parameters.AddWithValue("@Search", search ?? "");
+
+                cmd.Parameters.AddWithValue("@SearchText", "%" + (search ?? "") + "%");
+
+                SqlDataReader dr = cmd.ExecuteReader();
+
+                while (dr.Read())
+                {
+                    DoctorLeaveModel model = new DoctorLeaveModel();
+
+                    model.LeaveId = Convert.ToInt64(dr["LeaveId"]);
+
+                    model.DoctorId = Convert.ToInt64(dr["DoctorId"]);
+
+                    model.DoctorName = dr["DoctorName"].ToString();
+
+                    model.DepartmentName = dr["DepartmentName"] == DBNull.Value
+                                            ? ""
+                                            : dr["DepartmentName"].ToString();
+
+                    model.LeaveFromDate = Convert.ToDateTime(dr["LeaveFromDate"]);
+
+                    model.LeaveToDate = Convert.ToDateTime(dr["LeaveToDate"]);
+
+                    model.LeaveReason = dr["LeaveReason"].ToString();
+
+                    model.IsActive = Convert.ToBoolean(dr["IsActive"]);
+
+                    model.IsDeleted = Convert.ToBoolean(dr["IsDeleted"]);
+
+                    model.CreatedDate = Convert.ToDateTime(dr["CreatedDate"]);
+
+                    if (dr["UpdatedDate"] != DBNull.Value)
+                    {
+                        model.UpdatedDate = Convert.ToDateTime(dr["UpdatedDate"]);
+                    }
+
+                    list.Add(model);
+                }
+
+                dr.Close();
+            }
+
+            ViewBag.Search = search;
+
+            return View(list);
+        }
+       
+        [HttpGet]
+        public IActionResult AddDoctorLeave()
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            DoctorLeaveModel model = new DoctorLeaveModel();
+
+            model.DoctorList = new List<SelectListItem>();
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+
+                string query = @"
+
+SELECT
+
+DoctorId,
+DoctorName
+
+FROM tbl_Doctor
+
+WHERE
+
+IsActive = 1
+AND IsDeleted = 0
+
+ORDER BY
+
+DoctorName ASC";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+
+                SqlDataReader dr = cmd.ExecuteReader();
+
+                while (dr.Read())
+                {
+                    model.DoctorList.Add(new SelectListItem
+                    {
+                        Value = dr["DoctorId"].ToString(),
+                        Text = dr["DoctorName"].ToString()
+                    });
+                }
+
+                dr.Close();
+            }
+
+
+            model.LeaveFromDate = DateTime.Today;
+
+            model.LeaveToDate = DateTime.Today;
+
+            model.IsActive = true;
+
+            return View(model);
+        }
+     
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult AddDoctorLeave(DoctorLeaveModel model)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+
+            model.DoctorList = new List<SelectListItem>();
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+                string doctorQuery = @"
+
+SELECT
+DoctorId,
+DoctorName
+
+FROM tbl_Doctor
+
+WHERE
+IsActive=1
+AND IsDeleted=0
+
+ORDER BY DoctorName";
+
+                SqlCommand doctorCmd = new SqlCommand(doctorQuery, con);
+
+                SqlDataReader doctorDr = doctorCmd.ExecuteReader();
+
+                while (doctorDr.Read())
+                {
+                    model.DoctorList.Add(new SelectListItem
+                    {
+                        Value = doctorDr["DoctorId"].ToString(),
+                        Text = doctorDr["DoctorName"].ToString()
+                    });
+                }
+
+                doctorDr.Close();
+
+
+                if (model.LeaveToDate < model.LeaveFromDate)
+                {
+                    ModelState.AddModelError("", "Leave To Date must be greater than or equal to Leave From Date.");
+
+                    return View(model);
+                }
+
+                if (!ModelState.IsValid)
+                {
+                    return View(model);
+                }
+
+
+                string checkQuery = @"
+
+SELECT COUNT(*)
+
+FROM tbl_DoctorLeave
+
+WHERE
+
+DoctorId=@DoctorId
+AND IsDeleted=0
+AND IsActive=1
+
+AND
+
+(
+    @LeaveFromDate BETWEEN LeaveFromDate AND LeaveToDate
+
+    OR
+
+    @LeaveToDate BETWEEN LeaveFromDate AND LeaveToDate
+
+    OR
+
+    LeaveFromDate BETWEEN @LeaveFromDate AND @LeaveToDate
+)";
+
+                SqlCommand checkCmd = new SqlCommand(checkQuery, con);
+
+                checkCmd.Parameters.AddWithValue("@DoctorId", model.DoctorId);
+
+                checkCmd.Parameters.AddWithValue("@LeaveFromDate", model.LeaveFromDate);
+
+                checkCmd.Parameters.AddWithValue("@LeaveToDate", model.LeaveToDate);
+
+                int count = Convert.ToInt32(checkCmd.ExecuteScalar());
+
+                if (count > 0)
+                {
+                    TempData["Error"] = "Doctor already has a leave record for the selected dates.";
+
+                    return View(model);
+                }
+
+
+                string insertQuery = @"
+
+INSERT INTO tbl_DoctorLeave
+(
+DoctorId,
+LeaveFromDate,
+LeaveToDate,
+LeaveReason,
+IsActive,
+IsDeleted,
+CreatedDate
+)
+
+VALUES
+(
+@DoctorId,
+@LeaveFromDate,
+@LeaveToDate,
+@LeaveReason,
+@IsActive,
+@IsDeleted,
+@CreatedDate
+)";
+
+                SqlCommand cmd = new SqlCommand(insertQuery, con);
+
+                cmd.Parameters.AddWithValue("@DoctorId", model.DoctorId);
+
+                cmd.Parameters.AddWithValue("@LeaveFromDate", model.LeaveFromDate);
+
+                cmd.Parameters.AddWithValue("@LeaveToDate", model.LeaveToDate);
+
+                cmd.Parameters.AddWithValue("@LeaveReason", model.LeaveReason);
+
+                cmd.Parameters.AddWithValue("@IsActive", model.IsActive);
+
+                cmd.Parameters.AddWithValue("@IsDeleted", false);
+
+                cmd.Parameters.AddWithValue("@CreatedDate", DateTime.Now);
+
+                int result = cmd.ExecuteNonQuery();
+
+                if (result > 0)
+                {
+                    TempData["Success"] = "Doctor leave added successfully.";
+
+                    return RedirectToAction("ManageDoctorLeave");
+                }
+
+                TempData["Error"] = "Unable to add doctor leave.";
+
+                return View(model);
+            }
+        }
+      
+        [HttpGet]
+        public IActionResult EditDoctorLeave(long id)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            DoctorLeaveModel model = new DoctorLeaveModel();
+
+            model.DoctorList = new List<SelectListItem>();
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+
+                string doctorQuery = @"
+
+SELECT
+DoctorId,
+DoctorName
+
+FROM tbl_Doctor
+
+WHERE
+IsActive=1
+AND IsDeleted=0
+
+ORDER BY DoctorName";
+
+                SqlCommand doctorCmd = new SqlCommand(doctorQuery, con);
+
+                SqlDataReader doctorDr = doctorCmd.ExecuteReader();
+
+                while (doctorDr.Read())
+                {
+                    model.DoctorList.Add(new SelectListItem
+                    {
+                        Value = doctorDr["DoctorId"].ToString(),
+                        Text = doctorDr["DoctorName"].ToString()
+                    });
+                }
+
+                doctorDr.Close();
+
+
+                string query = @"
+
+SELECT
+
+LeaveId,
+DoctorId,
+LeaveFromDate,
+LeaveToDate,
+LeaveReason,
+IsActive,
+IsDeleted,
+CreatedDate,
+UpdatedDate
+
+FROM tbl_DoctorLeave
+
+WHERE
+
+LeaveId=@LeaveId
+AND IsDeleted=0";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+
+                cmd.Parameters.AddWithValue("@LeaveId", id);
+
+                SqlDataReader dr = cmd.ExecuteReader();
+
+                if (dr.Read())
+                {
+                    model.LeaveId = Convert.ToInt64(dr["LeaveId"]);
+
+                    model.DoctorId = Convert.ToInt64(dr["DoctorId"]);
+
+                    model.LeaveFromDate = Convert.ToDateTime(dr["LeaveFromDate"]);
+
+                    model.LeaveToDate = Convert.ToDateTime(dr["LeaveToDate"]);
+
+                    model.LeaveReason = dr["LeaveReason"].ToString();
+
+                    model.IsActive = Convert.ToBoolean(dr["IsActive"]);
+
+                    model.IsDeleted = Convert.ToBoolean(dr["IsDeleted"]);
+
+                    model.CreatedDate = Convert.ToDateTime(dr["CreatedDate"]);
+
+                    if (dr["UpdatedDate"] != DBNull.Value)
+                    {
+                        model.UpdatedDate = Convert.ToDateTime(dr["UpdatedDate"]);
+                    }
+                }
+                else
+                {
+                    dr.Close();
+
+                    TempData["Error"] = "Doctor leave record not found.";
+
+                    return RedirectToAction("ManageDoctorLeave");
+                }
+
+                dr.Close();
+            }
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult EditDoctorLeave(DoctorLeaveModel model)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+
+            model.DoctorList = new List<SelectListItem>();
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+                string doctorQuery = @"
+
+SELECT
+DoctorId,
+DoctorName
+
+FROM tbl_Doctor
+
+WHERE
+IsActive=1
+AND IsDeleted=0
+
+ORDER BY DoctorName";
+
+                SqlCommand doctorCmd = new SqlCommand(doctorQuery, con);
+
+                SqlDataReader doctorDr = doctorCmd.ExecuteReader();
+
+                while (doctorDr.Read())
+                {
+                    model.DoctorList.Add(new SelectListItem
+                    {
+                        Value = doctorDr["DoctorId"].ToString(),
+                        Text = doctorDr["DoctorName"].ToString()
+                    });
+                }
+
+                doctorDr.Close();
+
+
+                if (model.LeaveToDate < model.LeaveFromDate)
+                {
+                    ModelState.AddModelError("", "Leave To Date must be greater than or equal to Leave From Date.");
+
+                    return View(model);
+                }
+
+                if (!ModelState.IsValid)
+                {
+                    return View(model);
+                }
+
+
+                string checkQuery = @"
+
+SELECT COUNT(*)
+
+FROM tbl_DoctorLeave
+
+WHERE
+
+DoctorId=@DoctorId
+AND LeaveId<>@LeaveId
+AND IsDeleted=0
+AND IsActive=1
+
+AND
+(
+    @LeaveFromDate BETWEEN LeaveFromDate AND LeaveToDate
+
+    OR
+
+    @LeaveToDate BETWEEN LeaveFromDate AND LeaveToDate
+
+    OR
+
+    LeaveFromDate BETWEEN @LeaveFromDate AND @LeaveToDate
+
+    OR
+
+    LeaveToDate BETWEEN @LeaveFromDate AND @LeaveToDate
+)";
+
+                SqlCommand checkCmd = new SqlCommand(checkQuery, con);
+
+                checkCmd.Parameters.AddWithValue("@LeaveId", model.LeaveId);
+
+                checkCmd.Parameters.AddWithValue("@DoctorId", model.DoctorId);
+
+                checkCmd.Parameters.AddWithValue("@LeaveFromDate", model.LeaveFromDate);
+
+                checkCmd.Parameters.AddWithValue("@LeaveToDate", model.LeaveToDate);
+
+                int count = Convert.ToInt32(checkCmd.ExecuteScalar());
+
+                if (count > 0)
+                {
+                    TempData["Error"] = "Doctor already has another leave during the selected dates.";
+
+                    return View(model);
+                }
+
+
+                string updateQuery = @"
+
+UPDATE tbl_DoctorLeave
+
+SET
+
+DoctorId=@DoctorId,
+LeaveFromDate=@LeaveFromDate,
+LeaveToDate=@LeaveToDate,
+LeaveReason=@LeaveReason,
+IsActive=@IsActive,
+UpdatedDate=@UpdatedDate
+
+WHERE
+
+LeaveId=@LeaveId
+AND IsDeleted=0";
+
+                SqlCommand cmd = new SqlCommand(updateQuery, con);
+
+                cmd.Parameters.AddWithValue("@LeaveId", model.LeaveId);
+
+                cmd.Parameters.AddWithValue("@DoctorId", model.DoctorId);
+
+                cmd.Parameters.AddWithValue("@LeaveFromDate", model.LeaveFromDate);
+
+                cmd.Parameters.AddWithValue("@LeaveToDate", model.LeaveToDate);
+
+                cmd.Parameters.AddWithValue("@LeaveReason", model.LeaveReason);
+
+                cmd.Parameters.AddWithValue("@IsActive", model.IsActive);
+
+                cmd.Parameters.AddWithValue("@UpdatedDate", DateTime.Now);
+
+                int result = cmd.ExecuteNonQuery();
+
+                if (result > 0)
+                {
+                    TempData["Success"] = "Doctor leave updated successfully.";
+
+                    return RedirectToAction("ManageDoctorLeave");
+                }
+
+                TempData["Error"] = "Unable to update doctor leave.";
+
+                return View(model);
+            }
+        }
+       
+        [HttpGet]
+        public IActionResult ViewDoctorLeave(long id)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            DoctorLeaveModel model = new DoctorLeaveModel();
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+                string query = @"
+
+SELECT
+
+DL.LeaveId,
+DL.DoctorId,
+DL.LeaveFromDate,
+DL.LeaveToDate,
+DL.LeaveReason,
+DL.IsActive,
+DL.IsDeleted,
+DL.CreatedDate,
+DL.UpdatedDate,
+
+D.DoctorName,
+
+DP.DepartmentName
+
+FROM tbl_DoctorLeave DL
+
+INNER JOIN tbl_Doctor D
+ON DL.DoctorId = D.DoctorId
+
+LEFT JOIN tbl_Department DP
+ON D.DepartmentId = DP.DepartmentId
+
+WHERE
+
+DL.LeaveId=@LeaveId
+AND DL.IsDeleted=0";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+
+                cmd.Parameters.AddWithValue("@LeaveId", id);
+
+                SqlDataReader dr = cmd.ExecuteReader();
+
+                if (dr.Read())
+                {
+                    model.LeaveId = Convert.ToInt64(dr["LeaveId"]);
+
+                    model.DoctorId = Convert.ToInt64(dr["DoctorId"]);
+
+                    model.DoctorName = dr["DoctorName"].ToString();
+
+                    model.DepartmentName = dr["DepartmentName"] == DBNull.Value
+                        ? ""
+                        : dr["DepartmentName"].ToString();
+
+                    model.LeaveFromDate = Convert.ToDateTime(dr["LeaveFromDate"]);
+
+                    model.LeaveToDate = Convert.ToDateTime(dr["LeaveToDate"]);
+
+                    model.LeaveReason = dr["LeaveReason"].ToString();
+
+                    model.IsActive = Convert.ToBoolean(dr["IsActive"]);
+
+                    model.IsDeleted = Convert.ToBoolean(dr["IsDeleted"]);
+
+                    model.CreatedDate = Convert.ToDateTime(dr["CreatedDate"]);
+
+                    if (dr["UpdatedDate"] != DBNull.Value)
+                    {
+                        model.UpdatedDate = Convert.ToDateTime(dr["UpdatedDate"]);
+                    }
+                }
+                else
+                {
+                    dr.Close();
+
+                    TempData["Error"] = "Doctor leave record not found.";
+
+                    return RedirectToAction("ManageDoctorLeave");
+                }
+
+                dr.Close();
+            }
+
+            return View(model);
+        }
+     
+        [HttpGet]
+        public IActionResult ChangeLeaveStatus(long id)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+
+                string checkQuery = @"
+
+SELECT IsActive
+
+FROM tbl_DoctorLeave
+
+WHERE
+
+LeaveId=@LeaveId
+AND IsDeleted=0";
+
+                SqlCommand checkCmd = new SqlCommand(checkQuery, con);
+
+                checkCmd.Parameters.AddWithValue("@LeaveId", id);
+
+                object result = checkCmd.ExecuteScalar();
+
+                if (result == null)
+                {
+                    TempData["Error"] = "Doctor leave record not found.";
+
+                    return RedirectToAction("ManageDoctorLeave");
+                }
+
+                bool currentStatus = Convert.ToBoolean(result);
+
+                bool newStatus = !currentStatus;
+
+                string updateQuery = @"
+
+UPDATE tbl_DoctorLeave
+
+SET
+
+IsActive=@IsActive,
+UpdatedDate=@UpdatedDate
+
+WHERE
+
+LeaveId=@LeaveId
+AND IsDeleted=0";
+
+                SqlCommand cmd = new SqlCommand(updateQuery, con);
+
+                cmd.Parameters.AddWithValue("@LeaveId", id);
+
+                cmd.Parameters.AddWithValue("@IsActive", newStatus);
+
+                cmd.Parameters.AddWithValue("@UpdatedDate", DateTime.Now);
+
+                int update = cmd.ExecuteNonQuery();
+
+                if (update > 0)
+                {
+                    TempData["Success"] = newStatus
+                        ? "Doctor leave activated successfully."
+                        : "Doctor leave deactivated successfully.";
+                }
+                else
+                {
+                    TempData["Error"] = "Unable to update doctor leave status.";
+                }
+            }
+
+            return RedirectToAction("ManageDoctorLeave");
+        }
+     
+        [HttpGet]
+        public IActionResult DeleteDoctorLeave(long id)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+                string checkQuery = @"
+
+SELECT COUNT(*)
+
+FROM tbl_DoctorLeave
+
+WHERE
+
+LeaveId=@LeaveId
+AND IsDeleted=0";
+
+                SqlCommand checkCmd = new SqlCommand(checkQuery, con);
+
+                checkCmd.Parameters.AddWithValue("@LeaveId", id);
+
+                int count = Convert.ToInt32(checkCmd.ExecuteScalar());
+
+                if (count == 0)
+                {
+                    TempData["Error"] = "Doctor leave record not found.";
+
+                    return RedirectToAction("ManageDoctorLeave");
+                }
+
+
+                string deleteQuery = @"
+
+UPDATE tbl_DoctorLeave
+
+SET
+
+IsDeleted=@IsDeleted,
+UpdatedDate=@UpdatedDate
+
+WHERE
+
+LeaveId=@LeaveId";
+
+                SqlCommand cmd = new SqlCommand(deleteQuery, con);
+
+                cmd.Parameters.AddWithValue("@LeaveId", id);
+
+                cmd.Parameters.AddWithValue("@IsDeleted", true);
+
+                cmd.Parameters.AddWithValue("@UpdatedDate", DateTime.Now);
+
+                int result = cmd.ExecuteNonQuery();
+
+                if (result > 0)
+                {
+                    TempData["Success"] = "Doctor leave deleted successfully.";
+                }
+                else
+                {
+                    TempData["Error"] = "Unable to delete doctor leave.";
+                }
+            }
+
+            return RedirectToAction("ManageDoctorLeave");
+        }
+       
+        [HttpGet]
+        public IActionResult ManageHospitalHoliday(string search = "", string holidayDate = "")
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            List<HospitalHolidayModel> list = new List<HospitalHolidayModel>();
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+                string query = @"
+
+SELECT
+
+HolidayId,
+HolidayTitle,
+HolidayDate,
+HolidayDescription,
+IsActive,
+IsDeleted,
+CreatedDate,
+UpdatedDate
+
+FROM tbl_HospitalHoliday
+
+WHERE
+
+IsDeleted = 0
+";
+
+                if (!string.IsNullOrWhiteSpace(search))
+                {
+                    query += " AND HolidayTitle LIKE @Search";
+                }
+
+                if (!string.IsNullOrWhiteSpace(holidayDate))
+                {
+                    query += " AND CONVERT(date, HolidayDate)=@HolidayDate";
+                }
+
+                query += " ORDER BY HolidayDate DESC";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+
+                if (!string.IsNullOrWhiteSpace(search))
+                {
+                    cmd.Parameters.AddWithValue("@Search", "%" + search + "%");
+                }
+
+                if (!string.IsNullOrWhiteSpace(holidayDate))
+                {
+                    cmd.Parameters.AddWithValue("@HolidayDate", Convert.ToDateTime(holidayDate));
+                }
+
+                SqlDataReader dr = cmd.ExecuteReader();
+
+                while (dr.Read())
+                {
+                    HospitalHolidayModel model = new HospitalHolidayModel();
+
+                    model.HolidayId = Convert.ToInt64(dr["HolidayId"]);
+
+                    model.HolidayTitle = dr["HolidayTitle"].ToString();
+
+                    model.HolidayDate = Convert.ToDateTime(dr["HolidayDate"]);
+
+                    model.HolidayDescription = dr["HolidayDescription"] == DBNull.Value
+                        ? ""
+                        : dr["HolidayDescription"].ToString();
+
+                    model.IsActive = Convert.ToBoolean(dr["IsActive"]);
+
+                    model.IsDeleted = Convert.ToBoolean(dr["IsDeleted"]);
+
+                    model.CreatedDate = Convert.ToDateTime(dr["CreatedDate"]);
+
+                    if (dr["UpdatedDate"] != DBNull.Value)
+                    {
+                        model.UpdatedDate = Convert.ToDateTime(dr["UpdatedDate"]);
+                    }
+
+                    list.Add(model);
+                }
+
+                dr.Close();
+            }
+
+            ViewBag.Search = search;
+
+            ViewBag.HolidayDate = holidayDate;
+
+            return View(list);
+        }
+       
+        [HttpGet]
+        public IActionResult AddHospitalHoliday()
+        {
+
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            HospitalHolidayModel model = new HospitalHolidayModel();
+
+
+            model.HolidayDate = DateTime.Today;
+
+            model.IsActive = true;
+
+            return View(model);
+        }
+       
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult AddHospitalHoliday(HospitalHolidayModel model)
+        {
+           
+
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+                string checkQuery = @"
+
+SELECT COUNT(*)
+
+FROM tbl_HospitalHoliday
+
+WHERE
+
+HolidayDate=@HolidayDate
+AND IsDeleted=0";
+
+                SqlCommand checkCmd = new SqlCommand(checkQuery, con);
+
+                checkCmd.Parameters.AddWithValue("@HolidayDate", model.HolidayDate.Date);
+
+                int count = Convert.ToInt32(checkCmd.ExecuteScalar());
+
+                if (count > 0)
+                {
+                    TempData["Error"] = "A holiday already exists for the selected date.";
+
+                    return View(model);
+                }
+
+                string insertQuery = @"
+
+INSERT INTO tbl_HospitalHoliday
+(
+HolidayTitle,
+HolidayDate,
+HolidayDescription,
+IsActive,
+IsDeleted,
+CreatedDate
+)
+
+VALUES
+(
+@HolidayTitle,
+@HolidayDate,
+@HolidayDescription,
+@IsActive,
+@IsDeleted,
+@CreatedDate
+)";
+
+                SqlCommand cmd = new SqlCommand(insertQuery, con);
+
+                cmd.Parameters.AddWithValue("@HolidayTitle", model.HolidayTitle);
+
+                cmd.Parameters.AddWithValue("@HolidayDate", model.HolidayDate.Date);
+
+                cmd.Parameters.AddWithValue("@HolidayDescription",
+                    string.IsNullOrWhiteSpace(model.HolidayDescription)
+                    ? DBNull.Value
+                    : (object)model.HolidayDescription);
+
+                cmd.Parameters.AddWithValue("@IsActive", model.IsActive);
+
+                cmd.Parameters.AddWithValue("@IsDeleted", false);
+
+                cmd.Parameters.AddWithValue("@CreatedDate", DateTime.Now);
+
+                int result = cmd.ExecuteNonQuery();
+
+                if (result > 0)
+                {
+                    TempData["Success"] = "Hospital holiday added successfully.";
+
+                    return RedirectToAction("ManageHospitalHoliday");
+                }
+                else
+                {
+                    TempData["Error"] = "Unable to add hospital holiday.";
+
+                    return View(model);
+                }
+            }
+        }
+     
+        [HttpGet]
+        public IActionResult EditHospitalHoliday(long id)
+        {
+
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            HospitalHolidayModel model = new HospitalHolidayModel();
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+                string query = @"
+
+SELECT
+
+HolidayId,
+HolidayTitle,
+HolidayDate,
+HolidayDescription,
+IsActive,
+IsDeleted,
+CreatedDate,
+UpdatedDate
+
+FROM tbl_HospitalHoliday
+
+WHERE
+
+HolidayId=@HolidayId
+AND IsDeleted=0";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+
+                cmd.Parameters.AddWithValue("@HolidayId", id);
+
+                SqlDataReader dr = cmd.ExecuteReader();
+
+                if (dr.Read())
+                {
+                    model.HolidayId = Convert.ToInt64(dr["HolidayId"]);
+
+                    model.HolidayTitle = dr["HolidayTitle"].ToString();
+
+                    model.HolidayDate = Convert.ToDateTime(dr["HolidayDate"]);
+
+                    model.HolidayDescription = dr["HolidayDescription"] == DBNull.Value
+                        ? ""
+                        : dr["HolidayDescription"].ToString();
+
+                    model.IsActive = Convert.ToBoolean(dr["IsActive"]);
+
+                    model.IsDeleted = Convert.ToBoolean(dr["IsDeleted"]);
+
+                    model.CreatedDate = Convert.ToDateTime(dr["CreatedDate"]);
+
+                    if (dr["UpdatedDate"] != DBNull.Value)
+                    {
+                        model.UpdatedDate = Convert.ToDateTime(dr["UpdatedDate"]);
+                    }
+                }
+                else
+                {
+                    dr.Close();
+
+                    TempData["Error"] = "Hospital holiday record not found.";
+
+                    return RedirectToAction("ManageHospitalHoliday");
+                }
+
+                dr.Close();
+            }
+
+            return View(model);
+        }
+     
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult EditHospitalHoliday(HospitalHolidayModel model)
+        {
+
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+                string checkQuery = @"
+
+SELECT COUNT(*)
+
+FROM tbl_HospitalHoliday
+
+WHERE
+
+HolidayDate=@HolidayDate
+AND HolidayId<>@HolidayId
+AND IsDeleted=0";
+
+                SqlCommand checkCmd = new SqlCommand(checkQuery, con);
+
+                checkCmd.Parameters.AddWithValue("@HolidayDate", model.HolidayDate.Date);
+
+                checkCmd.Parameters.AddWithValue("@HolidayId", model.HolidayId);
+
+                int count = Convert.ToInt32(checkCmd.ExecuteScalar());
+
+                if (count > 0)
+                {
+                    TempData["Error"] = "Another holiday already exists for the selected date.";
+
+                    return View(model);
+                }
+
+                string updateQuery = @"
+
+UPDATE tbl_HospitalHoliday
+
+SET
+
+HolidayTitle=@HolidayTitle,
+HolidayDate=@HolidayDate,
+HolidayDescription=@HolidayDescription,
+IsActive=@IsActive,
+UpdatedDate=@UpdatedDate
+
+WHERE
+
+HolidayId=@HolidayId
+AND IsDeleted=0";
+
+                SqlCommand cmd = new SqlCommand(updateQuery, con);
+
+                cmd.Parameters.AddWithValue("@HolidayId", model.HolidayId);
+
+                cmd.Parameters.AddWithValue("@HolidayTitle", model.HolidayTitle);
+
+                cmd.Parameters.AddWithValue("@HolidayDate", model.HolidayDate.Date);
+
+                cmd.Parameters.AddWithValue("@HolidayDescription",
+                    string.IsNullOrWhiteSpace(model.HolidayDescription)
+                    ? DBNull.Value
+                    : (object)model.HolidayDescription);
+
+                cmd.Parameters.AddWithValue("@IsActive", model.IsActive);
+
+                cmd.Parameters.AddWithValue("@UpdatedDate", DateTime.Now);
+
+                int result = cmd.ExecuteNonQuery();
+
+                if (result > 0)
+                {
+                    TempData["Success"] = "Hospital holiday updated successfully.";
+
+                    return RedirectToAction("ManageHospitalHoliday");
+                }
+                else
+                {
+                    TempData["Error"] = "Unable to update hospital holiday.";
+
+                    return View(model);
+                }
+            }
+        }
+      
+        [HttpGet]
+        public IActionResult ViewHospitalHoliday(long id)
+        {
+
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            HospitalHolidayModel model = new HospitalHolidayModel();
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+                string query = @"
+
+SELECT
+
+HolidayId,
+HolidayTitle,
+HolidayDate,
+HolidayDescription,
+IsActive,
+IsDeleted,
+CreatedDate,
+UpdatedDate
+
+FROM tbl_HospitalHoliday
+
+WHERE
+
+HolidayId=@HolidayId
+AND IsDeleted=0";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+
+                cmd.Parameters.AddWithValue("@HolidayId", id);
+
+                SqlDataReader dr = cmd.ExecuteReader();
+
+                if (dr.Read())
+                {
+                    model.HolidayId = Convert.ToInt64(dr["HolidayId"]);
+
+                    model.HolidayTitle = dr["HolidayTitle"].ToString();
+
+                    model.HolidayDate = Convert.ToDateTime(dr["HolidayDate"]);
+
+                    model.HolidayDescription = dr["HolidayDescription"] == DBNull.Value
+                        ? ""
+                        : dr["HolidayDescription"].ToString();
+
+                    model.IsActive = Convert.ToBoolean(dr["IsActive"]);
+
+                    model.IsDeleted = Convert.ToBoolean(dr["IsDeleted"]);
+
+                    model.CreatedDate = Convert.ToDateTime(dr["CreatedDate"]);
+
+                    if (dr["UpdatedDate"] != DBNull.Value)
+                    {
+                        model.UpdatedDate = Convert.ToDateTime(dr["UpdatedDate"]);
+                    }
+                }
+                else
+                {
+                    dr.Close();
+
+                    TempData["Error"] = "Hospital holiday record not found.";
+
+                    return RedirectToAction("ManageHospitalHoliday");
+                }
+
+                dr.Close();
+            }
+
+            return View(model);
+        }
+  
+        [HttpGet]
+        public IActionResult ChangeHolidayStatus(long id)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+
+                string checkQuery = @"
+
+SELECT IsActive
+
+FROM tbl_HospitalHoliday
+
+WHERE
+
+HolidayId=@HolidayId
+AND IsDeleted=0";
+
+                SqlCommand checkCmd = new SqlCommand(checkQuery, con);
+
+                checkCmd.Parameters.AddWithValue("@HolidayId", id);
+
+                object result = checkCmd.ExecuteScalar();
+
+                if (result == null)
+                {
+                    TempData["Error"] = "Hospital holiday record not found.";
+
+                    return RedirectToAction("ManageHospitalHoliday");
+                }
+
+                bool currentStatus = Convert.ToBoolean(result);
+
+                bool newStatus = !currentStatus;
+
+
+                string updateQuery = @"
+
+UPDATE tbl_HospitalHoliday
+
+SET
+
+IsActive=@IsActive,
+UpdatedDate=@UpdatedDate
+
+WHERE
+
+HolidayId=@HolidayId
+AND IsDeleted=0";
+
+                SqlCommand cmd = new SqlCommand(updateQuery, con);
+
+                cmd.Parameters.AddWithValue("@HolidayId", id);
+
+                cmd.Parameters.AddWithValue("@IsActive", newStatus);
+
+                cmd.Parameters.AddWithValue("@UpdatedDate", DateTime.Now);
+
+                int update = cmd.ExecuteNonQuery();
+
+                if (update > 0)
+                {
+                    TempData["Success"] = newStatus
+                        ? "Hospital holiday activated successfully."
+                        : "Hospital holiday deactivated successfully.";
+                }
+                else
+                {
+                    TempData["Error"] = "Unable to update hospital holiday status.";
+                }
+            }
+
+            return RedirectToAction("ManageHospitalHoliday");
+        }
+    
+        [HttpGet]
+        public IActionResult DeleteHospitalHoliday(long id)
+        {
+
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+
+                string checkQuery = @"
+
+SELECT COUNT(*)
+
+FROM tbl_HospitalHoliday
+
+WHERE
+
+HolidayId=@HolidayId
+AND IsDeleted=0";
+
+                SqlCommand checkCmd = new SqlCommand(checkQuery, con);
+
+                checkCmd.Parameters.AddWithValue("@HolidayId", id);
+
+                int count = Convert.ToInt32(checkCmd.ExecuteScalar());
+
+                if (count == 0)
+                {
+                    TempData["Error"] = "Hospital holiday record not found.";
+
+                    return RedirectToAction("ManageHospitalHoliday");
+                }
+
+                string deleteQuery = @"
+
+UPDATE tbl_HospitalHoliday
+
+SET
+
+IsDeleted=@IsDeleted,
+UpdatedDate=@UpdatedDate
+
+WHERE
+
+HolidayId=@HolidayId";
+
+                SqlCommand cmd = new SqlCommand(deleteQuery, con);
+
+                cmd.Parameters.AddWithValue("@HolidayId", id);
+
+                cmd.Parameters.AddWithValue("@IsDeleted", true);
+
+                cmd.Parameters.AddWithValue("@UpdatedDate", DateTime.Now);
+
+                int result = cmd.ExecuteNonQuery();
+
+                if (result > 0)
+                {
+                    TempData["Success"] = "Hospital holiday deleted successfully.";
+                }
+                else
+                {
+                    TempData["Error"] = "Unable to delete hospital holiday.";
+                }
+            }
+
+            return RedirectToAction("ManageHospitalHoliday");
+        }
+        //======================================================
+        // Clinic Information - GET
+        //======================================================
+        [HttpGet]
+        public IActionResult ClinicInformation()
+        {
+            //=========================================
+            // Admin Login Check
+            //=========================================
+
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            ClinicInformationModel model = new ClinicInformationModel();
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+                string query = @"
+
+SELECT TOP 1
+
+ClinicId,
+ClinicName,
+AboutClinic,
+Mission,
+Vision,
+WhyChooseUs,
+Address,
+MobileNo,
+AlternateMobileNo,
+Email,
+Website,
+WorkingHours,
+EmergencyContact,
+GoogleMapLink,
+FacebookLink,
+InstagramLink,
+TwitterLink,
+WhatsAppNo,
+ClinicLogo,
+BannerImage,
+IsActive,
+CreatedDate,
+UpdatedDate
+
+FROM tbl_ClinicInformation
+
+ORDER BY ClinicId DESC";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+
+                SqlDataReader dr = cmd.ExecuteReader();
+
+                if (dr.Read())
+                {
+                    model.ClinicId = Convert.ToInt64(dr["ClinicId"]);
+
+                    model.ClinicName = dr["ClinicName"].ToString();
+
+                    model.AboutClinic = dr["AboutClinic"].ToString();
+
+                    model.Mission = dr["Mission"] == DBNull.Value ? "" : dr["Mission"].ToString();
+
+                    model.Vision = dr["Vision"] == DBNull.Value ? "" : dr["Vision"].ToString();
+
+                    model.WhyChooseUs = dr["WhyChooseUs"] == DBNull.Value ? "" : dr["WhyChooseUs"].ToString();
+
+                    model.Address = dr["Address"].ToString();
+
+                    model.MobileNo = dr["MobileNo"].ToString();
+
+                    model.AlternateMobileNo = dr["AlternateMobileNo"] == DBNull.Value
+                        ? ""
+                        : dr["AlternateMobileNo"].ToString();
+
+                    model.Email = dr["Email"].ToString();
+
+                    model.Website = dr["Website"] == DBNull.Value
+                        ? ""
+                        : dr["Website"].ToString();
+
+                    model.WorkingHours = dr["WorkingHours"].ToString();
+
+                    model.EmergencyContact = dr["EmergencyContact"] == DBNull.Value
+                        ? ""
+                        : dr["EmergencyContact"].ToString();
+
+                    model.GoogleMapLink = dr["GoogleMapLink"] == DBNull.Value
+                        ? ""
+                        : dr["GoogleMapLink"].ToString();
+
+                    model.FacebookLink = dr["FacebookLink"] == DBNull.Value
+                        ? ""
+                        : dr["FacebookLink"].ToString();
+
+                    model.InstagramLink = dr["InstagramLink"] == DBNull.Value
+                        ? ""
+                        : dr["InstagramLink"].ToString();
+
+                    model.TwitterLink = dr["TwitterLink"] == DBNull.Value
+                        ? ""
+                        : dr["TwitterLink"].ToString();
+
+                    model.WhatsAppNo = dr["WhatsAppNo"] == DBNull.Value
+                        ? ""
+                        : dr["WhatsAppNo"].ToString();
+
+                    model.ClinicLogo = dr["ClinicLogo"] == DBNull.Value
+                        ? ""
+                        : dr["ClinicLogo"].ToString();
+
+                    model.BannerImage = dr["BannerImage"] == DBNull.Value
+                        ? ""
+                        : dr["BannerImage"].ToString();
+
+                    model.IsActive = Convert.ToBoolean(dr["IsActive"]);
+
+                    model.CreatedDate = Convert.ToDateTime(dr["CreatedDate"]);
+
+                    if (dr["UpdatedDate"] != DBNull.Value)
+                    {
+                        model.UpdatedDate = Convert.ToDateTime(dr["UpdatedDate"]);
+                    }
+                }
+
+                dr.Close();
+            }
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult ClinicInformation(ClinicInformationModel model)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            try
+            {
+                using (SqlConnection con = new SqlConnection(cs))
+                {
+                    con.Open();
+
+
+                    if (model.ClinicLogoFile != null &&
+                        model.ClinicLogoFile.Length > 0)
+                    {
+                        string folderPath = Path.Combine(env.WebRootPath, "Clinic");
+
+                        if (!Directory.Exists(folderPath))
+                        {
+                            Directory.CreateDirectory(folderPath);
+                        }
+
+                        string logoFileName =
+                            Guid.NewGuid().ToString() +
+                            Path.GetExtension(model.ClinicLogoFile.FileName);
+
+                        string logoPath =
+                            Path.Combine(folderPath, logoFileName);
+
+                        using (FileStream fs = new FileStream(logoPath, FileMode.Create))
+                        {
+                            model.ClinicLogoFile.CopyTo(fs);
+                        }
+
+                        model.ClinicLogo = logoFileName;
+                    }
+
+
+                    if (model.BannerImageFile != null &&
+                        model.BannerImageFile.Length > 0)
+                    {
+                        string folderPath = Path.Combine(env.WebRootPath, "Clinic");
+
+                        if (!Directory.Exists(folderPath))
+                        {
+                            Directory.CreateDirectory(folderPath);
+                        }
+
+                        string bannerFileName =
+                            Guid.NewGuid().ToString() +
+                            Path.GetExtension(model.BannerImageFile.FileName);
+
+                        string bannerPath =
+                            Path.Combine(folderPath, bannerFileName);
+
+                        using (FileStream fs = new FileStream(bannerPath, FileMode.Create))
+                        {
+                            model.BannerImageFile.CopyTo(fs);
+                        }
+
+                        model.BannerImage = bannerFileName;
+                    }
+
+
+                    string checkQuery = @"
+
+SELECT COUNT(*)
+
+FROM tbl_ClinicInformation";
+
+                    SqlCommand checkCmd =
+                        new SqlCommand(checkQuery, con);
+
+                    int count =
+                        Convert.ToInt32(checkCmd.ExecuteScalar());
+                
+
+                    if (count == 0)
+                    {
+                        string insertQuery = @"
+
+INSERT INTO tbl_ClinicInformation
+(
+ClinicName,
+AboutClinic,
+Mission,
+Vision,
+WhyChooseUs,
+Address,
+MobileNo,
+AlternateMobileNo,
+Email,
+Website,
+WorkingHours,
+EmergencyContact,
+GoogleMapLink,
+FacebookLink,
+InstagramLink,
+TwitterLink,
+WhatsAppNo,
+ClinicLogo,
+BannerImage,
+IsActive,
+CreatedDate
+)
+
+VALUES
+(
+@ClinicName,
+@AboutClinic,
+@Mission,
+@Vision,
+@WhyChooseUs,
+@Address,
+@MobileNo,
+@AlternateMobileNo,
+@Email,
+@Website,
+@WorkingHours,
+@EmergencyContact,
+@GoogleMapLink,
+@FacebookLink,
+@InstagramLink,
+@TwitterLink,
+@WhatsAppNo,
+@ClinicLogo,
+@BannerImage,
+@IsActive,
+@CreatedDate
+)";
+
+                        SqlCommand cmd = new SqlCommand(insertQuery, con);
+
+                        cmd.Parameters.AddWithValue("@ClinicName", model.ClinicName);
+
+                        cmd.Parameters.AddWithValue("@AboutClinic", model.AboutClinic);
+
+                        cmd.Parameters.AddWithValue("@Mission",
+                            string.IsNullOrWhiteSpace(model.Mission)
+                            ? DBNull.Value
+                            : (object)model.Mission);
+
+                        cmd.Parameters.AddWithValue("@Vision",
+                            string.IsNullOrWhiteSpace(model.Vision)
+                            ? DBNull.Value
+                            : (object)model.Vision);
+
+                        cmd.Parameters.AddWithValue("@WhyChooseUs",
+                            string.IsNullOrWhiteSpace(model.WhyChooseUs)
+                            ? DBNull.Value
+                            : (object)model.WhyChooseUs);
+
+                        cmd.Parameters.AddWithValue("@Address", model.Address);
+
+                        cmd.Parameters.AddWithValue("@MobileNo", model.MobileNo);
+
+                        cmd.Parameters.AddWithValue("@AlternateMobileNo",
+                            string.IsNullOrWhiteSpace(model.AlternateMobileNo)
+                            ? DBNull.Value
+                            : (object)model.AlternateMobileNo);
+
+                        cmd.Parameters.AddWithValue("@Email", model.Email);
+
+                        cmd.Parameters.AddWithValue("@Website",
+                            string.IsNullOrWhiteSpace(model.Website)
+                            ? DBNull.Value
+                            : (object)model.Website);
+
+                        cmd.Parameters.AddWithValue("@WorkingHours", model.WorkingHours);
+
+                        cmd.Parameters.AddWithValue("@EmergencyContact",
+                            string.IsNullOrWhiteSpace(model.EmergencyContact)
+                            ? DBNull.Value
+                            : (object)model.EmergencyContact);
+
+                        cmd.Parameters.AddWithValue("@GoogleMapLink",
+                            string.IsNullOrWhiteSpace(model.GoogleMapLink)
+                            ? DBNull.Value
+                            : (object)model.GoogleMapLink);
+
+                        cmd.Parameters.AddWithValue("@FacebookLink",
+                            string.IsNullOrWhiteSpace(model.FacebookLink)
+                            ? DBNull.Value
+                            : (object)model.FacebookLink);
+
+                        cmd.Parameters.AddWithValue("@InstagramLink",
+                            string.IsNullOrWhiteSpace(model.InstagramLink)
+                            ? DBNull.Value
+                            : (object)model.InstagramLink);
+
+                        cmd.Parameters.AddWithValue("@TwitterLink",
+                            string.IsNullOrWhiteSpace(model.TwitterLink)
+                            ? DBNull.Value
+                            : (object)model.TwitterLink);
+
+                        cmd.Parameters.AddWithValue("@WhatsAppNo",
+                            string.IsNullOrWhiteSpace(model.WhatsAppNo)
+                            ? DBNull.Value
+                            : (object)model.WhatsAppNo);
+
+                        cmd.Parameters.AddWithValue("@ClinicLogo",
+                            string.IsNullOrWhiteSpace(model.ClinicLogo)
+                            ? DBNull.Value
+                            : (object)model.ClinicLogo);
+
+                        cmd.Parameters.AddWithValue("@BannerImage",
+                            string.IsNullOrWhiteSpace(model.BannerImage)
+                            ? DBNull.Value
+                            : (object)model.BannerImage);
+
+                        cmd.Parameters.AddWithValue("@IsActive", true);
+
+                        cmd.Parameters.AddWithValue("@CreatedDate", DateTime.Now);
+
+                        int result = cmd.ExecuteNonQuery();
+
+                        if (result > 0)
+                        {
+                            TempData["Success"] = "Clinic information saved successfully.";
+
+                            return RedirectToAction("ClinicInformation");
+                        }
+                        else
+                        {
+                            TempData["Error"] = "Unable to save clinic information.";
+
+                            return View(model);
+                        }
+                    }
+                  
+
+                    else
+                    {
+
+                        string oldLogo = "";
+                        string oldBanner = "";
+
+                        SqlCommand oldCmd = new SqlCommand(@"
+
+SELECT TOP 1
+
+ClinicLogo,
+BannerImage
+
+FROM tbl_ClinicInformation", con);
+
+                        SqlDataReader oldDr = oldCmd.ExecuteReader();
+
+                        if (oldDr.Read())
+                        {
+                            oldLogo = oldDr["ClinicLogo"] == DBNull.Value
+                                ? ""
+                                : oldDr["ClinicLogo"].ToString();
+
+                            oldBanner = oldDr["BannerImage"] == DBNull.Value
+                                ? ""
+                                : oldDr["BannerImage"].ToString();
+                        }
+
+                        oldDr.Close();
+
+
+                        if (string.IsNullOrWhiteSpace(model.ClinicLogo))
+                        {
+                            model.ClinicLogo = oldLogo;
+                        }
+                        else
+                        {
+                            if (!string.IsNullOrWhiteSpace(oldLogo))
+                            {
+                                string oldLogoPath = Path.Combine(env.WebRootPath,
+                                    "Clinic",
+                                    oldLogo);
+
+                                if (System.IO.File.Exists(oldLogoPath))
+                                {
+                                    System.IO.File.Delete(oldLogoPath);
+                                }
+                            }
+                        }
+
+
+                        if (string.IsNullOrWhiteSpace(model.BannerImage))
+                        {
+                            model.BannerImage = oldBanner;
+                        }
+                        else
+                        {
+                            if (!string.IsNullOrWhiteSpace(oldBanner))
+                            {
+                                string oldBannerPath = Path.Combine(env.WebRootPath,
+                                    "Clinic",
+                                    oldBanner);
+
+                                if (System.IO.File.Exists(oldBannerPath))
+                                {
+                                    System.IO.File.Delete(oldBannerPath);
+                                }
+                            }
+                        }
+
+
+                        string updateQuery = @"
+
+UPDATE tbl_ClinicInformation
+
+SET
+
+ClinicName=@ClinicName,
+AboutClinic=@AboutClinic,
+Mission=@Mission,
+Vision=@Vision,
+WhyChooseUs=@WhyChooseUs,
+Address=@Address,
+MobileNo=@MobileNo,
+AlternateMobileNo=@AlternateMobileNo,
+Email=@Email,
+Website=@Website,
+WorkingHours=@WorkingHours,
+EmergencyContact=@EmergencyContact,
+GoogleMapLink=@GoogleMapLink,
+FacebookLink=@FacebookLink,
+InstagramLink=@InstagramLink,
+TwitterLink=@TwitterLink,
+WhatsAppNo=@WhatsAppNo,
+ClinicLogo=@ClinicLogo,
+BannerImage=@BannerImage,
+UpdatedDate=@UpdatedDate";
+
+                        SqlCommand cmd = new SqlCommand(updateQuery, con);
+
+                        cmd.Parameters.AddWithValue("@ClinicName", model.ClinicName);
+                        cmd.Parameters.AddWithValue("@AboutClinic", model.AboutClinic);
+                        cmd.Parameters.AddWithValue("@Mission", (object?)model.Mission ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@Vision", (object?)model.Vision ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@WhyChooseUs", (object?)model.WhyChooseUs ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@Address", model.Address);
+                        cmd.Parameters.AddWithValue("@MobileNo", model.MobileNo);
+                        cmd.Parameters.AddWithValue("@AlternateMobileNo", (object?)model.AlternateMobileNo ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@Email", model.Email);
+                        cmd.Parameters.AddWithValue("@Website", (object?)model.Website ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@WorkingHours", model.WorkingHours);
+                        cmd.Parameters.AddWithValue("@EmergencyContact", (object?)model.EmergencyContact ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@GoogleMapLink", (object?)model.GoogleMapLink ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@FacebookLink", (object?)model.FacebookLink ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@InstagramLink", (object?)model.InstagramLink ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@TwitterLink", (object?)model.TwitterLink ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@WhatsAppNo", (object?)model.WhatsAppNo ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@ClinicLogo", (object?)model.ClinicLogo ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@BannerImage", (object?)model.BannerImage ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@UpdatedDate", DateTime.Now);
+
+                        int result = cmd.ExecuteNonQuery();
+
+                        if (result > 0)
+                        {
+                            TempData["Success"] = "Clinic information updated successfully.";
+
+                            return RedirectToAction("ClinicInformation");
+                        }
+                        else
+                        {
+                            TempData["Error"] = "Unable to update clinic information.";
+
+                            return View(model);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = ex.Message;
+
+                return View(model);
+            }
+        }
+      
+        [HttpGet]
+        public IActionResult ManageMedicalCamp(string search = "")
+        {
+
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            List<MedicalCampModel> list = new List<MedicalCampModel>();
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+                string query = @"
+
+SELECT
+
+mc.CampId,
+mc.CampTitle,
+mc.CampImage,
+mc.CampDate,
+mc.StartTime,
+mc.EndTime,
+mc.Venue,
+mc.RegistrationFee,
+mc.MaxParticipants,
+mc.AvailableSeats,
+mc.IsFeatured,
+mc.IsActive,
+mc.CreatedDate,
+
+d.DoctorName,
+
+dep.DepartmentName
+
+FROM tbl_MedicalCamp mc
+
+INNER JOIN tbl_Doctor d
+ON mc.DoctorId = d.DoctorId
+
+INNER JOIN tbl_Department dep
+ON mc.DepartmentId = dep.DepartmentId
+
+WHERE
+
+mc.IsDeleted = 0
+
+";
+
+                if (!string.IsNullOrWhiteSpace(search))
+                {
+                    query += @"
+
+AND
+(
+    mc.CampTitle LIKE @Search
+    OR d.DoctorName LIKE @Search
+    OR dep.DepartmentName LIKE @Search
+)
+
+";
+                }
+
+                query += @"
+
+ORDER BY
+mc.CampDate DESC,
+mc.CreatedDate DESC";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+
+                if (!string.IsNullOrWhiteSpace(search))
+                {
+                    cmd.Parameters.AddWithValue("@Search", "%" + search + "%");
+                }
+
+                SqlDataReader dr = cmd.ExecuteReader();
+
+                while (dr.Read())
+                {
+                    MedicalCampModel model = new MedicalCampModel();
+
+                    model.CampId = Convert.ToInt64(dr["CampId"]);
+
+                    model.CampTitle = dr["CampTitle"].ToString();
+
+                    model.CampImage = dr["CampImage"] == DBNull.Value
+                        ? ""
+                        : dr["CampImage"].ToString();
+
+                    model.CampDate = Convert.ToDateTime(dr["CampDate"]);
+
+                    model.StartTime = (TimeSpan)dr["StartTime"];
+
+                    model.EndTime = (TimeSpan)dr["EndTime"];
+
+                    model.Venue = dr["Venue"].ToString();
+
+                    model.DoctorName = dr["DoctorName"].ToString();
+
+                    model.DepartmentName = dr["DepartmentName"].ToString();
+
+                    model.RegistrationFee = Convert.ToDecimal(dr["RegistrationFee"]);
+
+                    model.MaxParticipants = Convert.ToInt32(dr["MaxParticipants"]);
+
+                    model.AvailableSeats = Convert.ToInt32(dr["AvailableSeats"]);
+
+                    model.IsFeatured = Convert.ToBoolean(dr["IsFeatured"]);
+
+                    model.IsActive = Convert.ToBoolean(dr["IsActive"]);
+
+                    model.CreatedDate = Convert.ToDateTime(dr["CreatedDate"]);
+
+                    list.Add(model);
+                }
+
+                dr.Close();
+            }
+
+            ViewBag.Search = search;
+
+            return View(list);
+        }
+      
+        [HttpGet]
+        public IActionResult AddMedicalCamp()
+        {
+
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            MedicalCampModel model = new MedicalCampModel();
+
+            model.DoctorList = new List<SelectListItem>();
+            model.DepartmentList = new List<SelectListItem>();
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+
+                SqlCommand doctorCmd = new SqlCommand(@"
+
+SELECT
+
+DoctorId,
+DoctorName
+
+FROM tbl_Doctor
+
+WHERE
+
+IsActive=1
+AND IsDeleted=0
+
+ORDER BY DoctorName", con);
+
+                SqlDataReader doctorDr = doctorCmd.ExecuteReader();
+
+                while (doctorDr.Read())
+                {
+                    model.DoctorList.Add(new SelectListItem
+                    {
+                        Value = doctorDr["DoctorId"].ToString(),
+                        Text = doctorDr["DoctorName"].ToString()
+                    });
+                }
+
+                doctorDr.Close();
+
+
+                SqlCommand deptCmd = new SqlCommand(@"
+
+SELECT
+
+DepartmentId,
+DepartmentName
+
+FROM tbl_Department
+
+WHERE
+
+IsActive=1
+AND IsDeleted=0
+
+ORDER BY DepartmentName", con);
+
+                SqlDataReader deptDr = deptCmd.ExecuteReader();
+
+                while (deptDr.Read())
+                {
+                    model.DepartmentList.Add(new SelectListItem
+                    {
+                        Value = deptDr["DepartmentId"].ToString(),
+                        Text = deptDr["DepartmentName"].ToString()
+                    });
+                }
+
+                deptDr.Close();
+            }
+
+
+            model.CampDate = DateTime.Today;
+
+            model.RegistrationFee = 0;
+
+            model.IsActive = true;
+
+            model.IsFeatured = false;
+
+            return View(model);
+        }
+     
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult AddMedicalCamp(MedicalCampModel model)
+        {
+
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+
+            model.DoctorList = new List<SelectListItem>();
+            model.DepartmentList = new List<SelectListItem>();
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+                SqlCommand doctorCmd = new SqlCommand(@"
+SELECT DoctorId, DoctorName
+FROM tbl_Doctor
+WHERE IsActive=1
+AND IsDeleted=0
+ORDER BY DoctorName", con);
+
+                SqlDataReader doctorDr = doctorCmd.ExecuteReader();
+
+                while (doctorDr.Read())
+                {
+                    model.DoctorList.Add(new SelectListItem
+                    {
+                        Value = doctorDr["DoctorId"].ToString(),
+                        Text = doctorDr["DoctorName"].ToString()
+                    });
+                }
+
+                doctorDr.Close();
+
+                SqlCommand deptCmd = new SqlCommand(@"
+SELECT DepartmentId, DepartmentName
+FROM tbl_Department
+WHERE IsActive=1
+AND IsDeleted=0
+ORDER BY DepartmentName", con);
+
+                SqlDataReader deptDr = deptCmd.ExecuteReader();
+
+                while (deptDr.Read())
+                {
+                    model.DepartmentList.Add(new SelectListItem
+                    {
+                        Value = deptDr["DepartmentId"].ToString(),
+                        Text = deptDr["DepartmentName"].ToString()
+                    });
+                }
+
+                deptDr.Close();
+            }
+
+
+            ModelState.Remove(nameof(MedicalCampModel.DoctorName));
+            ModelState.Remove(nameof(MedicalCampModel.DepartmentName));
+            ModelState.Remove(nameof(MedicalCampModel.CampImage));
+            ModelState.Remove(nameof(MedicalCampModel.CampBanner));
+            ModelState.Remove(nameof(MedicalCampModel.AvailableSeats));
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            try
+            {
+                using (SqlConnection con = new SqlConnection(cs))
+                {
+                    con.Open();
+
+
+                    if (model.CampImageFile != null &&
+                        model.CampImageFile.Length > 0)
+                    {
+                        string folderPath = Path.Combine(env.WebRootPath, "MedicalCamp");
+
+                        if (!Directory.Exists(folderPath))
+                        {
+                            Directory.CreateDirectory(folderPath);
+                        }
+
+                        string fileName =
+                            Guid.NewGuid().ToString() +
+                            Path.GetExtension(model.CampImageFile.FileName);
+
+                        string filePath =
+                            Path.Combine(folderPath, fileName);
+
+                        using (FileStream fs = new FileStream(filePath, FileMode.Create))
+                        {
+                            model.CampImageFile.CopyTo(fs);
+                        }
+
+                        model.CampImage = fileName;
+                    }
+
+
+                    if (model.CampBannerFile != null &&
+                        model.CampBannerFile.Length > 0)
+                    {
+                        string folderPath = Path.Combine(env.WebRootPath, "MedicalCamp");
+
+                        if (!Directory.Exists(folderPath))
+                        {
+                            Directory.CreateDirectory(folderPath);
+                        }
+
+                        string fileName =
+                            Guid.NewGuid().ToString() +
+                            Path.GetExtension(model.CampBannerFile.FileName);
+
+                        string filePath =
+                            Path.Combine(folderPath, fileName);
+
+                        using (FileStream fs = new FileStream(filePath, FileMode.Create))
+                        {
+                            model.CampBannerFile.CopyTo(fs);
+                        }
+
+                        model.CampBanner = fileName;
+                    }
+                 
+
+                    SqlCommand checkCmd = new SqlCommand(@"
+
+SELECT COUNT(*)
+
+FROM tbl_MedicalCamp
+
+WHERE
+
+CampTitle=@CampTitle
+AND CampDate=@CampDate
+AND IsDeleted=0", con);
+
+                    checkCmd.Parameters.AddWithValue("@CampTitle", model.CampTitle);
+
+                    checkCmd.Parameters.AddWithValue("@CampDate", model.CampDate);
+
+                    int count = Convert.ToInt32(checkCmd.ExecuteScalar());
+
+                    if (count > 0)
+                    {
+                        TempData["Error"] = "Medical Camp already exists for this date.";
+
+                        return View(model);
+                    }
+
+
+                    model.AvailableSeats = model.MaxParticipants;
+
+
+                    string query = @"
+
+INSERT INTO tbl_MedicalCamp
+(
+CampTitle,
+CampImage,
+CampBanner,
+CampDescription,
+CampDate,
+StartTime,
+EndTime,
+Venue,
+Organizer,
+DoctorId,
+DepartmentId,
+RegistrationFee,
+MaxParticipants,
+AvailableSeats,
+ContactNumber,
+Email,
+Benefits,
+Instructions,
+IsFeatured,
+IsActive,
+IsDeleted,
+CreatedDate
+)
+
+VALUES
+(
+@CampTitle,
+@CampImage,
+@CampBanner,
+@CampDescription,
+@CampDate,
+@StartTime,
+@EndTime,
+@Venue,
+@Organizer,
+@DoctorId,
+@DepartmentId,
+@RegistrationFee,
+@MaxParticipants,
+@AvailableSeats,
+@ContactNumber,
+@Email,
+@Benefits,
+@Instructions,
+@IsFeatured,
+@IsActive,
+@IsDeleted,
+@CreatedDate
+)";
+
+                    SqlCommand cmd = new SqlCommand(query, con);
+
+                    cmd.Parameters.AddWithValue("@CampTitle", model.CampTitle);
+
+                    cmd.Parameters.AddWithValue("@CampImage",
+                        string.IsNullOrWhiteSpace(model.CampImage)
+                        ? DBNull.Value
+                        : (object)model.CampImage);
+
+                    cmd.Parameters.AddWithValue("@CampBanner",
+                        string.IsNullOrWhiteSpace(model.CampBanner)
+                        ? DBNull.Value
+                        : (object)model.CampBanner);
+
+                    cmd.Parameters.AddWithValue("@CampDescription", model.CampDescription);
+
+                    cmd.Parameters.AddWithValue("@CampDate", model.CampDate);
+
+                    cmd.Parameters.AddWithValue("@StartTime", model.StartTime);
+
+                    cmd.Parameters.AddWithValue("@EndTime", model.EndTime);
+
+                    cmd.Parameters.AddWithValue("@Venue", model.Venue);
+
+                    cmd.Parameters.AddWithValue("@Organizer",
+                        string.IsNullOrWhiteSpace(model.Organizer)
+                        ? DBNull.Value
+                        : (object)model.Organizer);
+
+                    cmd.Parameters.AddWithValue("@DoctorId", model.DoctorId);
+
+                    cmd.Parameters.AddWithValue("@DepartmentId", model.DepartmentId);
+
+                    cmd.Parameters.AddWithValue("@RegistrationFee", model.RegistrationFee);
+
+                    cmd.Parameters.AddWithValue("@MaxParticipants", model.MaxParticipants);
+
+                    cmd.Parameters.AddWithValue("@AvailableSeats", model.AvailableSeats);
+
+                    cmd.Parameters.AddWithValue("@ContactNumber", model.ContactNumber);
+
+                    cmd.Parameters.AddWithValue("@Email",
+                        string.IsNullOrWhiteSpace(model.Email)
+                        ? DBNull.Value
+                        : (object)model.Email);
+
+                    cmd.Parameters.AddWithValue("@Benefits",
+                        string.IsNullOrWhiteSpace(model.Benefits)
+                        ? DBNull.Value
+                        : (object)model.Benefits);
+
+                    cmd.Parameters.AddWithValue("@Instructions",
+                        string.IsNullOrWhiteSpace(model.Instructions)
+                        ? DBNull.Value
+                        : (object)model.Instructions);
+
+                    cmd.Parameters.AddWithValue("@IsFeatured", model.IsFeatured);
+
+                    cmd.Parameters.AddWithValue("@IsActive", model.IsActive);
+
+                    cmd.Parameters.AddWithValue("@IsDeleted", false);
+
+                    cmd.Parameters.AddWithValue("@CreatedDate", DateTime.Now);
+                  
+
+                    int result = cmd.ExecuteNonQuery();
+
+                    if (result > 0)
+                    {
+                        TempData["Success"] = "Medical Camp added successfully.";
+
+                        return RedirectToAction("ManageMedicalCamp");
+                    }
+                    else
+                    {
+                        TempData["Error"] = "Unable to add medical camp.";
+
+                        return View(model);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = ex.Message;
+
+
+                model.DoctorList = new List<SelectListItem>();
+                model.DepartmentList = new List<SelectListItem>();
+
+                using (SqlConnection con = new SqlConnection(cs))
+                {
+                    con.Open();
+
+                   
+                    SqlCommand doctorCmd = new SqlCommand(@"
+SELECT DoctorId, DoctorName
+FROM tbl_Doctor
+WHERE IsActive = 1
+AND IsDeleted = 0
+ORDER BY DoctorName", con);
+
+                    SqlDataReader doctorDr = doctorCmd.ExecuteReader();
+
+                    while (doctorDr.Read())
+                    {
+                        model.DoctorList.Add(new SelectListItem
+                        {
+                            Value = doctorDr["DoctorId"].ToString(),
+                            Text = doctorDr["DoctorName"].ToString()
+                        });
+                    }
+
+                    doctorDr.Close();
+
+                    
+                    SqlCommand deptCmd = new SqlCommand(@"
+SELECT DepartmentId, DepartmentName
+FROM tbl_Department
+WHERE IsActive = 1
+AND IsDeleted = 0
+ORDER BY DepartmentName", con);
+
+                    SqlDataReader deptDr = deptCmd.ExecuteReader();
+
+                    while (deptDr.Read())
+                    {
+                        model.DepartmentList.Add(new SelectListItem
+                        {
+                            Value = deptDr["DepartmentId"].ToString(),
+                            Text = deptDr["DepartmentName"].ToString()
+                        });
+                    }
+
+                    deptDr.Close();
+                }
+
+                return View(model);
+            }
+        }
+     
+        [HttpGet]
+        public IActionResult EditMedicalCamp(long id)
+        {
+
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            MedicalCampModel model = new MedicalCampModel();
+
+            model.DoctorList = new List<SelectListItem>();
+            model.DepartmentList = new List<SelectListItem>();
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+
+                SqlCommand doctorCmd = new SqlCommand(@"
+
+SELECT
+DoctorId,
+DoctorName
+
+FROM tbl_Doctor
+
+WHERE
+IsActive=1
+AND IsDeleted=0
+
+ORDER BY DoctorName", con);
+
+                SqlDataReader doctorDr = doctorCmd.ExecuteReader();
+
+                while (doctorDr.Read())
+                {
+                    model.DoctorList.Add(new SelectListItem
+                    {
+                        Value = doctorDr["DoctorId"].ToString(),
+                        Text = doctorDr["DoctorName"].ToString()
+                    });
+                }
+
+                doctorDr.Close();
+
+
+                SqlCommand deptCmd = new SqlCommand(@"
+
+SELECT
+DepartmentId,
+DepartmentName
+
+FROM tbl_Department
+
+WHERE
+IsActive=1
+AND IsDeleted=0
+
+ORDER BY DepartmentName", con);
+
+                SqlDataReader deptDr = deptCmd.ExecuteReader();
+
+                while (deptDr.Read())
+                {
+                    model.DepartmentList.Add(new SelectListItem
+                    {
+                        Value = deptDr["DepartmentId"].ToString(),
+                        Text = deptDr["DepartmentName"].ToString()
+                    });
+                }
+
+                deptDr.Close();
+
+
+                SqlCommand cmd = new SqlCommand(@"
+
+SELECT *
+
+FROM tbl_MedicalCamp
+
+WHERE
+CampId=@CampId
+AND IsDeleted=0", con);
+
+                cmd.Parameters.AddWithValue("@CampId", id);
+
+                SqlDataReader dr = cmd.ExecuteReader();
+
+                if (dr.Read())
+                {
+                    model.CampId = Convert.ToInt64(dr["CampId"]);
+
+                    model.CampTitle = dr["CampTitle"].ToString();
+
+                    model.CampDescription = dr["CampDescription"].ToString();
+
+                    model.CampDate = Convert.ToDateTime(dr["CampDate"]);
+
+                    model.StartTime = (TimeSpan)dr["StartTime"];
+
+                    model.EndTime = (TimeSpan)dr["EndTime"];
+
+                    model.Venue = dr["Venue"].ToString();
+
+                    model.Organizer = dr["Organizer"] == DBNull.Value
+                        ? ""
+                        : dr["Organizer"].ToString();
+
+                    model.DoctorId = Convert.ToInt64(dr["DoctorId"]);
+
+                    model.DepartmentId = Convert.ToInt64(dr["DepartmentId"]);
+
+                    model.RegistrationFee = Convert.ToDecimal(dr["RegistrationFee"]);
+
+                    model.MaxParticipants = Convert.ToInt32(dr["MaxParticipants"]);
+
+                    model.AvailableSeats = Convert.ToInt32(dr["AvailableSeats"]);
+
+                    model.ContactNumber = dr["ContactNumber"].ToString();
+
+                    model.Email = dr["Email"] == DBNull.Value
+                        ? ""
+                        : dr["Email"].ToString();
+
+                    model.Benefits = dr["Benefits"] == DBNull.Value
+                        ? ""
+                        : dr["Benefits"].ToString();
+
+                    model.Instructions = dr["Instructions"] == DBNull.Value
+                        ? ""
+                        : dr["Instructions"].ToString();
+
+                    model.CampImage = dr["CampImage"] == DBNull.Value
+                        ? ""
+                        : dr["CampImage"].ToString();
+
+                    model.CampBanner = dr["CampBanner"] == DBNull.Value
+                        ? ""
+                        : dr["CampBanner"].ToString();
+
+                    model.IsFeatured = Convert.ToBoolean(dr["IsFeatured"]);
+
+                    model.IsActive = Convert.ToBoolean(dr["IsActive"]);
+                }
+                else
+                {
+                    TempData["Error"] = "Medical Camp not found.";
+
+                    dr.Close();
+
+                    return RedirectToAction("ManageMedicalCamp");
+                }
+
+                dr.Close();
+            }
+
+            return View(model);
+        }
+     
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult EditMedicalCamp(MedicalCampModel model)
+        {
+
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+
+            model.DoctorList = new List<SelectListItem>();
+            model.DepartmentList = new List<SelectListItem>();
+
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+                SqlCommand doctorCmd = new SqlCommand(@"
+            SELECT
+                DoctorId,
+                DoctorName
+            FROM tbl_Doctor
+            WHERE IsActive = 1
+            AND IsDeleted = 0
+            ORDER BY DoctorName ASC", con);
+
+                SqlDataReader doctorDr = doctorCmd.ExecuteReader();
+
+                while (doctorDr.Read())
+                {
+                    model.DoctorList.Add(new SelectListItem
+                    {
+                        Value = doctorDr["DoctorId"].ToString(),
+                        Text = doctorDr["DoctorName"].ToString()
+                    });
+                }
+
+                doctorDr.Close();
+
+                
+                SqlCommand deptCmd = new SqlCommand(@"
+            SELECT
+                DepartmentId,
+                DepartmentName
+            FROM tbl_Department
+            WHERE IsActive = 1
+            AND IsDeleted = 0
+            ORDER BY DepartmentName ASC", con);
+
+                SqlDataReader deptDr = deptCmd.ExecuteReader();
+
+                while (deptDr.Read())
+                {
+                    model.DepartmentList.Add(new SelectListItem
+                    {
+                        Value = deptDr["DepartmentId"].ToString(),
+                        Text = deptDr["DepartmentName"].ToString()
+                    });
+                }
+
+                deptDr.Close();
+            }
+
+
+            ModelState.Remove(nameof(MedicalCampModel.DoctorName));
+            ModelState.Remove(nameof(MedicalCampModel.DepartmentName));
+            ModelState.Remove(nameof(MedicalCampModel.CampImage));
+            ModelState.Remove(nameof(MedicalCampModel.CampBanner));
+            ModelState.Remove(nameof(MedicalCampModel.AvailableSeats));
+            ModelState.Remove(nameof(MedicalCampModel.DoctorList));
+            ModelState.Remove(nameof(MedicalCampModel.DepartmentList));
+
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            try
+            {
+                using (SqlConnection con = new SqlConnection(cs))
+                {
+                    con.Open();
+
+
+                    if (model.CampImageFile != null &&
+                        model.CampImageFile.Length > 0)
+                    {
+                        string folderPath =
+                            Path.Combine(env.WebRootPath, "MedicalCamp");
+
+                        if (!Directory.Exists(folderPath))
+                        {
+                            Directory.CreateDirectory(folderPath);
+                        }
+
+                        string fileName =
+                            Guid.NewGuid().ToString() +
+                            Path.GetExtension(model.CampImageFile.FileName);
+
+                        string filePath =
+                            Path.Combine(folderPath, fileName);
+
+                        using (FileStream fs =
+                            new FileStream(filePath, FileMode.Create))
+                        {
+                            model.CampImageFile.CopyTo(fs);
+                        }
+
+                      
+                        model.CampImage = fileName;
+                    }
+
+
+                    if (model.CampBannerFile != null &&
+                        model.CampBannerFile.Length > 0)
+                    {
+                        string folderPath =
+                            Path.Combine(env.WebRootPath, "MedicalCamp");
+
+                        if (!Directory.Exists(folderPath))
+                        {
+                            Directory.CreateDirectory(folderPath);
+                        }
+
+                        string fileName =
+                            Guid.NewGuid().ToString() +
+                            Path.GetExtension(model.CampBannerFile.FileName);
+
+                        string filePath =
+                            Path.Combine(folderPath, fileName);
+
+                        using (FileStream fs =
+                            new FileStream(filePath, FileMode.Create))
+                        {
+                            model.CampBannerFile.CopyTo(fs);
+                        }
+
+                        model.CampBanner = fileName;
+                    }
+                   
+
+                    string oldCampImage = "";
+                    string oldCampBanner = "";
+                    int oldAvailableSeats = 0;
+                    int oldMaxParticipants = 0;
+
+                    SqlCommand oldCmd = new SqlCommand(@"
+                SELECT
+                    CampImage,
+                    CampBanner,
+                    AvailableSeats,
+                    MaxParticipants
+                FROM tbl_MedicalCamp
+                WHERE CampId = @CampId
+                AND IsDeleted = 0", con);
+
+                    oldCmd.Parameters.AddWithValue("@CampId", model.CampId);
+
+                    SqlDataReader oldDr = oldCmd.ExecuteReader();
+
+                    if (oldDr.Read())
+                    {
+                        oldCampImage = oldDr["CampImage"] == DBNull.Value
+                            ? ""
+                            : oldDr["CampImage"].ToString();
+
+                        oldCampBanner = oldDr["CampBanner"] == DBNull.Value
+                            ? ""
+                            : oldDr["CampBanner"].ToString();
+
+                        oldAvailableSeats = Convert.ToInt32(
+                            oldDr["AvailableSeats"]);
+
+                        oldMaxParticipants = Convert.ToInt32(
+                            oldDr["MaxParticipants"]);
+                    }
+                    else
+                    {
+                        oldDr.Close();
+
+                        TempData["Error"] = "Medical Camp not found.";
+
+                        return RedirectToAction("ManageMedicalCamp");
+                    }
+
+                    oldDr.Close();
+
+
+                    if (string.IsNullOrWhiteSpace(model.CampImage))
+                    {
+                        model.CampImage = oldCampImage;
+                    }
+                    else
+                    {
+                       
+                        if (!string.IsNullOrWhiteSpace(oldCampImage))
+                        {
+                            string oldImagePath = Path.Combine(
+                                env.WebRootPath,
+                                "MedicalCamp",
+                                oldCampImage);
+
+                            if (System.IO.File.Exists(oldImagePath))
+                            {
+                                System.IO.File.Delete(oldImagePath);
+                            }
+                        }
+                    }
+
+
+                    if (string.IsNullOrWhiteSpace(model.CampBanner))
+                    {
+                        model.CampBanner = oldCampBanner;
+                    }
+                    else
+                    {
+                        if (!string.IsNullOrWhiteSpace(oldCampBanner))
+                        {
+                            string oldBannerPath = Path.Combine(
+                                env.WebRootPath,
+                                "MedicalCamp",
+                                oldCampBanner);
+
+                            if (System.IO.File.Exists(oldBannerPath))
+                            {
+                                System.IO.File.Delete(oldBannerPath);
+                            }
+                        }
+                    }
+
+                    SqlCommand duplicateCmd = new SqlCommand(@"
+                SELECT COUNT(*)
+                FROM tbl_MedicalCamp
+                WHERE CampTitle = @CampTitle
+                AND CampDate = @CampDate
+                AND CampId <> @CampId
+                AND IsDeleted = 0", con);
+
+                    duplicateCmd.Parameters.AddWithValue(
+                        "@CampTitle",
+                        model.CampTitle);
+
+                    duplicateCmd.Parameters.AddWithValue(
+                        "@CampDate",
+                        model.CampDate);
+
+                    duplicateCmd.Parameters.AddWithValue(
+                        "@CampId",
+                        model.CampId);
+
+                    int duplicateCount =
+                        Convert.ToInt32(
+                            duplicateCmd.ExecuteScalar());
+
+                    if (duplicateCount > 0)
+                    {
+                        TempData["Error"] =
+                            "Another medical camp with the same title already exists on this date.";
+
+                        return View(model);
+                    }
+
+
+                    int registeredParticipants =
+                        oldMaxParticipants - oldAvailableSeats;
+
+                    if (registeredParticipants < 0)
+                    {
+                        registeredParticipants = 0;
+                    }
+
+                    if (model.MaxParticipants < registeredParticipants)
+                    {
+                        TempData["Error"] =
+                            "Maximum participants cannot be less than already registered participants.";
+
+                        return View(model);
+                    }
+
+                    model.AvailableSeats =
+                        model.MaxParticipants - registeredParticipants;
+
+                    string updateQuery = @"
+                UPDATE tbl_MedicalCamp
+                SET
+
+                    CampTitle = @CampTitle,
+
+                    CampImage = @CampImage,
+
+                    CampBanner = @CampBanner,
+
+                    CampDescription = @CampDescription,
+
+                    CampDate = @CampDate,
+
+                    StartTime = @StartTime,
+
+                    EndTime = @EndTime,
+
+                    Venue = @Venue,
+
+                    Organizer = @Organizer,
+
+                    DoctorId = @DoctorId,
+
+                    DepartmentId = @DepartmentId,
+
+                    RegistrationFee = @RegistrationFee,
+
+                    MaxParticipants = @MaxParticipants,
+
+                    AvailableSeats = @AvailableSeats,
+
+                    ContactNumber = @ContactNumber,
+
+                    Email = @Email,
+
+                    Benefits = @Benefits,
+
+                    Instructions = @Instructions,
+
+                    IsFeatured = @IsFeatured,
+
+                    IsActive = @IsActive,
+
+                    UpdatedDate = @UpdatedDate
+
+                WHERE CampId = @CampId
+                AND IsDeleted = 0";
+
+                    SqlCommand cmd =
+                        new SqlCommand(updateQuery, con);
+
+
+                    cmd.Parameters.AddWithValue(
+                        "@CampTitle",
+                        model.CampTitle);
+
+                    cmd.Parameters.AddWithValue(
+                        "@CampImage",
+                        string.IsNullOrWhiteSpace(model.CampImage)
+                            ? DBNull.Value
+                            : (object)model.CampImage);
+
+                    cmd.Parameters.AddWithValue(
+                        "@CampBanner",
+                        string.IsNullOrWhiteSpace(model.CampBanner)
+                            ? DBNull.Value
+                            : (object)model.CampBanner);
+
+                    cmd.Parameters.AddWithValue(
+                        "@CampDescription",
+                        model.CampDescription);
+
+                    cmd.Parameters.AddWithValue(
+                        "@CampDate",
+                        model.CampDate);
+
+                    cmd.Parameters.AddWithValue(
+                        "@StartTime",
+                        model.StartTime);
+
+                    cmd.Parameters.AddWithValue(
+                        "@EndTime",
+                        model.EndTime);
+
+                    cmd.Parameters.AddWithValue(
+                        "@Venue",
+                        model.Venue);
+
+                    cmd.Parameters.AddWithValue(
+                        "@Organizer",
+                        string.IsNullOrWhiteSpace(model.Organizer)
+                            ? DBNull.Value
+                            : (object)model.Organizer);
+
+                    cmd.Parameters.AddWithValue(
+                        "@DoctorId",
+                        model.DoctorId);
+
+                    cmd.Parameters.AddWithValue(
+                        "@DepartmentId",
+                        model.DepartmentId);
+
+                    cmd.Parameters.AddWithValue(
+                        "@RegistrationFee",
+                        model.RegistrationFee);
+
+                    cmd.Parameters.AddWithValue(
+                        "@MaxParticipants",
+                        model.MaxParticipants);
+
+                    cmd.Parameters.AddWithValue(
+                        "@AvailableSeats",
+                        model.AvailableSeats);
+
+                    cmd.Parameters.AddWithValue(
+                        "@ContactNumber",
+                        model.ContactNumber);
+
+                    cmd.Parameters.AddWithValue(
+                        "@Email",
+                        string.IsNullOrWhiteSpace(model.Email)
+                            ? DBNull.Value
+                            : (object)model.Email);
+
+                    cmd.Parameters.AddWithValue(
+                        "@Benefits",
+                        string.IsNullOrWhiteSpace(model.Benefits)
+                            ? DBNull.Value
+                            : (object)model.Benefits);
+
+                    cmd.Parameters.AddWithValue(
+                        "@Instructions",
+                        string.IsNullOrWhiteSpace(model.Instructions)
+                            ? DBNull.Value
+                            : (object)model.Instructions);
+
+                    cmd.Parameters.AddWithValue(
+                        "@IsFeatured",
+                        model.IsFeatured);
+
+                    cmd.Parameters.AddWithValue(
+                        "@IsActive",
+                        model.IsActive);
+
+                    cmd.Parameters.AddWithValue(
+                        "@UpdatedDate",
+                        DateTime.Now);
+
+                    cmd.Parameters.AddWithValue(
+                        "@CampId",
+                        model.CampId);
+                
+
+                    int result = cmd.ExecuteNonQuery();
+
+                    if (result > 0)
+                    {
+                        TempData["Success"] =
+                            "Medical Camp updated successfully.";
+
+                        return RedirectToAction("ManageMedicalCamp");
+                    }
+                    else
+                    {
+                        TempData["Error"] =
+                            "Unable to update medical camp.";
+
+                        return View(model);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+
+                TempData["Error"] = ex.Message;
+
+
+                model.DoctorList = new List<SelectListItem>();
+
+                model.DepartmentList = new List<SelectListItem>();
+
+                using (SqlConnection con = new SqlConnection(cs))
+                {
+                    con.Open();
+
+
+                    SqlCommand doctorCmd = new SqlCommand(@"
+                SELECT
+                    DoctorId,
+                    DoctorName
+                FROM tbl_Doctor
+                WHERE IsActive = 1
+                AND IsDeleted = 0
+                ORDER BY DoctorName ASC", con);
+
+                    SqlDataReader doctorDr =
+                        doctorCmd.ExecuteReader();
+
+                    while (doctorDr.Read())
+                    {
+                        model.DoctorList.Add(new SelectListItem
+                        {
+                            Value = doctorDr["DoctorId"].ToString(),
+                            Text = doctorDr["DoctorName"].ToString()
+                        });
+                    }
+
+                    doctorDr.Close();
+
+
+                    SqlCommand deptCmd = new SqlCommand(@"
+                SELECT
+                    DepartmentId,
+                    DepartmentName
+                FROM tbl_Department
+                WHERE IsActive = 1
+                AND IsDeleted = 0
+                ORDER BY DepartmentName ASC", con);
+
+                    SqlDataReader deptDr =
+                        deptCmd.ExecuteReader();
+
+                    while (deptDr.Read())
+                    {
+                        model.DepartmentList.Add(new SelectListItem
+                        {
+                            Value = deptDr["DepartmentId"].ToString(),
+                            Text = deptDr["DepartmentName"].ToString()
+                        });
+                    }
+
+                    deptDr.Close();
+                }
+
+                return View(model);
+            }
+        }
+        [HttpGet]
+        public IActionResult ViewMedicalCamp(long id)
+        {
+
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            MedicalCampModel model = new MedicalCampModel();
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+
+                string query = @"
+            SELECT
+                mc.CampId,
+                mc.CampTitle,
+                mc.CampImage,
+                mc.CampBanner,
+                mc.CampDescription,
+                mc.CampDate,
+                mc.StartTime,
+                mc.EndTime,
+                mc.Venue,
+                mc.Organizer,
+                mc.DoctorId,
+                d.DoctorName,
+                mc.DepartmentId,
+                dep.DepartmentName,
+                mc.RegistrationFee,
+                mc.MaxParticipants,
+                mc.AvailableSeats,
+                mc.ContactNumber,
+                mc.Email,
+                mc.Benefits,
+                mc.Instructions,
+                mc.IsFeatured,
+                mc.IsActive,
+                mc.IsDeleted,
+                mc.CreatedDate,
+                mc.UpdatedDate
+
+            FROM tbl_MedicalCamp mc
+
+            INNER JOIN tbl_Doctor d
+                ON mc.DoctorId = d.DoctorId
+
+            INNER JOIN tbl_Department dep
+                ON mc.DepartmentId = dep.DepartmentId
+
+            WHERE
+                mc.CampId = @CampId
+                AND mc.IsDeleted = 0";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+
+                cmd.Parameters.AddWithValue("@CampId", id);
+
+                SqlDataReader dr = cmd.ExecuteReader();
+
+                if (dr.Read())
+                {
+
+                    model.CampId =
+                        Convert.ToInt64(dr["CampId"]);
+
+                    model.CampTitle =
+                        dr["CampTitle"].ToString();
+
+                    model.CampDescription =
+                        dr["CampDescription"].ToString();
+
+
+                    model.CampImage =
+                        dr["CampImage"] == DBNull.Value
+                        ? ""
+                        : dr["CampImage"].ToString();
+
+                    model.CampBanner =
+                        dr["CampBanner"] == DBNull.Value
+                        ? ""
+                        : dr["CampBanner"].ToString();
+
+
+                    if (dr["CampDate"] != DBNull.Value)
+                    {
+                        model.CampDate =
+                            Convert.ToDateTime(dr["CampDate"]);
+                    }
+
+                    if (dr["StartTime"] != DBNull.Value)
+                    {
+                        model.StartTime =
+                            (TimeSpan)dr["StartTime"];
+                    }
+
+                    if (dr["EndTime"] != DBNull.Value)
+                    {
+                        model.EndTime =
+                            (TimeSpan)dr["EndTime"];
+                    }
+
+
+                    model.Venue =
+                        dr["Venue"].ToString();
+
+                    model.Organizer =
+                        dr["Organizer"] == DBNull.Value
+                        ? ""
+                        : dr["Organizer"].ToString();
+
+
+                    model.DoctorId =
+                        Convert.ToInt64(dr["DoctorId"]);
+
+                    model.DoctorName =
+                        dr["DoctorName"].ToString();
+
+
+                    model.DepartmentId =
+                        Convert.ToInt64(dr["DepartmentId"]);
+
+                    model.DepartmentName =
+                        dr["DepartmentName"].ToString();
+
+
+                    model.RegistrationFee =
+                        Convert.ToDecimal(dr["RegistrationFee"]);
+
+                    model.MaxParticipants =
+                        Convert.ToInt32(dr["MaxParticipants"]);
+
+                    model.AvailableSeats =
+                        Convert.ToInt32(dr["AvailableSeats"]);
+
+
+                    model.ContactNumber =
+                        dr["ContactNumber"].ToString();
+
+                    model.Email =
+                        dr["Email"] == DBNull.Value
+                        ? ""
+                        : dr["Email"].ToString();
+
+
+                    model.Benefits =
+                        dr["Benefits"] == DBNull.Value
+                        ? ""
+                        : dr["Benefits"].ToString();
+
+                    model.Instructions =
+                        dr["Instructions"] == DBNull.Value
+                        ? ""
+                        : dr["Instructions"].ToString();
+
+
+                    model.IsFeatured =
+                        Convert.ToBoolean(dr["IsFeatured"]);
+
+                    model.IsActive =
+                        Convert.ToBoolean(dr["IsActive"]);
+
+                    model.IsDeleted =
+                        Convert.ToBoolean(dr["IsDeleted"]);
+
+
+                    if (dr["CreatedDate"] != DBNull.Value)
+                    {
+                        model.CreatedDate =
+                            Convert.ToDateTime(dr["CreatedDate"]);
+                    }
+
+                    if (dr["UpdatedDate"] != DBNull.Value)
+                    {
+                        model.UpdatedDate =
+                            Convert.ToDateTime(dr["UpdatedDate"]);
+                    }
+                }
+                else
+                {
+                    dr.Close();
+
+                    TempData["Error"] =
+                        "Medical Camp not found.";
+
+                    return RedirectToAction("ManageMedicalCamp");
+                }
+
+                dr.Close();
+            }
+
+            return View(model);
+        }
+        [HttpGet]
+        public IActionResult ChangeCampStatus(long id)
+        {
+
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            try
+            {
+                using (SqlConnection con = new SqlConnection(cs))
+                {
+                    con.Open();
+
+
+                    SqlCommand checkCmd = new SqlCommand(@"
+                SELECT IsActive
+                FROM tbl_MedicalCamp
+                WHERE CampId = @CampId
+                AND IsDeleted = 0", con);
+
+                    checkCmd.Parameters.AddWithValue("@CampId", id);
+
+                    object currentStatus =
+                        checkCmd.ExecuteScalar();
+
+
+                    if (currentStatus == null)
+                    {
+                        TempData["Error"] =
+                            "Medical Camp not found.";
+
+                        return RedirectToAction("ManageMedicalCamp");
+                    }
+
+                    bool isActive =
+                        Convert.ToBoolean(currentStatus);
+
+
+                    bool newStatus = !isActive;
+
+                    SqlCommand updateCmd = new SqlCommand(@"
+                UPDATE tbl_MedicalCamp
+                SET
+                    IsActive = @IsActive,
+                    UpdatedDate = @UpdatedDate
+                WHERE CampId = @CampId
+                AND IsDeleted = 0", con);
+
+                    updateCmd.Parameters.AddWithValue(
+                        "@IsActive",
+                        newStatus);
+
+                    updateCmd.Parameters.AddWithValue(
+                        "@UpdatedDate",
+                        DateTime.Now);
+
+                    updateCmd.Parameters.AddWithValue(
+                        "@CampId",
+                        id);
+
+                    int result =
+                        updateCmd.ExecuteNonQuery();
+
+
+                    if (result > 0)
+                    {
+                        if (newStatus)
+                        {
+                            TempData["Success"] =
+                                "Medical Camp activated successfully.";
+                        }
+                        else
+                        {
+                            TempData["Success"] =
+                                "Medical Camp deactivated successfully.";
+                        }
+                    }
+                    else
+                    {
+                        TempData["Error"] =
+                            "Unable to change medical camp status.";
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = ex.Message;
+            }
+
+            return RedirectToAction("ManageMedicalCamp");
+        }
+        
+
+       
+        [HttpGet]
+        public IActionResult DeleteMedicalCamp(long id)
+        {
+
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            try
+            {
+                using (SqlConnection con = new SqlConnection(cs))
+                {
+                    con.Open();
+
+
+                    SqlCommand checkCmd = new SqlCommand(@"
+                SELECT CampId
+                FROM tbl_MedicalCamp
+                WHERE CampId = @CampId
+                AND IsDeleted = 0", con);
+
+                    checkCmd.Parameters.AddWithValue("@CampId", id);
+
+                    object campId = checkCmd.ExecuteScalar();
+
+                    if (campId == null)
+                    {
+                        TempData["Error"] =
+                            "Medical Camp not found or already deleted.";
+
+                        return RedirectToAction("ManageMedicalCamp");
+                    }
+
+                    SqlCommand deleteCmd = new SqlCommand(@"
+                UPDATE tbl_MedicalCamp
+                SET
+                    IsDeleted = 1,
+                    IsActive = 0,
+                    IsFeatured = 0,
+                    UpdatedDate = @UpdatedDate
+                WHERE CampId = @CampId
+                AND IsDeleted = 0", con);
+
+                    deleteCmd.Parameters.AddWithValue(
+                        "@UpdatedDate",
+                        DateTime.Now);
+
+                    deleteCmd.Parameters.AddWithValue(
+                        "@CampId",
+                        id);
+
+                    int result = deleteCmd.ExecuteNonQuery();
+
+
+                    if (result > 0)
+                    {
+                        TempData["Success"] =
+                            "Medical Camp deleted successfully.";
+                    }
+                    else
+                    {
+                        TempData["Error"] =
+                            "Unable to delete Medical Camp.";
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = ex.Message;
+            }
+
+            return RedirectToAction("ManageMedicalCamp");
+        }
         // ===========================
         // Logout
         // ===========================

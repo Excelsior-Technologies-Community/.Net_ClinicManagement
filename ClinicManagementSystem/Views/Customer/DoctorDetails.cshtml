@@ -56,6 +56,55 @@
                     <span class="badge bg-primary fs-6 px-3 py-2">
                         @Model.DepartmentName
                     </span>
+                    <br />
+                    <br />
+
+                    @if (Model.IsOnLeave)
+                    {
+                        <div class="alert alert-danger">
+
+                            <i class="fa-solid fa-calendar-xmark me-2"></i>
+
+                            <strong>Doctor On Leave</strong>
+
+                            <hr />
+
+                            <div>
+
+                                <strong>From :</strong>
+
+                                @Model.LeaveFromDate?.ToString("dd MMM yyyy")
+
+                            </div>
+
+                            <div>
+
+                                <strong>To :</strong>
+
+                                @Model.LeaveToDate?.ToString("dd MMM yyyy")
+
+                            </div>
+
+                            <div>
+
+                                <strong>Reason :</strong>
+
+                                @Model.LeaveReason
+
+                            </div>
+
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-success">
+
+                            <i class="fa-solid fa-circle-check me-2"></i>
+
+                            <strong>Doctor Available</strong>
+
+                        </div>
+                    }
 
                 </div>
 
@@ -169,15 +218,28 @@
                     <!-- Action Buttons -->
                     <div class="mt-4">
 
-                        <a asp-action="BookAppointment"
-                           asp-route-doctorId="@Model.DoctorId"
-                           class="btn btn-success btn-lg me-2">
+                        @if (Model.IsOnLeave)
+                        {
+                            <button class="btn btn-danger btn-lg me-2" disabled>
 
-                            <i class="fa-solid fa-calendar-check me-2"></i>
+                                <i class="fa-solid fa-calendar-xmark me-2"></i>
 
-                            Book Appointment
+                                Doctor On Leave
 
-                        </a>
+                            </button>
+                        }
+                        else
+                        {
+                            <a asp-action="BookAppointment"
+                               asp-route-doctorId="@Model.DoctorId"
+                               class="btn btn-success btn-lg me-2">
+
+                                <i class="fa-solid fa-calendar-check me-2"></i>
+
+                                Book Appointment
+
+                            </a>
+                        }
 
                         <a asp-action="Doctors"
                            class="btn btn-outline-secondary btn-lg">

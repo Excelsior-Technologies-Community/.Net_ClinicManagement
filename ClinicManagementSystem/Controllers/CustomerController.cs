@@ -264,32 +264,53 @@ namespace ClinicManagementSystem.Controllers
                 con.Open();
 
                 string query = @"
-        SELECT d.*, dep.DepartmentName
-        FROM tbl_Doctor d
-        INNER JOIN tbl_Department dep
-            ON d.DepartmentId = dep.DepartmentId
-        WHERE d.IsDeleted = 0
-        AND d.IsActive = 1";
 
-                if (!string.IsNullOrEmpty(search))
+SELECT
+
+d.*,
+dep.DepartmentName,
+
+DL.LeaveFromDate,
+DL.LeaveToDate
+
+FROM tbl_Doctor d
+
+INNER JOIN tbl_Department dep
+ON d.DepartmentId = dep.DepartmentId
+
+LEFT JOIN tbl_DoctorLeave DL
+ON d.DoctorId = DL.DoctorId
+AND DL.IsActive = 1
+AND DL.IsDeleted = 0
+AND CAST(GETDATE() AS DATE)
+BETWEEN DL.LeaveFromDate AND DL.LeaveToDate
+
+WHERE
+
+d.IsDeleted = 0
+AND d.IsActive = 1
+";
+
+                if (!string.IsNullOrWhiteSpace(search))
                 {
-                    query += @" AND
-                        (
-                            d.DoctorName LIKE @Search
-                            OR d.Specialization LIKE @Search
-                        )";
+                    query += @"
+AND
+(
+    d.DoctorName LIKE @Search
+    OR d.Specialization LIKE @Search
+)";
                 }
 
                 if (departmentId > 0)
                 {
-                    query += " AND d.DepartmentId = @DepartmentId";
+                    query += " AND d.DepartmentId=@DepartmentId";
                 }
 
                 query += " ORDER BY d.DoctorName ASC";
 
                 SqlCommand cmd = new SqlCommand(query, con);
 
-                if (!string.IsNullOrEmpty(search))
+                if (!string.IsNullOrWhiteSpace(search))
                 {
                     cmd.Parameters.AddWithValue("@Search", "%" + search + "%");
                 }
@@ -306,33 +327,72 @@ namespace ClinicManagementSystem.Controllers
                     DoctorModel model = new DoctorModel();
 
                     model.DoctorId = Convert.ToInt64(dr["DoctorId"]);
+
                     model.DepartmentId = Convert.ToInt64(dr["DepartmentId"]);
+
                     model.DepartmentName = dr["DepartmentName"].ToString();
+
                     model.DoctorName = dr["DoctorName"].ToString();
+
                     model.Qualification = dr["Qualification"].ToString();
+
                     model.Specialization = dr["Specialization"].ToString();
+
                     model.Experience = Convert.ToInt32(dr["Experience"]);
+
                     model.ConsultationFee = Convert.ToDecimal(dr["ConsultationFee"]);
+
                     model.MobileNo = dr["MobileNo"].ToString();
+
                     model.Email = dr["Email"].ToString();
+
                     model.Gender = dr["Gender"].ToString();
+
                     model.DoctorImage = dr["DoctorImage"].ToString();
-                    model.AvailableFrom = (TimeSpan?)dr["AvailableFrom"];
-                    model.AvailableTo = (TimeSpan?)dr["AvailableTo"];
+
+                    if (dr["AvailableFrom"] != DBNull.Value)
+                        model.AvailableFrom = (TimeSpan)dr["AvailableFrom"];
+
+                    if (dr["AvailableTo"] != DBNull.Value)
+                        model.AvailableTo = (TimeSpan)dr["AvailableTo"];
+
                     model.Description = dr["Description"].ToString();
+
+
+                    if (dr["LeaveFromDate"] != DBNull.Value)
+                    {
+                        model.IsOnLeave = true;
+
+                        model.LeaveFromDate = Convert.ToDateTime(dr["LeaveFromDate"]);
+
+                        model.LeaveToDate = Convert.ToDateTime(dr["LeaveToDate"]);
+                    }
+                    else
+                    {
+                        model.IsOnLeave = false;
+                    }
 
                     list.Add(model);
                 }
 
                 dr.Close();
 
-                
+
                 SqlCommand deptCmd = new SqlCommand(@"
-            SELECT DepartmentId, DepartmentName
-            FROM tbl_Department
-            WHERE IsActive = 1
-            AND IsDeleted = 0
-            ORDER BY DepartmentName", con);
+
+SELECT
+
+DepartmentId,
+DepartmentName
+
+FROM tbl_Department
+
+WHERE
+
+IsActive=1
+AND IsDeleted=0
+
+ORDER BY DepartmentName", con);
 
                 SqlDataReader deptDr = deptCmd.ExecuteReader();
 
@@ -350,13 +410,14 @@ namespace ClinicManagementSystem.Controllers
                 deptDr.Close();
 
                 ViewBag.DepartmentList = departments;
+
                 ViewBag.Search = search;
+
                 ViewBag.DepartmentId = departmentId;
             }
 
             return View(list);
         }
-        
         [HttpGet]
         public IActionResult DoctorDetails(long id)
         {
@@ -372,13 +433,31 @@ namespace ClinicManagementSystem.Controllers
                 con.Open();
 
                 string query = @"
-        SELECT d.*, dep.DepartmentName
-        FROM tbl_Doctor d
-        INNER JOIN tbl_Department dep
-            ON d.DepartmentId = dep.DepartmentId
-        WHERE d.DoctorId = @DoctorId
-        AND d.IsDeleted = 0
-        AND d.IsActive = 1";
+       SELECT
+d.*,
+dep.DepartmentName,
+
+DL.LeaveFromDate,
+DL.LeaveToDate,
+DL.LeaveReason
+
+FROM tbl_Doctor d
+
+INNER JOIN tbl_Department dep
+ON d.DepartmentId=dep.DepartmentId
+
+LEFT JOIN tbl_DoctorLeave DL
+ON d.DoctorId=DL.DoctorId
+AND DL.IsActive=1
+AND DL.IsDeleted=0
+AND CAST(GETDATE() AS DATE)
+BETWEEN DL.LeaveFromDate AND DL.LeaveToDate
+
+WHERE
+
+d.DoctorId=@DoctorId
+AND d.IsDeleted=0
+AND d.IsActive=1";
 
                 SqlCommand cmd = new SqlCommand(query, con);
                 cmd.Parameters.AddWithValue("@DoctorId", id);
@@ -430,7 +509,24 @@ namespace ClinicManagementSystem.Controllers
                     TempData["Error"] = "Doctor not found.";
                     return RedirectToAction("Doctors");
                 }
+                //====================================
+                // Doctor Leave
+                //====================================
 
+                if (dr["LeaveFromDate"] != DBNull.Value)
+                {
+                    model.IsOnLeave = true;
+
+                    model.LeaveFromDate = Convert.ToDateTime(dr["LeaveFromDate"]);
+
+                    model.LeaveToDate = Convert.ToDateTime(dr["LeaveToDate"]);
+
+                    model.LeaveReason = dr["LeaveReason"].ToString();
+                }
+                else
+                {
+                    model.IsOnLeave = false;
+                }
                 dr.Close();
             }
 
@@ -507,7 +603,8 @@ namespace ClinicManagementSystem.Controllers
 
             return View(model);
         }
-       
+
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult BookAppointment(AppointmentModel model)
@@ -517,10 +614,9 @@ namespace ClinicManagementSystem.Controllers
                 return RedirectToAction("Login");
             }
 
-     
             model.CustomerId = Convert.ToInt64(HttpContext.Session.GetString("CustomerId"));
 
-            
+
             ModelState.Remove(nameof(AppointmentModel.CustomerId));
             ModelState.Remove(nameof(AppointmentModel.DoctorName));
             ModelState.Remove(nameof(AppointmentModel.CustomerName));
@@ -539,23 +635,32 @@ namespace ClinicManagementSystem.Controllers
             ModelState.Remove(nameof(AppointmentModel.AvailableFrom));
             ModelState.Remove(nameof(AppointmentModel.AvailableTo));
 
+
             if (!ModelState.IsValid)
             {
                 using (SqlConnection con = new SqlConnection(cs))
                 {
                     con.Open();
 
-                    SqlCommand cmd = new SqlCommand(@"
-            SELECT d.DoctorName,
-                   d.DoctorImage,
-                   dep.DepartmentName,
-                   d.ConsultationFee,
-                   d.AvailableFrom,
-                   d.AvailableTo
-            FROM tbl_Doctor d
-            INNER JOIN tbl_Department dep
-            ON d.DepartmentId = dep.DepartmentId
-            WHERE d.DoctorId=@DoctorId", con);
+                    string doctorQuery = @"
+
+SELECT
+
+d.DoctorName,
+d.DoctorImage,
+dep.DepartmentName,
+d.ConsultationFee,
+d.AvailableFrom,
+d.AvailableTo
+
+FROM tbl_Doctor d
+
+INNER JOIN tbl_Department dep
+ON d.DepartmentId = dep.DepartmentId
+
+WHERE d.DoctorId=@DoctorId";
+
+                    SqlCommand cmd = new SqlCommand(doctorQuery, con);
 
                     cmd.Parameters.AddWithValue("@DoctorId", model.DoctorId);
 
@@ -564,15 +669,22 @@ namespace ClinicManagementSystem.Controllers
                     if (dr.Read())
                     {
                         model.DoctorName = dr["DoctorName"].ToString();
+
                         model.DoctorImage = dr["DoctorImage"].ToString();
+
                         model.Department = dr["DepartmentName"].ToString();
+
                         model.ConsultationFee = Convert.ToDecimal(dr["ConsultationFee"]);
 
                         if (dr["AvailableFrom"] != DBNull.Value)
+                        {
                             model.AvailableFrom = (TimeSpan)dr["AvailableFrom"];
+                        }
 
                         if (dr["AvailableTo"] != DBNull.Value)
+                        {
                             model.AvailableTo = (TimeSpan)dr["AvailableTo"];
+                        }
                     }
 
                     dr.Close();
@@ -580,61 +692,240 @@ namespace ClinicManagementSystem.Controllers
 
                 return View(model);
             }
-
             try
             {
                 using (SqlConnection con = new SqlConnection(cs))
                 {
                     con.Open();
 
+
+                    string leaveQuery = @"
+
+SELECT
+
+LeaveFromDate,
+LeaveToDate
+
+FROM tbl_DoctorLeave
+
+WHERE
+
+DoctorId=@DoctorId
+AND IsActive=1
+AND IsDeleted=0
+
+AND
+
+@AppointmentDate BETWEEN LeaveFromDate AND LeaveToDate";
+
+                    SqlCommand leaveCmd = new SqlCommand(leaveQuery, con);
+
+                    leaveCmd.Parameters.AddWithValue("@DoctorId", model.DoctorId);
+
+                    leaveCmd.Parameters.AddWithValue("@AppointmentDate", model.AppointmentDate.Value.Date);
+
+                    SqlDataReader leaveDr = leaveCmd.ExecuteReader();
+
+                    if (leaveDr.Read())
+                    {
+                        DateTime fromDate = Convert.ToDateTime(leaveDr["LeaveFromDate"]);
+
+                        DateTime toDate = Convert.ToDateTime(leaveDr["LeaveToDate"]);
+
+                        leaveDr.Close();
+
+                        ModelState.AddModelError("", $"Doctor is on leave from {fromDate:dd MMM yyyy} to {toDate:dd MMM yyyy}. Please select another appointment date.");
+
+                        con.Close();
+
+                        using (SqlConnection con1 = new SqlConnection(cs))
+                        {
+                            con1.Open();
+
+                            SqlCommand cmd1 = new SqlCommand(@"
+SELECT
+d.DoctorName,
+d.DoctorImage,
+dep.DepartmentName,
+d.ConsultationFee,
+d.AvailableFrom,
+d.AvailableTo
+
+FROM tbl_Doctor d
+
+INNER JOIN tbl_Department dep
+ON d.DepartmentId=dep.DepartmentId
+
+WHERE d.DoctorId=@DoctorId", con1);
+
+                            cmd1.Parameters.AddWithValue("@DoctorId", model.DoctorId);
+
+                            SqlDataReader dr = cmd1.ExecuteReader();
+
+                            if (dr.Read())
+                            {
+                                model.DoctorName = dr["DoctorName"].ToString();
+                                model.DoctorImage = dr["DoctorImage"].ToString();
+                                model.Department = dr["DepartmentName"].ToString();
+                                model.ConsultationFee = Convert.ToDecimal(dr["ConsultationFee"]);
+
+                                if (dr["AvailableFrom"] != DBNull.Value)
+                                    model.AvailableFrom = (TimeSpan)dr["AvailableFrom"];
+
+                                if (dr["AvailableTo"] != DBNull.Value)
+                                    model.AvailableTo = (TimeSpan)dr["AvailableTo"];
+                            }
+
+                            dr.Close();
+                        }
+
+                        return View(model);
+                    }
+
+                    leaveDr.Close();
+
+                    //=========================================
+                    // Check Hospital Holiday
+                    //=========================================
+
+                    string holidayQuery = @"
+
+SELECT
+
+HolidayTitle
+
+FROM tbl_HospitalHoliday
+
+WHERE
+
+HolidayDate=@HolidayDate
+AND IsActive=1
+AND IsDeleted=0";
+
+                    SqlCommand holidayCmd = new SqlCommand(holidayQuery, con);
+
+                    holidayCmd.Parameters.AddWithValue("@HolidayDate", model.AppointmentDate.Value.Date);
+
+                    object holidayResult = holidayCmd.ExecuteScalar();
+
+                    if (holidayResult != null)
+                    {
+                        string holidayTitle = holidayResult.ToString();
+
+                        ModelState.AddModelError("",
+                            $"Hospital is closed on {model.AppointmentDate.Value:dd MMM yyyy} due to '{holidayTitle}'. Please select another appointment date.");
+
+                        con.Close();
+
+                        using (SqlConnection con1 = new SqlConnection(cs))
+                        {
+                            con1.Open();
+
+                            SqlCommand cmd1 = new SqlCommand(@"
+
+SELECT
+
+d.DoctorName,
+d.DoctorImage,
+dep.DepartmentName,
+d.ConsultationFee,
+d.AvailableFrom,
+d.AvailableTo
+
+FROM tbl_Doctor d
+
+INNER JOIN tbl_Department dep
+ON d.DepartmentId = dep.DepartmentId
+
+WHERE d.DoctorId=@DoctorId", con1);
+
+                            cmd1.Parameters.AddWithValue("@DoctorId", model.DoctorId);
+
+                            SqlDataReader dr = cmd1.ExecuteReader();
+
+                            if (dr.Read())
+                            {
+                                model.DoctorName = dr["DoctorName"].ToString();
+                                model.DoctorImage = dr["DoctorImage"].ToString();
+                                model.Department = dr["DepartmentName"].ToString();
+                                model.ConsultationFee = Convert.ToDecimal(dr["ConsultationFee"]);
+
+                                if (dr["AvailableFrom"] != DBNull.Value)
+                                    model.AvailableFrom = (TimeSpan)dr["AvailableFrom"];
+
+                                if (dr["AvailableTo"] != DBNull.Value)
+                                    model.AvailableTo = (TimeSpan)dr["AvailableTo"];
+                            }
+
+                            dr.Close();
+                        }
+
+                        return View(model);
+                    }
+
                     string appointmentNo = "APT" + DateTime.Now.ToString("yyyyMMddHHmmss");
 
+
                     SqlCommand cmd = new SqlCommand(@"
-            INSERT INTO tbl_Appointment
-            (
-                AppointmentNo,
-                CustomerId,
-                DoctorId,
-                Department,
-                AppointmentDate,
-                AppointmentTime,
-                Symptoms,
-                ConsultationFee,
-                AppointmentStatus,
-                PaymentStatus,
-                IsActive,
-                IsDeleted,
-                CreatedDate
-            )
-            VALUES
-            (
-                @AppointmentNo,
-                @CustomerId,
-                @DoctorId,
-                @Department,
-                @AppointmentDate,
-                @AppointmentTime,
-                @Symptoms,
-                @ConsultationFee,
-                @AppointmentStatus,
-                @PaymentStatus,
-                @IsActive,
-                @IsDeleted,
-                @CreatedDate
-            )", con);
+
+INSERT INTO tbl_Appointment
+(
+AppointmentNo,
+CustomerId,
+DoctorId,
+Department,
+AppointmentDate,
+AppointmentTime,
+Symptoms,
+ConsultationFee,
+AppointmentStatus,
+PaymentStatus,
+IsActive,
+IsDeleted,
+CreatedDate
+)
+
+VALUES
+(
+@AppointmentNo,
+@CustomerId,
+@DoctorId,
+@Department,
+@AppointmentDate,
+@AppointmentTime,
+@Symptoms,
+@ConsultationFee,
+@AppointmentStatus,
+@PaymentStatus,
+@IsActive,
+@IsDeleted,
+@CreatedDate
+)", con);
 
                     cmd.Parameters.AddWithValue("@AppointmentNo", appointmentNo);
+
                     cmd.Parameters.AddWithValue("@CustomerId", model.CustomerId);
+
                     cmd.Parameters.AddWithValue("@DoctorId", model.DoctorId);
+
                     cmd.Parameters.AddWithValue("@Department", model.Department);
+
                     cmd.Parameters.AddWithValue("@AppointmentDate", model.AppointmentDate);
+
                     cmd.Parameters.AddWithValue("@AppointmentTime", model.AppointmentTime);
+
                     cmd.Parameters.AddWithValue("@Symptoms", model.Symptoms);
+
                     cmd.Parameters.AddWithValue("@ConsultationFee", model.ConsultationFee);
+
                     cmd.Parameters.AddWithValue("@AppointmentStatus", "Pending");
+
                     cmd.Parameters.AddWithValue("@PaymentStatus", "Pending");
+
                     cmd.Parameters.AddWithValue("@IsActive", true);
+
                     cmd.Parameters.AddWithValue("@IsDeleted", false);
+
                     cmd.Parameters.AddWithValue("@CreatedDate", DateTime.Now);
 
                     int result = cmd.ExecuteNonQuery();
@@ -642,35 +933,42 @@ namespace ClinicManagementSystem.Controllers
                     if (result > 0)
                     {
                         TempData["Success"] = "Appointment booked successfully.";
+
                         return RedirectToAction("MyAppointments");
                     }
-                    else
-                    {
-                        TempData["Error"] = "Appointment booking failed.";
-                        return View(model);
-                    }
+
+                    TempData["Error"] = "Appointment booking failed.";
+
+                    return View(model);
                 }
             }
             catch (Exception ex)
             {
                 TempData["Error"] = ex.Message;
 
-                
                 using (SqlConnection con = new SqlConnection(cs))
                 {
                     con.Open();
 
-                    SqlCommand cmd = new SqlCommand(@"
-            SELECT d.DoctorName,
-                   d.DoctorImage,
-                   dep.DepartmentName,
-                   d.ConsultationFee,
-                   d.AvailableFrom,
-                   d.AvailableTo
-            FROM tbl_Doctor d
-            INNER JOIN tbl_Department dep
-            ON d.DepartmentId = dep.DepartmentId
-            WHERE d.DoctorId=@DoctorId", con);
+                    string doctorQuery = @"
+
+SELECT
+
+d.DoctorName,
+d.DoctorImage,
+dep.DepartmentName,
+d.ConsultationFee,
+d.AvailableFrom,
+d.AvailableTo
+
+FROM tbl_Doctor d
+
+INNER JOIN tbl_Department dep
+ON d.DepartmentId = dep.DepartmentId
+
+WHERE d.DoctorId=@DoctorId";
+
+                    SqlCommand cmd = new SqlCommand(doctorQuery, con);
 
                     cmd.Parameters.AddWithValue("@DoctorId", model.DoctorId);
 
@@ -679,15 +977,22 @@ namespace ClinicManagementSystem.Controllers
                     if (dr.Read())
                     {
                         model.DoctorName = dr["DoctorName"].ToString();
+
                         model.DoctorImage = dr["DoctorImage"].ToString();
+
                         model.Department = dr["DepartmentName"].ToString();
+
                         model.ConsultationFee = Convert.ToDecimal(dr["ConsultationFee"]);
 
                         if (dr["AvailableFrom"] != DBNull.Value)
+                        {
                             model.AvailableFrom = (TimeSpan)dr["AvailableFrom"];
+                        }
 
                         if (dr["AvailableTo"] != DBNull.Value)
+                        {
                             model.AvailableTo = (TimeSpan)dr["AvailableTo"];
+                        }
                     }
 
                     dr.Close();
@@ -696,7 +1001,7 @@ namespace ClinicManagementSystem.Controllers
                 return View(model);
             }
         }
-     
+
         [HttpGet]
         public IActionResult MyAppointments(string search = "")
         {
@@ -4691,6 +4996,368 @@ AND IsDeleted=0";
 
             return View(model);
         }
+      
+        [HttpGet]
+        public IActionResult HospitalHolidays(string search = "")
+        {
+
+            if (HttpContext.Session.GetString("CustomerId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            List<HospitalHolidayModel> list = new List<HospitalHolidayModel>();
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+                string query = @"
+
+SELECT
+
+HolidayId,
+HolidayTitle,
+HolidayDate,
+HolidayDescription
+
+FROM tbl_HospitalHoliday
+
+WHERE
+
+IsActive = 1
+AND IsDeleted = 0
+AND HolidayDate >= CAST(GETDATE() AS DATE)
+
+";
+
+                if (!string.IsNullOrWhiteSpace(search))
+                {
+                    query += @"
+
+AND HolidayTitle LIKE @Search
+
+";
+                }
+
+                query += @"
+
+ORDER BY HolidayDate ASC
+
+";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+
+                if (!string.IsNullOrWhiteSpace(search))
+                {
+                    cmd.Parameters.AddWithValue("@Search", "%" + search + "%");
+                }
+
+                SqlDataReader dr = cmd.ExecuteReader();
+
+                while (dr.Read())
+                {
+                    HospitalHolidayModel model = new HospitalHolidayModel();
+
+                    model.HolidayId = Convert.ToInt64(dr["HolidayId"]);
+
+                    model.HolidayTitle = dr["HolidayTitle"].ToString();
+
+                    model.HolidayDate = Convert.ToDateTime(dr["HolidayDate"]);
+
+                    model.HolidayDescription = dr["HolidayDescription"] == DBNull.Value
+                        ? ""
+                        : dr["HolidayDescription"].ToString();
+
+                    list.Add(model);
+                }
+
+                dr.Close();
+            }
+
+            ViewBag.Search = search;
+
+            return View(list);
+        }
+      
+        [HttpGet]
+        public IActionResult AboutUs()
+        {
+            if (HttpContext.Session.GetString("CustomerId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            ClinicInformationModel model = new ClinicInformationModel();
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+
+                string query = @"
+
+SELECT TOP 1
+
+ClinicId,
+ClinicName,
+AboutClinic,
+Mission,
+Vision,
+WhyChooseUs,
+Address,
+MobileNo,
+AlternateMobileNo,
+Email,
+Website,
+WorkingHours,
+EmergencyContact,
+GoogleMapLink,
+FacebookLink,
+InstagramLink,
+TwitterLink,
+WhatsAppNo,
+ClinicLogo,
+BannerImage
+
+FROM tbl_ClinicInformation
+
+WHERE IsActive = 1
+
+ORDER BY ClinicId DESC";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+
+                SqlDataReader dr = cmd.ExecuteReader();
+
+                if (dr.Read())
+                {
+                    model.ClinicId = Convert.ToInt64(dr["ClinicId"]);
+
+                    model.ClinicName = dr["ClinicName"].ToString();
+
+                    model.AboutClinic = dr["AboutClinic"].ToString();
+
+                    model.Mission = dr["Mission"] == DBNull.Value
+                        ? ""
+                        : dr["Mission"].ToString();
+
+                    model.Vision = dr["Vision"] == DBNull.Value
+                        ? ""
+                        : dr["Vision"].ToString();
+
+                    model.WhyChooseUs = dr["WhyChooseUs"] == DBNull.Value
+                        ? ""
+                        : dr["WhyChooseUs"].ToString();
+
+                    model.Address = dr["Address"].ToString();
+
+                    model.MobileNo = dr["MobileNo"].ToString();
+
+                    model.AlternateMobileNo = dr["AlternateMobileNo"] == DBNull.Value
+                        ? ""
+                        : dr["AlternateMobileNo"].ToString();
+
+                    model.Email = dr["Email"].ToString();
+
+                    model.Website = dr["Website"] == DBNull.Value
+                        ? ""
+                        : dr["Website"].ToString();
+
+                    model.WorkingHours = dr["WorkingHours"].ToString();
+
+                    model.EmergencyContact = dr["EmergencyContact"] == DBNull.Value
+                        ? ""
+                        : dr["EmergencyContact"].ToString();
+
+                    model.GoogleMapLink = dr["GoogleMapLink"] == DBNull.Value
+                        ? ""
+                        : dr["GoogleMapLink"].ToString();
+
+                    model.FacebookLink = dr["FacebookLink"] == DBNull.Value
+                        ? ""
+                        : dr["FacebookLink"].ToString();
+
+                    model.InstagramLink = dr["InstagramLink"] == DBNull.Value
+                        ? ""
+                        : dr["InstagramLink"].ToString();
+
+                    model.TwitterLink = dr["TwitterLink"] == DBNull.Value
+                        ? ""
+                        : dr["TwitterLink"].ToString();
+
+                    model.WhatsAppNo = dr["WhatsAppNo"] == DBNull.Value
+                        ? ""
+                        : dr["WhatsAppNo"].ToString();
+
+                    model.ClinicLogo = dr["ClinicLogo"] == DBNull.Value
+                        ? ""
+                        : dr["ClinicLogo"].ToString();
+
+                    model.BannerImage = dr["BannerImage"] == DBNull.Value
+                        ? ""
+                        : dr["BannerImage"].ToString();
+                }
+
+                dr.Close();
+            }
+
+            return View(model);
+        }
+        [HttpGet]
+        public IActionResult EditProfile()
+        {
+            string? customerIdStr = HttpContext.Session.GetString("CustomerId");
+            if (string.IsNullOrEmpty(customerIdStr))
+            {
+                return RedirectToAction("Login");
+            }
+
+            long customerId = Convert.ToInt64(customerIdStr);
+            CustomerModel customer = new CustomerModel();
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+                string query = "SELECT * FROM tbl_Customer WHERE CustomerId = @CustomerId AND IsDeleted = 0";
+                SqlCommand cmd = new SqlCommand(query, con);
+                cmd.Parameters.AddWithValue("@CustomerId", customerId);
+
+                SqlDataReader dr = cmd.ExecuteReader();
+                if (dr.Read())
+                {
+                    customer.CustomerId = Convert.ToInt64(dr["CustomerId"]);
+                    customer.FullName = dr["FullName"] != DBNull.Value ? dr["FullName"].ToString() : "";
+                    customer.Gender = dr["Gender"] != DBNull.Value ? dr["Gender"].ToString() : "";
+                    customer.DateOfBirth = dr["DateOfBirth"] != DBNull.Value ? Convert.ToDateTime(dr["DateOfBirth"]) : null;
+                    customer.BloodGroup = dr["BloodGroup"] != DBNull.Value ? dr["BloodGroup"].ToString() : "";
+                    customer.MobileNo = dr["MobileNo"] != DBNull.Value ? dr["MobileNo"].ToString() : "";
+                    customer.Email = dr["Email"] != DBNull.Value ? dr["Email"].ToString() : "";
+                    customer.Address = dr["Address"] != DBNull.Value ? dr["Address"].ToString() : "";
+                    customer.City = dr["City"] != DBNull.Value ? dr["City"].ToString() : "";
+                    customer.State = dr["State"] != DBNull.Value ? dr["State"].ToString() : "";
+                    customer.Pincode = dr["Pincode"] != DBNull.Value ? dr["Pincode"].ToString() : "";
+                    customer.ProfileImage = dr["ProfileImage"] != DBNull.Value ? dr["ProfileImage"].ToString() : "";
+                }
+                dr.Close();
+            }
+
+            return View(customer);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult EditProfile(CustomerModel model)
+        {
+            string? customerIdStr = HttpContext.Session.GetString("CustomerId");
+            if (string.IsNullOrEmpty(customerIdStr))
+            {
+                return RedirectToAction("Login");
+            }
+
+            ModelState.Remove("Password");
+            ModelState.Remove("ConfirmPassword");
+            ModelState.Remove("ProfileImage");
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            try
+            {
+                using (SqlConnection con = new SqlConnection(cs))
+                {
+                    con.Open();
+
+                   
+                    string oldImage = "";
+                    SqlCommand oldImgCmd = new SqlCommand("SELECT ProfileImage FROM tbl_Customer WHERE CustomerId = @CustomerId", con);
+                    oldImgCmd.Parameters.AddWithValue("@CustomerId", model.CustomerId);
+                    object result = oldImgCmd.ExecuteScalar();
+                    if (result != null && result != DBNull.Value)
+                    {
+                        oldImage = result.ToString()!;
+                    }
+
+                    string fileName = oldImage;
+
+
+                    if (model.ImageFile != null && model.ImageFile.Length > 0)
+                    {
+                        string folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "CustomerProfile");
+                        if (!Directory.Exists(folderPath))
+                        {
+                            Directory.CreateDirectory(folderPath);
+                        }
+
+                        if (!string.IsNullOrEmpty(oldImage))
+                        {
+                            string oldFilePath = Path.Combine(folderPath, oldImage);
+                            if (System.IO.File.Exists(oldFilePath))
+                            {
+                                System.IO.File.Delete(oldFilePath);
+                            }
+                        }
+
+                        fileName = Guid.NewGuid().ToString() + Path.GetExtension(model.ImageFile.FileName);
+                        string filePath = Path.Combine(folderPath, fileName);
+
+                        using (FileStream stream = new FileStream(filePath, FileMode.Create))
+                        {
+                            model.ImageFile.CopyTo(stream);
+                        }
+                    }
+
+                    string updateQuery = @"
+                 UPDATE tbl_Customer
+                 SET FullName = @FullName,
+                     Gender = @Gender,
+                     DateOfBirth = @DateOfBirth,
+                     BloodGroup = @BloodGroup,
+                     MobileNo = @MobileNo,
+                     Address = @Address,
+                     City = @City,
+                     State = @State,
+                     Pincode = @Pincode,
+                     ProfileImage = @ProfileImage,
+                     UpdatedDate = GETDATE()
+                 WHERE CustomerId = @CustomerId AND IsDeleted = 0";
+
+                    SqlCommand cmd = new SqlCommand(updateQuery, con);
+                    cmd.Parameters.AddWithValue("@FullName", (object?)model.FullName ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@Gender", (object?)model.Gender ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@DateOfBirth", (object?)model.DateOfBirth ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@BloodGroup", (object?)model.BloodGroup ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@MobileNo", (object?)model.MobileNo ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@Address", (object?)model.Address ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@City", (object?)model.City ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@State", (object?)model.State ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@Pincode", (object?)model.Pincode ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@ProfileImage", string.IsNullOrEmpty(fileName) ? DBNull.Value : fileName);
+                    cmd.Parameters.AddWithValue("@CustomerId", model.CustomerId);
+
+                    cmd.ExecuteNonQuery();
+
+
+                    if (!string.IsNullOrEmpty(model.FullName))
+                    {
+                        HttpContext.Session.SetString("CustomerName", model.FullName);
+                    }
+                    HttpContext.Session.SetString("CustomerImage", fileName ?? "");
+
+                    TempData["Success"] = "Profile updated successfully!";
+                    return RedirectToAction("Dashboard");
+                }
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Error = "An error occurred while updating profile: " + ex.Message;
+                return View(model);
+            }
+        }
+  
+       
+      
         // ==========================================
         // GET: /Customer/Logout
         // ==========================================

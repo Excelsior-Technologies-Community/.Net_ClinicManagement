@@ -70,5 +70,12 @@ namespace ClinicManagementSystem.Models
         public DateTime CreatedDate { get; set; }
 
         public DateTime? UpdatedDate { get; set; }
+        public bool IsOnLeave { get; set; }
+
+        public DateTime? LeaveFromDate { get; set; }
+
+        public DateTime? LeaveToDate { get; set; }
+
+        public string? LeaveReason { get; set; }
     }
 }
