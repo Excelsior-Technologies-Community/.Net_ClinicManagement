@@ -1,0 +1,2533 @@
+﻿@model ClinicManagementSystem.Models.CampRegistrationModel
+
+@{
+    ViewData["Title"] = "Change Camp Registration Status";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid py-4 change-status-page">
+
+    <!-- =========================================
+         Page Header
+    ========================================== -->
+
+    <div class="page-header mb-4">
+
+        <div class="row align-items-center">
+
+            <div class="col-lg-8">
+
+                <a asp-action="ViewCampRegistration"
+                   asp-route-id="@Model.CampRegistrationId"
+                   class="back-link">
+
+                    <i class="fa-solid fa-arrow-left me-2"></i>
+
+                    Back to Registration Details
+
+                </a>
+
+                <div class="header-badge mt-3">
+
+                    <i class="fa-solid fa-rotate me-2"></i>
+
+                    Registration Status Management
+
+                </div>
+
+                <h1 class="fw-bold mt-3 mb-2">
+
+                    Change Registration Status
+
+                </h1>
+
+                <p class="mb-0">
+
+                    Update the registration status and add an
+                    administrative remark for this medical camp registration.
+
+                </p>
+
+            </div>
+
+
+            <div class="col-lg-4 text-lg-end d-none d-lg-block">
+
+                <div class="header-icon">
+
+                    <i class="fa-solid fa-clipboard-check"></i>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================
+         Registration Summary Cards
+    ========================================== -->
+
+    <div class="row g-3 mb-4">
+
+
+        <!-- Registration Number -->
+
+        <div class="col-xl-3 col-md-6">
+
+            <div class="summary-card">
+
+                <div class="summary-icon blue">
+
+                    <i class="fa-solid fa-hashtag"></i>
+
+                </div>
+
+                <div>
+
+                    <span>
+                        Registration Number
+                    </span>
+
+                    <strong>
+                        @Model.RegistrationNo
+                    </strong>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Customer -->
+
+        <div class="col-xl-3 col-md-6">
+
+            <div class="summary-card">
+
+                <div class="summary-icon purple">
+
+                    <i class="fa-solid fa-user"></i>
+
+                </div>
+
+                <div>
+
+                    <span>
+                        Customer
+                    </span>
+
+                    <strong>
+                        @(string.IsNullOrWhiteSpace(Model.CustomerName)
+                                                ? "Not Available"
+                                                : Model.CustomerName)
+                    </strong>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Medical Camp -->
+
+        <div class="col-xl-3 col-md-6">
+
+            <div class="summary-card">
+
+                <div class="summary-icon green">
+
+                    <i class="fa-solid fa-kit-medical"></i>
+
+                </div>
+
+                <div>
+
+                    <span>
+                        Medical Camp
+                    </span>
+
+                    <strong>
+                        @(string.IsNullOrWhiteSpace(Model.CampTitle)
+                                                ? "Not Available"
+                                                : Model.CampTitle)
+                    </strong>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Current Status -->
+
+        <div class="col-xl-3 col-md-6">
+
+            <div class="summary-card">
+
+                <div class="summary-icon orange">
+
+                    <i class="fa-solid fa-circle-info"></i>
+
+                </div>
+
+                <div>
+
+                    <span>
+                        Current Status
+                    </span>
+
+                    @if (Model.RegistrationStatus == "Confirmed")
+                    {
+                        <b class="status-badge confirmed">
+
+                            <i class="fa-solid fa-circle-check me-1"></i>
+
+                            Confirmed
+
+                        </b>
+                    }
+                    else if (Model.RegistrationStatus == "Pending")
+                    {
+                        <b class="status-badge pending">
+
+                            <i class="fa-solid fa-clock me-1"></i>
+
+                            Pending
+
+                        </b>
+                    }
+                    else if (Model.RegistrationStatus == "Cancelled")
+                    {
+                        <b class="status-badge cancelled">
+
+                            <i class="fa-solid fa-circle-xmark me-1"></i>
+
+                            Cancelled
+
+                        </b>
+                    }
+                    else if (Model.RegistrationStatus == "Completed")
+                    {
+                        <b class="status-badge completed">
+
+                            <i class="fa-solid fa-check-double me-1"></i>
+
+                            Completed
+
+                        </b>
+                    }
+                    else
+                    {
+                        <b class="status-badge pending">
+
+                            @(string.IsNullOrWhiteSpace(Model.RegistrationStatus)
+                                                    ? "Not Set"
+                                                    : Model.RegistrationStatus)
+
+                    </b>
+                                        }
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================
+         Main Content
+    ========================================== -->
+
+    <div class="row g-4">
+
+
+        <!-- =========================================
+             Left Side - Registration Information
+        ========================================== -->
+
+        <div class="col-xl-7">
+
+            <div class="information-card">
+
+                <!-- Card Header -->
+
+                <div class="card-header-custom">
+
+                    <div>
+
+                        <h5>
+
+                            <i class="fa-solid fa-file-medical me-2"></i>
+
+                            Registration Information
+
+                        </h5>
+
+                        <p>
+                            Review registration details before changing status.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Information Body -->
+
+                <div class="card-body-custom">
+
+                    <div class="row g-3">
+
+
+                        <!-- Participant Name -->
+
+                        <div class="col-md-6">
+
+                            <div class="info-box">
+
+                                <div class="info-icon blue">
+
+                                    <i class="fa-solid fa-user"></i>
+
+                                </div>
+
+                                <div>
+
+                                    <small>
+                                        Participant Name
+                                    </small>
+
+                                    <strong>
+
+                                        @(string.IsNullOrWhiteSpace(
+                                                                                Model.ParticipantName)
+                                                                                ? "Not Available"
+                                                                                : Model.ParticipantName)
+
+                                    </strong>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- Mobile -->
+
+                        <div class="col-md-6">
+
+                            <div class="info-box">
+
+                                <div class="info-icon green">
+
+                                    <i class="fa-solid fa-phone"></i>
+
+                                </div>
+
+                                <div>
+
+                                    <small>
+                                        Mobile Number
+                                    </small>
+
+                                    <strong>
+
+                                        @(string.IsNullOrWhiteSpace(
+                                                                                Model.MobileNo)
+                                                                                ? "Not Available"
+                                                                                : Model.MobileNo)
+
+                                    </strong>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- Email -->
+
+                        <div class="col-md-6">
+
+                            <div class="info-box">
+
+                                <div class="info-icon red">
+
+                                    <i class="fa-solid fa-envelope"></i>
+
+                                </div>
+
+                                <div>
+
+                                    <small>
+                                        Email Address
+                                    </small>
+
+                                    <strong>
+
+                                        @(string.IsNullOrWhiteSpace(
+                                                                                Model.Email)
+                                                                                ? "Not Available"
+                                                                                : Model.Email)
+
+                                    </strong>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- Gender -->
+
+                        <div class="col-md-3">
+
+                            <div class="info-box">
+
+                                <div class="info-icon purple">
+
+                                    <i class="fa-solid fa-venus-mars"></i>
+
+                                </div>
+
+                                <div>
+
+                                    <small>
+                                        Gender
+                                    </small>
+
+                                    <strong>
+
+                                        @(string.IsNullOrWhiteSpace(Model.Gender)
+                                                                                ? "N/A"
+                                                                                : Model.Gender)
+
+                                    </strong>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- Age -->
+
+                        <div class="col-md-3">
+
+                            <div class="info-box">
+
+                                <div class="info-icon cyan">
+
+                                    <i class="fa-solid fa-calendar"></i>
+
+                                </div>
+
+                                <div>
+
+                                    <small>
+                                        Age
+                                    </small>
+
+                                    <strong>
+
+                                        @(Model.Age.HasValue
+                                                                                ? Model.Age.Value + " Years"
+                                                                                : "N/A")
+
+                                    </strong>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- Camp Date -->
+
+                        <div class="col-md-6">
+
+                            <div class="info-box">
+
+                                <div class="info-icon blue">
+
+                                    <i class="fa-solid fa-calendar-days"></i>
+
+                                </div>
+
+                                <div>
+
+                                    <small>
+                                        Camp Date
+                                    </small>
+
+                                    <strong>
+                                        @if (Model.CampDate.HasValue)
+                                        {
+                                            @Model.CampDate.Value.ToString("dd MMM yyyy")
+                                        }
+                                        else
+                                        {
+                                            <text>Not Available</text>
+                                        }
+                                    </strong>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- Camp Time -->
+
+                        <div class="col-md-6">
+
+                            <div class="info-box">
+
+                                <div class="info-icon orange">
+
+                                    <i class="fa-solid fa-clock"></i>
+
+                                </div>
+
+                                <div>
+
+                                    <small>
+                                        Camp Time
+                                    </small>
+
+                                    <strong>
+                                        @if (Model.StartTime.HasValue)
+                                        {
+                                            @DateTime.Today.Add(Model.StartTime.Value).ToString("hh:mm tt")
+
+                                            if (Model.EndTime.HasValue)
+                                            {
+                                                <text> - </text>
+                                                @DateTime.Today.Add(Model.EndTime.Value).ToString("hh:mm tt")
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <text>Not Available</text>
+                                        }
+                                    </strong>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- Venue -->
+
+                        <div class="col-md-6">
+
+                            <div class="info-box">
+
+                                <div class="info-icon red">
+
+                                    <i class="fa-solid fa-location-dot"></i>
+
+                                </div>
+
+                                <div>
+
+                                    <small>
+                                        Venue
+                                    </small>
+
+                                    <strong>
+
+                                        @(string.IsNullOrWhiteSpace(Model.Venue)
+                                                                                ? "Not Available"
+                                                                                : Model.Venue)
+
+                                    </strong>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- Organizer -->
+
+                        <div class="col-md-6">
+
+                            <div class="info-box">
+
+                                <div class="info-icon purple">
+
+                                    <i class="fa-solid fa-user-tie"></i>
+
+                                </div>
+
+                                <div>
+
+                                    <small>
+                                        Organizer
+                                    </small>
+
+                                    <strong>
+
+                                        @(string.IsNullOrWhiteSpace(Model.Organizer)
+                                                                                ? "Not Available"
+                                                                                : Model.Organizer)
+
+                                    </strong>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- Payment -->
+
+                        <div class="col-md-6">
+
+                            <div class="info-box">
+
+                                <div class="info-icon green">
+
+                                    <i class="fa-solid fa-credit-card"></i>
+
+                                </div>
+
+                                <div>
+
+                                    <small>
+                                        Payment Status
+                                    </small>
+
+                                    <strong>
+
+                                        @(string.IsNullOrWhiteSpace(Model.PaymentStatus)
+                                                                                ? "Not Available"
+                                                                                : Model.PaymentStatus)
+
+                                    </strong>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- Amount -->
+
+                        <div class="col-md-6">
+
+                            <div class="info-box">
+
+                                <div class="info-icon orange">
+
+                                    <i class="fa-solid fa-indian-rupee-sign"></i>
+
+                                </div>
+
+                                <div>
+
+                                    <small>
+                                        Registration Amount
+                                    </small>
+
+                                    <strong>
+                                        ₹ @Model.Amount.ToString("N2")
+                                    </strong>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- Health Concern -->
+
+                        <div class="col-12">
+
+                            <div class="health-box">
+
+                                <div class="health-icon">
+
+                                    <i class="fa-solid fa-notes-medical"></i>
+
+                                </div>
+
+                                <div>
+
+                                    <small>
+                                        Health Concern
+                                    </small>
+
+                                    <p>
+
+                                        @(string.IsNullOrWhiteSpace(
+                                                                                Model.HealthConcern)
+                                                                                ? "No health concern was provided."
+                                                                                : Model.HealthConcern)
+
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =========================================
+             Right Side - Status Update Preview
+        ========================================== -->
+
+        <div class="col-xl-5">
+
+            <div class="status-update-card">
+
+                <div class="status-card-header">
+
+                    <div class="status-card-icon">
+
+                        <i class="fa-solid fa-sliders"></i>
+
+                    </div>
+
+                    <div>
+
+                        <h5>
+                            Update Registration
+                        </h5>
+
+                        <p>
+                            Select the new registration status.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Current Status -->
+
+                <div class="current-status-box">
+
+                    <small>
+                        Current Registration Status
+                    </small>
+
+                    <div class="current-status">
+
+                        @if (Model.RegistrationStatus == "Confirmed")
+                        {
+                            <span class="status-badge confirmed">
+
+                                <i class="fa-solid fa-circle-check me-1"></i>
+
+                                Confirmed
+
+                            </span>
+                        }
+                        else if (Model.RegistrationStatus == "Pending")
+                        {
+                            <span class="status-badge pending">
+
+                                <i class="fa-solid fa-clock me-1"></i>
+
+                                Pending
+
+                            </span>
+                        }
+                        else if (Model.RegistrationStatus == "Cancelled")
+                        {
+                            <span class="status-badge cancelled">
+
+                                <i class="fa-solid fa-circle-xmark me-1"></i>
+
+                                Cancelled
+
+                            </span>
+                        }
+                        else if (Model.RegistrationStatus == "Completed")
+                        {
+                            <span class="status-badge completed">
+
+                                <i class="fa-solid fa-check-double me-1"></i>
+
+                                Completed
+
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="status-badge pending">
+
+                                @(string.IsNullOrWhiteSpace(
+                                                            Model.RegistrationStatus)
+                                                            ? "Not Set"
+                                                            : Model.RegistrationStatus)
+
+                        </span>
+                                                }
+
+                    </div>
+
+                </div>
+                <!-- =========================================
+                     Status Update Form
+                ========================================== -->
+
+                <form asp-action="ChangeCampRegistrationStatus"
+                      method="post"
+                      id="changeStatusForm">
+
+                    @Html.AntiForgeryToken()
+
+                    <!-- Hidden Registration ID -->
+
+                    <input type="hidden"
+                           asp-for="CampRegistrationId" />
+
+
+                    <!-- =========================================
+                         New Status
+                    ========================================== -->
+
+                    <div class="form-section">
+
+                        <label asp-for="RegistrationStatus"
+                               class="form-label">
+
+                            <i class="fa-solid fa-list-check me-2"></i>
+
+                            Select New Status
+
+                            <span class="required">*</span>
+
+                        </label>
+
+                        <div class="status-select-wrapper">
+
+                            <i class="fa-solid fa-circle-chevron-down"></i>
+
+                            <select asp-for="RegistrationStatus"
+                                    class="form-select status-select"
+                                    id="registrationStatus">
+
+                                <option value="">
+                                    -- Select Registration Status --
+                                </option>
+
+                                <option value="Pending">
+                                    Pending
+                                </option>
+
+                                <option value="Confirmed">
+                                    Confirmed
+                                </option>
+
+                                <option value="Completed">
+                                    Completed
+                                </option>
+
+                                <option value="Cancelled">
+                                    Cancelled
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                        <span asp-validation-for="RegistrationStatus"
+                              class="text-danger validation-message">
+                        </span>
+
+                    </div>
+
+
+                    <!-- =========================================
+                         Status Information
+                    ========================================== -->
+
+                    <div id="statusInfo"
+                         class="status-info-box">
+
+                        <div class="status-info-icon">
+
+                            <i class="fa-solid fa-circle-info"></i>
+
+                        </div>
+
+                        <div>
+
+                            <strong id="statusInfoTitle">
+                                Select a status
+                            </strong>
+
+                            <p id="statusInfoText">
+                                Choose the appropriate registration
+                                status from the dropdown above.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- =========================================
+                         Admin Remark
+                    ========================================== -->
+
+                    <div class="form-section">
+
+                        <label asp-for="AdminRemark"
+                               class="form-label">
+
+                            <i class="fa-solid fa-comment-medical me-2"></i>
+
+                            Admin Remark
+
+                            <span class="optional">
+                                Optional
+                            </span>
+
+                        </label>
+
+                        <textarea asp-for="AdminRemark"
+                                  id="adminRemark"
+                                  class="form-control remark-textarea"
+                                  rows="5"
+                                  maxlength="500"
+                                  placeholder="Enter an administrative remark or note about this registration..."></textarea>
+
+                        <div class="textarea-footer">
+
+                            <small>
+
+                                <i class="fa-solid fa-circle-info me-1"></i>
+
+                                This remark will be stored with the registration.
+
+                            </small>
+
+                            <span id="remarkCounter">
+                                0 / 500
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- =========================================
+                         Important Notice
+                    ========================================== -->
+
+                    <div class="important-notice">
+
+                        <div class="notice-icon">
+
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+
+                        </div>
+
+                        <div>
+
+                            <strong>
+                                Important
+                            </strong>
+
+                            <p>
+                                Changing the registration status will
+                                immediately update the registration record.
+                                Please verify the selected status before
+                                saving.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- =========================================
+                         Action Buttons
+                    ========================================== -->
+
+                    <div class="form-actions">
+
+                        <a asp-action="ViewCampRegistration"
+                           asp-route-id="@Model.CampRegistrationId"
+                           class="btn btn-outline-secondary">
+
+                            <i class="fa-solid fa-xmark me-2"></i>
+
+                            Cancel
+
+                        </a>
+
+
+                        <button type="submit"
+                                class="btn btn-primary"
+                                id="updateStatusBtn">
+
+                            <i class="fa-solid fa-check me-2"></i>
+
+                            Update Status
+
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================
+         Status History / Guidelines
+    ========================================== -->
+
+    <div class="status-guidelines mt-4">
+
+        <div class="guidelines-header">
+
+            <div class="guidelines-icon">
+
+                <i class="fa-solid fa-list-check"></i>
+
+            </div>
+
+            <div>
+
+                <h5>
+                    Registration Status Guidelines
+                </h5>
+
+                <p>
+                    Use the following statuses according to the
+                    registration progress.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="row g-3 mt-1">
+
+
+            <!-- Pending -->
+
+            <div class="col-lg-3 col-md-6">
+
+                <div class="guideline-card pending-card">
+
+                    <div class="guideline-icon">
+
+                        <i class="fa-solid fa-clock"></i>
+
+                    </div>
+
+                    <div>
+
+                        <strong>
+                            Pending
+                        </strong>
+
+                        <p>
+                            Registration is received and waiting
+                            for confirmation.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- Confirmed -->
+
+            <div class="col-lg-3 col-md-6">
+
+                <div class="guideline-card confirmed-card">
+
+                    <div class="guideline-icon">
+
+                        <i class="fa-solid fa-circle-check"></i>
+
+                    </div>
+
+                    <div>
+
+                        <strong>
+                            Confirmed
+                        </strong>
+
+                        <p>
+                            Participant registration has been
+                            successfully confirmed.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- Completed -->
+
+            <div class="col-lg-3 col-md-6">
+
+                <div class="guideline-card completed-card">
+
+                    <div class="guideline-icon">
+
+                        <i class="fa-solid fa-check-double"></i>
+
+                    </div>
+
+                    <div>
+
+                        <strong>
+                            Completed
+                        </strong>
+
+                        <p>
+                            Participant has completed the medical
+                            camp registration process.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- Cancelled -->
+
+            <div class="col-lg-3 col-md-6">
+
+                <div class="guideline-card cancelled-card">
+
+                    <div class="guideline-icon">
+
+                        <i class="fa-solid fa-circle-xmark"></i>
+
+                    </div>
+
+                    <div>
+
+                        <strong>
+                            Cancelled
+                        </strong>
+
+                        <p>
+                            Registration has been cancelled and
+                            is no longer active.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+    <!-- =========================================
+         JavaScript
+    ========================================== -->
+
+    <script>
+
+        $(document).ready(function () {
+
+            // =========================================
+            // Elements
+            // =========================================
+
+            var statusSelect =
+                $("#registrationStatus");
+
+            var statusInfo =
+                $("#statusInfo");
+
+            var statusInfoTitle =
+                $("#statusInfoTitle");
+
+            var statusInfoText =
+                $("#statusInfoText");
+
+            var remark =
+                $("#adminRemark");
+
+            var remarkCounter =
+                $("#remarkCounter");
+
+            var form =
+                $("#changeStatusForm");
+
+            var updateButton =
+                $("#updateStatusBtn");
+
+
+            // =========================================
+            // Status Information
+            // =========================================
+
+            function updateStatusInformation() {
+
+                var status =
+                    statusSelect.val();
+
+
+                statusInfo
+                    .removeClass(
+                        "status-pending status-confirmed status-completed status-cancelled"
+                    );
+
+
+                if (status === "Pending") {
+
+                    statusInfo.addClass(
+                        "status-pending"
+                    );
+
+                    statusInfoTitle.text(
+                        "Pending Registration"
+                    );
+
+                    statusInfoText.text(
+                        "This registration will remain pending and will require confirmation from the administration."
+                    );
+
+                }
+                else if (status === "Confirmed") {
+
+                    statusInfo.addClass(
+                        "status-confirmed"
+                    );
+
+                    statusInfoTitle.text(
+                        "Confirm Registration"
+                    );
+
+                    statusInfoText.text(
+                        "The participant's registration will be marked as confirmed and accepted for the medical camp."
+                    );
+
+                }
+                else if (status === "Completed") {
+
+                    statusInfo.addClass(
+                        "status-completed"
+                    );
+
+                    statusInfoTitle.text(
+                        "Complete Registration"
+                    );
+
+                    statusInfoText.text(
+                        "Use this status when the participant has completed the medical camp registration process."
+                    );
+
+                }
+                else if (status === "Cancelled") {
+
+                    statusInfo.addClass(
+                        "status-cancelled"
+                    );
+
+                    statusInfoTitle.text(
+                        "Cancel Registration"
+                    );
+
+                    statusInfoText.text(
+                        "The registration will be marked as cancelled. Please provide a suitable remark when cancelling."
+                    );
+
+                }
+                else {
+
+                    statusInfoTitle.text(
+                        "Select a status"
+                    );
+
+                    statusInfoText.text(
+                        "Choose the appropriate registration status from the dropdown above."
+                    );
+
+                }
+
+            }
+
+
+            // =========================================
+            // Status Change
+            // =========================================
+
+            statusSelect.on(
+                "change",
+                function () {
+
+                    updateStatusInformation();
+
+                }
+            );
+
+
+            // =========================================
+            // Remark Character Counter
+            // =========================================
+
+            function updateRemarkCounter() {
+
+                var length =
+                    remark.val().length;
+
+                remarkCounter.text(
+                    length + " / 500"
+                );
+
+
+                if (length >= 450) {
+
+                    remarkCounter.addClass(
+                        "counter-warning"
+                    );
+
+                }
+                else {
+
+                    remarkCounter.removeClass(
+                        "counter-warning"
+                    );
+
+                }
+
+            }
+
+
+            remark.on(
+                "input",
+                function () {
+
+                    updateRemarkCounter();
+
+                }
+            );
+
+
+            // =========================================
+            // Form Submit
+            // =========================================
+
+            form.on(
+                "submit",
+                function (e) {
+
+                    e.preventDefault();
+
+
+                    var selectedStatus =
+                        statusSelect.val();
+
+
+                    if (!selectedStatus) {
+
+                        Swal.fire({
+
+                            icon: "warning",
+
+                            title: "Select Status",
+
+                            text:
+                                "Please select a registration status before updating.",
+
+                            confirmButtonColor:
+                                "#0d6efd"
+
+                        });
+
+                        statusSelect.focus();
+
+                        return;
+
+                    }
+
+
+                    // =========================================
+                    // Cancel Confirmation
+                    // =========================================
+
+                    if (
+                        selectedStatus === "Cancelled"
+                    ) {
+
+                        Swal.fire({
+
+                            icon: "warning",
+
+                            title: "Cancel Registration?",
+
+                            text:
+                                "Are you sure you want to cancel this medical camp registration?",
+
+                            showCancelButton: true,
+
+                            confirmButtonText:
+                                "Yes, Cancel Registration",
+
+                            cancelButtonText:
+                                "Keep Registration",
+
+                            confirmButtonColor:
+                                "#dc3545",
+
+                            cancelButtonColor:
+                                "#6c757d"
+
+                        }).then(function (result) {
+
+                            if (result.isConfirmed) {
+
+                                submitForm();
+
+                            }
+
+                        });
+
+                    }
+                    else {
+
+                        var statusText =
+                            selectedStatus;
+
+
+                        Swal.fire({
+
+                            icon: "question",
+
+                            title: "Update Registration?",
+
+                            text:
+                                "Change registration status to " +
+                                statusText +
+                                "?",
+
+                            showCancelButton: true,
+
+                            confirmButtonText:
+                                "Yes, Update",
+
+                            cancelButtonText:
+                                "Cancel",
+
+                            confirmButtonColor:
+                                "#0d6efd",
+
+                            cancelButtonColor:
+                                "#6c757d"
+
+                        }).then(function (result) {
+
+                            if (result.isConfirmed) {
+
+                                submitForm();
+
+                            }
+
+                        });
+
+                    }
+
+                }
+            );
+
+
+            // =========================================
+            // Submit Form
+            // =========================================
+
+            function submitForm() {
+
+                updateButton.prop(
+                    "disabled",
+                    true
+                );
+
+
+                updateButton.html(
+                    '<span class="spinner-border spinner-border-sm me-2"></span>' +
+                    'Updating...'
+                );
+
+
+                // Native submit
+                form.off("submit");
+
+                form.submit();
+
+            }
+
+
+            // =========================================
+            // Initialize
+            // =========================================
+
+            updateStatusInformation();
+
+            updateRemarkCounter();
+
+        });
+
+    </script>
+
+
+    <!-- =========================================
+         Success Message
+    ========================================== -->
+    @if (TempData["Success"] != null)
+    {
+        <script>
+
+            $(document).ready(function () {
+
+                Swal.fire({
+
+                    icon: "success",
+
+                    title: "Success",
+
+                    text:
+                        "@TempData["Success"]",
+
+                    confirmButtonColor:
+                        "#0d6efd",
+
+                    timer: 2500,
+
+                    timerProgressBar: true
+
+                });
+
+            });
+
+        </script>
+    }
+
+
+    <!-- =========================================
+         Error Message
+    ========================================== -->
+    @if (TempData["Error"] != null)
+    {
+        <script>
+
+            $(document).ready(function () {
+
+                Swal.fire({
+
+                    icon: "error",
+
+                    title: "Error",
+
+                    text:
+                        "@TempData["Error"]",
+
+                    confirmButtonColor:
+                        "#dc3545"
+
+                });
+
+            });
+
+        </script>
+    }
+
+
+    <!-- =========================================
+         CSS
+    ========================================== -->
+
+    <style>
+
+        /* =========================================
+                   Main Page
+                ========================================== */
+
+        .change-status-page {
+            max-width: 1500px;
+        }
+
+
+        /* =========================================
+                   Page Header
+                ========================================== */
+
+        .page-header {
+            position: relative;
+            overflow: hidden;
+            padding: 35px;
+            border-radius: 22px;
+            color: #fff;
+            background: linear-gradient( 135deg, #0d6efd, #2563eb, #0891b2 );
+            box-shadow: 0 15px 35px rgba(13,110,253,.16);
+        }
+
+            .page-header::before {
+                content: "";
+                position: absolute;
+                width: 280px;
+                height: 280px;
+                right: -100px;
+                top: -140px;
+                border-radius: 50%;
+                background: rgba(255,255,255,.07);
+            }
+
+            .page-header::after {
+                content: "";
+                position: absolute;
+                width: 180px;
+                height: 180px;
+                left: 45%;
+                bottom: -120px;
+                border-radius: 50%;
+                background: rgba(255,255,255,.05);
+            }
+
+        .back-link {
+            position: relative;
+            z-index: 2;
+            color: rgba(255,255,255,.9);
+            text-decoration: none;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+            .back-link:hover {
+                color: #fff;
+            }
+
+        .header-badge {
+            position: relative;
+            z-index: 2;
+            display: inline-block;
+            padding: 7px 14px;
+            border-radius: 20px;
+            background: rgba(255,255,255,.15);
+            border: 1px solid rgba(255,255,255,.2);
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .page-header h1,
+        .page-header p {
+            position: relative;
+            z-index: 2;
+        }
+
+        .page-header h1 {
+            font-size: 32px;
+            letter-spacing: .2px;
+        }
+
+        .page-header p {
+            max-width: 700px;
+            margin-bottom: 0;
+            opacity: .9;
+            font-size: 12px;
+        }
+
+        .header-icon {
+            position: relative;
+            z-index: 2;
+            font-size: 90px;
+            opacity: .14;
+        }
+
+
+        /* =========================================
+                   Summary Cards
+                ========================================== */
+
+        .summary-card {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 19px;
+            background: #fff;
+            border: 1px solid #edf0f5;
+            border-radius: 15px;
+            box-shadow: 0 7px 22px rgba(0,0,0,.05);
+            transition: .25s ease;
+        }
+
+            .summary-card:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 12px 28px rgba(0,0,0,.08);
+            }
+
+        .summary-icon {
+            width: 50px;
+            height: 50px;
+            min-width: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 13px;
+            font-size: 19px;
+        }
+
+            .summary-icon.blue {
+                color: #0d6efd;
+                background: #eaf2ff;
+            }
+
+            .summary-icon.purple {
+                color: #7c3aed;
+                background: #f1eaff;
+            }
+
+            .summary-icon.green {
+                color: #198754;
+                background: #eaf8f0;
+            }
+
+            .summary-icon.orange {
+                color: #f59e0b;
+                background: #fff5df;
+            }
+
+        .summary-card span {
+            display: block;
+            margin-bottom: 4px;
+            color: #8a94a6;
+            font-size: 9px;
+        }
+
+        .summary-card strong {
+            display: block;
+            max-width: 220px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: #263143;
+            font-size: 13px;
+        }
+
+
+        /* =========================================
+                   Status Badges
+                ========================================== */
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 10px;
+            border-radius: 16px;
+            font-size: 9px;
+            font-weight: 700;
+        }
+
+            .status-badge.confirmed {
+                color: #198754;
+                background: #eaf8f0;
+            }
+
+            .status-badge.pending {
+                color: #9a6700;
+                background: #fff5df;
+            }
+
+            .status-badge.cancelled {
+                color: #dc3545;
+                background: #fff0f1;
+            }
+
+            .status-badge.completed {
+                color: #7c3aed;
+                background: #f1eaff;
+            }
+
+
+        /* =========================================
+                   Information Card
+                ========================================== */
+
+        .information-card,
+        .status-update-card {
+            height: 100%;
+            overflow: hidden;
+            background: #fff;
+            border: 1px solid #edf0f5;
+            border-radius: 18px;
+            box-shadow: 0 8px 25px rgba(0,0,0,.06);
+        }
+
+        .card-header-custom {
+            padding: 21px 23px;
+            border-bottom: 1px solid #edf0f5;
+            background: #f8fafc;
+        }
+
+            .card-header-custom h5 {
+                margin: 0;
+                color: #263143;
+                font-size: 15px;
+                font-weight: 700;
+            }
+
+                .card-header-custom h5 i {
+                    color: #0d6efd;
+                }
+
+            .card-header-custom p {
+                margin: 4px 0 0;
+                color: #8a94a6;
+                font-size: 10px;
+            }
+
+        .card-body-custom {
+            padding: 23px;
+        }
+
+
+        /* =========================================
+                   Information Boxes
+                ========================================== */
+
+        .info-box {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 13px;
+            background: #fafbfd;
+            border: 1px solid #edf0f5;
+            border-radius: 11px;
+            transition: .2s ease;
+        }
+
+            .info-box:hover {
+                background: #f7faff;
+                transform: translateY(-2px);
+            }
+
+        .info-icon {
+            width: 41px;
+            height: 41px;
+            min-width: 41px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            font-size: 14px;
+        }
+
+            .info-icon.blue {
+                color: #0d6efd;
+                background: #eaf2ff;
+            }
+
+            .info-icon.green {
+                color: #198754;
+                background: #eaf8f0;
+            }
+
+            .info-icon.red {
+                color: #dc3545;
+                background: #fff0f1;
+            }
+
+            .info-icon.purple {
+                color: #7c3aed;
+                background: #f1eaff;
+            }
+
+            .info-icon.cyan {
+                color: #0891b2;
+                background: #e6f9fc;
+            }
+
+            .info-icon.orange {
+                color: #f59e0b;
+                background: #fff5df;
+            }
+
+        .info-box small {
+            display: block;
+            margin-bottom: 4px;
+            color: #8a94a6;
+            font-size: 8px;
+        }
+
+        .info-box strong {
+            display: block;
+            color: #343b4a;
+            font-size: 11px;
+            word-break: break-word;
+        }
+
+
+        /* =========================================
+                   Health Box
+                ========================================== */
+
+        .health-box {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 15px;
+            border: 1px solid #ffebbd;
+            border-radius: 11px;
+            background: #fff8e8;
+        }
+
+        .health-icon {
+            width: 42px;
+            height: 42px;
+            min-width: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            color: #b77900;
+            background: #fff0c9;
+        }
+
+        .health-box small {
+            display: block;
+            margin-bottom: 4px;
+            color: #8a6100;
+            font-size: 8px;
+        }
+
+        .health-box p {
+            margin: 0;
+            color: #596273;
+            font-size: 10px;
+            line-height: 1.6;
+        }
+
+
+        /* =========================================
+                   Status Card Header
+                ========================================== */
+
+        .status-card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 21px 23px;
+            border-bottom: 1px solid #edf0f5;
+            background: #f8fafc;
+        }
+
+        .status-card-icon {
+            width: 43px;
+            height: 43px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 11px;
+            color: #0d6efd;
+            background: #eaf2ff;
+            font-size: 16px;
+        }
+
+        .status-card-header h5 {
+            margin: 0;
+            color: #263143;
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        .status-card-header p {
+            margin: 3px 0 0;
+            color: #8a94a6;
+            font-size: 10px;
+        }
+
+
+        /* =========================================
+                   Current Status
+                ========================================== */
+
+        .current-status-box {
+            margin: 22px;
+            padding: 15px;
+            border: 1px solid #e5eaf1;
+            border-radius: 11px;
+            background: #fafbfd;
+        }
+
+            .current-status-box small {
+                display: block;
+                margin-bottom: 8px;
+                color: #8a94a6;
+                font-size: 9px;
+                font-weight: 600;
+            }
+
+        .current-status {
+            min-height: 30px;
+        }
+
+
+        /* =========================================
+                   Form
+                ========================================== */
+
+        .form-section {
+            padding: 0 22px 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 7px;
+            color: #424b5c;
+            font-size: 10px;
+            font-weight: 700;
+        }
+
+            .form-label i {
+                color: #0d6efd;
+            }
+
+        .required {
+            color: #dc3545;
+            margin-left: 2px;
+        }
+
+        .optional {
+            float: right;
+            color: #9aa3b1;
+            font-size: 8px;
+            font-weight: 500;
+        }
+
+        .status-select-wrapper {
+            position: relative;
+        }
+
+            .status-select-wrapper > i {
+                position: absolute;
+                z-index: 2;
+                right: 13px;
+                top: 50%;
+                transform: translateY(-50%);
+                color: #8a94a6;
+                pointer-events: none;
+                font-size: 11px;
+            }
+
+        .status-select {
+            min-height: 45px;
+            padding-right: 38px;
+            border: 1px solid #dfe5ed;
+            border-radius: 9px;
+            color: #343b4a;
+            background: #fff;
+            font-size: 11px;
+            box-shadow: none !important;
+        }
+
+            .status-select:focus {
+                border-color: #86b7fe;
+            }
+
+        .validation-message {
+            display: block;
+            margin-top: 5px;
+            font-size: 9px;
+        }
+
+
+        /* =========================================
+                   Status Info
+                ========================================== */
+
+        .status-info-box {
+            display: flex;
+            align-items: flex-start;
+            gap: 11px;
+            margin: 0 22px 20px;
+            padding: 13px;
+            border: 1px solid #dceaff;
+            border-radius: 11px;
+            background: #eef5ff;
+            transition: .25s ease;
+        }
+
+        .status-info-icon {
+            width: 38px;
+            height: 38px;
+            min-width: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 9px;
+            color: #0d6efd;
+            background: #dceaff;
+        }
+
+        .status-info-box strong {
+            display: block;
+            margin-bottom: 3px;
+            color: #263143;
+            font-size: 10px;
+        }
+
+        .status-info-box p {
+            margin: 0;
+            color: #697386;
+            font-size: 9px;
+            line-height: 1.6;
+        }
+
+        .status-info-box.status-pending {
+            border-color: #ffe4a3;
+            background: #fff9eb;
+        }
+
+            .status-info-box.status-pending
+            .status-info-icon {
+                color: #9a6700;
+                background: #fff0c9;
+            }
+
+        .status-info-box.status-confirmed {
+            border-color: #ccebd8;
+            background: #effaf3;
+        }
+
+            .status-info-box.status-confirmed
+            .status-info-icon {
+                color: #198754;
+                background: #d9f2e2;
+            }
+
+        .status-info-box.status-completed {
+            border-color: #dfd2ff;
+            background: #f7f3ff;
+        }
+
+            .status-info-box.status-completed
+            .status-info-icon {
+                color: #7c3aed;
+                background: #e9ddff;
+            }
+
+        .status-info-box.status-cancelled {
+            border-color: #ffd4d8;
+            background: #fff4f5;
+        }
+
+            .status-info-box.status-cancelled
+            .status-info-icon {
+                color: #dc3545;
+                background: #ffe0e3;
+            }
+
+
+        /* =========================================
+                   Remark Textarea
+                ========================================== */
+
+        .remark-textarea {
+            resize: vertical;
+            min-height: 115px;
+            padding: 12px;
+            border: 1px solid #dfe5ed;
+            border-radius: 9px;
+            color: #343b4a;
+            font-size: 10px;
+            line-height: 1.6;
+            box-shadow: none !important;
+        }
+
+            .remark-textarea:focus {
+                border-color: #86b7fe;
+            }
+
+        .textarea-footer {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-top: 6px;
+        }
+
+            .textarea-footer small {
+                color: #9aa3b1;
+                font-size: 8px;
+            }
+
+        #remarkCounter {
+            color: #8a94a6;
+            font-size: 8px;
+            font-weight: 600;
+        }
+
+            #remarkCounter.counter-warning {
+                color: #dc3545;
+            }
+
+
+        /* =========================================
+                   Important Notice
+                ========================================== */
+
+        .important-notice {
+            display: flex;
+            align-items: flex-start;
+            gap: 11px;
+            margin: 0 22px 20px;
+            padding: 13px;
+            border: 1px solid #ffe4a3;
+            border-radius: 11px;
+            background: #fff9eb;
+        }
+
+        .notice-icon {
+            width: 38px;
+            height: 38px;
+            min-width: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 9px;
+            color: #b77900;
+            background: #fff0c9;
+        }
+
+        .important-notice strong {
+            display: block;
+            margin-bottom: 3px;
+            color: #9a6700;
+            font-size: 10px;
+        }
+
+        .important-notice p {
+            margin: 0;
+            color: #786b4e;
+            font-size: 8px;
+            line-height: 1.6;
+        }
+
+
+        /* =========================================
+                   Form Actions
+                ========================================== */
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            padding: 17px 22px;
+            border-top: 1px solid #edf0f5;
+            background: #fafbfd;
+        }
+
+            .form-actions .btn {
+                min-width: 125px;
+                padding: 10px 14px;
+                border-radius: 8px;
+                font-size: 10px;
+                font-weight: 600;
+            }
+
+
+        /* =========================================
+                   Guidelines
+                ========================================== */
+
+        .status-guidelines {
+            padding: 22px;
+            background: #fff;
+            border: 1px solid #edf0f5;
+            border-radius: 17px;
+            box-shadow: 0 7px 22px rgba(0,0,0,.05);
+        }
+
+        .guidelines-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-bottom: 17px;
+            border-bottom: 1px solid #edf0f5;
+        }
+
+        .guidelines-icon {
+            width: 43px;
+            height: 43px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 11px;
+            color: #0d6efd;
+            background: #eaf2ff;
+        }
+
+        .guidelines-header h5 {
+            margin: 0;
+            color: #263143;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .guidelines-header p {
+            margin: 3px 0 0;
+            color: #8a94a6;
+            font-size: 9px;
+        }
+
+
+        /* =========================================
+                   Guideline Cards
+                ========================================== */
+
+        .guideline-card {
+            height: 100%;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 14px;
+            border-radius: 11px;
+        }
+
+        .guideline-icon {
+            width: 38px;
+            height: 38px;
+            min-width: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 9px;
+        }
+
+        .guideline-card strong {
+            display: block;
+            margin-bottom: 4px;
+            font-size: 10px;
+        }
+
+        .guideline-card p {
+            margin: 0;
+            color: #697386;
+            font-size: 8px;
+            line-height: 1.6;
+        }
+
+        .pending-card {
+            border: 1px solid #ffe7ad;
+            background: #fffaf0;
+        }
+
+            .pending-card .guideline-icon {
+                color: #9a6700;
+                background: #fff0c9;
+            }
+
+            .pending-card strong {
+                color: #9a6700;
+            }
+
+        .confirmed-card {
+            border: 1px solid #ccebd8;
+            background: #f1faf4;
+        }
+
+            .confirmed-card .guideline-icon {
+                color: #198754;
+                background: #d9f2e2;
+            }
+
+            .confirmed-card strong {
+                color: #198754;
+            }
+
+        .completed-card {
+            border: 1px solid #dfd2ff;
+            background: #f8f5ff;
+        }
+
+            .completed-card .guideline-icon {
+                color: #7c3aed;
+                background: #e9ddff;
+            }
+
+            .completed-card strong {
+                color: #7c3aed;
+            }
+
+        .cancelled-card {
+            border: 1px solid #ffd4d8;
+            background: #fff5f6;
+        }
+
+            .cancelled-card .guideline-icon {
+                color: #dc3545;
+                background: #ffe0e3;
+            }
+
+            .cancelled-card strong {
+                color: #dc3545;
+            }
+
+
+        /* =========================================
+                   Animation
+                ========================================== */
+
+        .summary-card,
+        .information-card,
+        .status-update-card,
+        .status-guidelines {
+            animation: fadeInUp .4s ease;
+        }
+
+        @@keyframes fadeInUp {
+
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+
+        /* =========================================
+                   Responsive
+                ========================================== */
+
+        @@media(max-width:991px) {
+
+            .page-header {
+                padding: 28px;
+            }
+
+                .page-header h1 {
+                    font-size: 28px;
+                }
+
+            .status-guidelines {
+                padding: 18px;
+            }
+        }
+
+
+        @@media(max-width:767px) {
+
+            .page-header {
+                padding: 23px;
+                border-radius: 17px;
+            }
+
+                .page-header h1 {
+                    font-size: 24px;
+                }
+
+            .card-body-custom {
+                padding: 18px;
+            }
+
+            .form-section {
+                padding-left: 18px;
+                padding-right: 18px;
+            }
+
+            .current-status-box,
+            .status-info-box,
+            .important-notice {
+                margin-left: 18px;
+                margin-right: 18px;
+            }
+
+            .form-actions {
+                padding: 15px 18px;
+                flex-direction: column-reverse;
+            }
+
+                .form-actions .btn {
+                    width: 100%;
+                }
+
+            .guidelines-header {
+                align-items: flex-start;
+            }
+        }
+
+
+        @@media(max-width:480px) {
+
+            .page-header {
+                padding: 20px 17px;
+            }
+
+                .page-header h1 {
+                    font-size: 21px;
+                }
+
+            .info-box {
+                padding: 11px;
+            }
+
+            .status-card-header,
+            .card-header-custom {
+                padding: 18px;
+            }
+
+            .status-guidelines {
+                padding: 15px;
+            }
+
+            .textarea-footer {
+                align-items: flex-start;
+                flex-direction: column;
+                gap: 3px;
+            }
+        }
+
+    </style>
+
+</div>

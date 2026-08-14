@@ -1,0 +1,152 @@
+@model IEnumerable<ClinicManagementSystem.Models.LabBookingModel>
+@{
+    ViewData["Title"] = "My Lab Test Bookings";
+    Layout = "~/Views/Shared/_CustomerLayout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold text-primary mb-1"><i class="fa-solid fa-calendar-check text-info me-2"></i>My Lab Bookings</h2>
+        <p class="text-muted mb-0">Track and manage your scheduled diagnostic lab appointments</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-controller="Customer" asp-action="LabTests" class="btn btn-primary rounded-pill"><i class="fa-solid fa-plus me-1"></i> Book New Test</a>
+        <a asp-controller="Customer" asp-action="MyLabReports" class="btn btn-outline-primary rounded-pill"><i class="fa-solid fa-file-medical-alt me-1"></i> My Reports</a>
+    </div>
+</div>
+
+<!-- Search & Status Filter -->
+<div class="card shadow-sm border-0 mb-4 rounded-4">
+    <div class="card-body p-4 bg-white rounded-4">
+        <form method="get" asp-action="MyLabTests">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-7">
+                    <label class="form-label fw-semibold text-secondary small">Search Bookings</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                        <input type="text" name="search" value="@ViewBag.Search" class="form-control bg-light border-start-0" placeholder="Search by booking no, test name or patient name..." />
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold text-secondary small">Test Status</label>
+                    <select name="status" class="form-select bg-light">
+                        <option value="">All Statuses</option>
+                        <!option value="Pending" @(ViewBag.Status == "Pending" ? "selected" : "")>Pending</!option>
+                        <!option value="Sample Collected" @(ViewBag.Status == "Sample Collected" ? "selected" : "")>Sample Collected</!option>
+                        <!option value="In Progress" @(ViewBag.Status == "In Progress" ? "selected" : "")>In Progress</!option>
+                        <!option value="Completed" @(ViewBag.Status == "Completed" ? "selected" : "")>Completed</!option>
+                        <!option value="Cancelled" @(ViewBag.Status == "Cancelled" ? "selected" : "")>Cancelled</!option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100 rounded-3"><i class="fa-solid fa-filter"></i> Filter</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Bookings List -->
+@if (Model != null && Model.Any())
+{
+    <div class="row g-4 mb-5">
+        @foreach (var item in Model)
+        {
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 shadow-sm border-0 rounded-4 transition-hover overflow-hidden">
+                    <div class="card-header bg-white border-0 pt-4 px-4 pb-0 d-flex justify-content-between align-items-center">
+                        <span class="fw-bold text-primary"><i class="fa-solid fa-hashtag me-1"></i>@item.BookingNo</span>
+                        <div>
+                            @if (item.TestStatus == "Completed")
+                            {
+                                <span class="badge bg-success-subtle text-success px-3 py-2 rounded-pill"><i class="fa-solid fa-circle-check me-1"></i>Completed</span>
+                            }
+                            else if (item.TestStatus == "Cancelled")
+                            {
+                                <span class="badge bg-danger-subtle text-danger px-3 py-2 rounded-pill"><i class="fa-solid fa-circle-xmark me-1"></i>Cancelled</span>
+                            }
+                            else if (item.TestStatus == "In Progress" || item.TestStatus == "Sample Collected")
+                            {
+                                <span class="badge bg-info-subtle text-info px-3 py-2 rounded-pill"><i class="fa-solid fa-spinner fa-spin me-1"></i>@item.TestStatus</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-warning-subtle text-warning-emphasis px-3 py-2 rounded-pill"><i class="fa-solid fa-clock me-1"></i>Pending</span>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold text-dark mb-1">@item.TestName</h5>
+                        <p class="text-muted small mb-3"><i class="fa-solid fa-user me-1 text-secondary"></i>Patient: <strong>@item.PatientName</strong></p>
+
+                        <div class="p-3 bg-light rounded-3 mb-3 fs-7">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="text-secondary"><i class="fa-solid fa-calendar me-1"></i>Preferred Date:</span>
+                                <span class="fw-semibold text-dark">@(item.PreferredDate.HasValue ? item.PreferredDate.Value.ToString("dd MMM yyyy") : "N/A")</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="text-secondary"><i class="fa-solid fa-clock me-1"></i>Slot:</span>
+                                <span class="fw-semibold text-dark">@(string.IsNullOrEmpty(item.PreferredTime) ? "Standard" : item.PreferredTime)</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span class="text-secondary"><i class="fa-solid fa-wallet me-1"></i>Fee & Payment:</span>
+                                <div>
+                                    <strong class="text-dark">₹@item.Amount.ToString("N2")</strong>
+                                    <span class="badge bg-secondary-subtle text-secondary ms-1">@item.PaymentStatus</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-footer bg-white border-top-0 p-4 pt-0 d-flex gap-2">
+                        <a asp-action="LabBookingDetails" asp-route-id="@item.LabBookingId" class="btn btn-outline-primary w-100 rounded-3">
+                            <i class="fa-solid fa-eye me-1"></i> Details
+                        </a>
+                        @if (item.TestStatus == "Pending" || item.TestStatus == "Sample Collected")
+                        {
+                            <a asp-action="CancelLabBooking" asp-route-id="@item.LabBookingId" class="btn btn-outline-danger w-50 rounded-3 btn-cancel-confirm">
+                                <i class="fa-solid fa-xmark me-1"></i> Cancel
+                            </a>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="text-center py-5 bg-white rounded-4 shadow-sm">
+        <i class="fa-solid fa-calendar-xmark fa-4x text-muted mb-3"></i>
+        <h4 class="fw-bold text-dark">No Lab Bookings Found</h4>
+        <p class="text-muted">You haven't booked any lab tests yet or no bookings match your search filters.</p>
+        <a asp-action="LabTests" class="btn btn-primary rounded-pill px-4"><i class="fa-solid fa-flask me-1"></i> Browse & Book Tests</a>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('.btn-cancel-confirm').on('click', function (e) {
+                e.preventDefault();
+                var url = $(this).attr('href');
+                Swal.fire({
+                    title: 'Cancel Booking?',
+                    text: "Are you sure you want to cancel this lab test booking?",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Yes, Cancel Booking'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = url;
+                    }
+                });
+            });
+        });
+    </script>
+}

@@ -1,0 +1,153 @@
+@model List<ClinicManagementSystem.Models.LabReportModel>
+@{
+    ViewData["Title"] = "Manage Lab Reports";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="mb-0 text-primary"><i class="fas fa-file-medical-alt me-2"></i>Manage Lab Reports</h3>
+        <small class="text-muted">Upload, view, edit and manage diagnostic test reports for patients</small>
+    </div>
+    <a asp-action="UploadLabReport" class="btn btn-primary shadow-sm"><i class="fas fa-upload me-1"></i> Upload New Report</a>
+</div>
+
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body bg-light rounded">
+        <form method="get" asp-action="ManageLabReport" class="row g-3">
+            <div class="col-md-6">
+                <div class="input-group">
+                    <span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
+                    <input type="text" name="search" value="@ViewBag.Search" class="form-control" placeholder="Search Report No, Booking No, Patient Name..." />
+                </div>
+            </div>
+            <div class="col-md-4">
+                <select name="status" class="form-select">
+                    <option value="">-- All Report Statuses --</option>
+                    <!option value="Completed" @(ViewBag.Status == "Completed" ? "selected" : "")>Completed</!option>
+                    <!option value="Pending" @(ViewBag.Status == "Pending" ? "selected" : "")>Pending</!option>
+                    <!option value="Draft" @(ViewBag.Status == "Draft" ? "selected" : "")>Draft</!option>
+                </select>
+            </div>
+            <div class="col-md-2 d-flex gap-2">
+                <button type="submit" class="btn btn-primary w-100"><i class="fas fa-filter me-1"></i> Filter</button>
+                <a asp-action="ManageLabReport" class="btn btn-outline-secondary"><i class="fas fa-undo"></i></a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0"><i class="fas fa-list me-2"></i>Lab Reports List</h5>
+        <span class="badge bg-light text-primary">Total: @(Model?.Count ?? 0)</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover table-striped align-middle mb-0" id="labReportTable">
+                <thead class="table-dark">
+                    <tr>
+                        <th class="ps-3">Report No</th>
+                        <th>Booking & Patient Info</th>
+                        <th>Test Title</th>
+                        <th>Technician</th>
+                        <th>Report Date</th>
+                        <th>Status</th>
+                        <th class="text-end pe-3">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="ps-3 fw-bold text-primary">
+                                    <div>@item.ReportNo</div>
+                                    <small class="text-muted"><i class="fas fa-bookmark me-1"></i>Bk: @item.BookingNo</small>
+                                </td>
+                                <td>
+                                    <div class="fw-bold text-dark">@item.PatientName</div>
+                                    <small class="text-muted"><i class="fas fa-phone text-secondary me-1"></i>@(string.IsNullOrEmpty(item.MobileNo) ? "N/A" : item.MobileNo)</small>
+                                </td>
+                                <td>
+                                    <div class="fw-bold">@item.TestName</div>
+                                    <small class="text-muted">@(string.IsNullOrEmpty(item.ReportTitle) ? "Lab Report" : item.ReportTitle)</small>
+                                </td>
+                                <td><i class="fas fa-user-md text-info me-1"></i>@(string.IsNullOrEmpty(item.TechnicianName) ? "Lab Tech" : item.TechnicianName)</td>
+                                <td>@(item.ReportDate.HasValue ? item.ReportDate.Value.ToString("dd MMM yyyy") : "N/A")</td>
+                                <td>
+                                    @if (item.ReportStatus == "Completed")
+                                    {
+                                        <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Completed</span>
+                                    }
+                                    else if (item.ReportStatus == "Draft")
+                                    {
+                                        <span class="badge bg-warning text-dark"><i class="fas fa-edit me-1"></i>Draft</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary"><i class="fas fa-hourglass-half me-1"></i>Pending</span>
+                                    }
+                                </td>
+                                <td class="text-end pe-3">
+                                    <a asp-action="ViewLabReport" asp-route-id="@item.LabReportId" class="btn btn-outline-info btn-sm me-1" title="View Report"><i class="fas fa-eye"></i> View</a>
+                                    @if (!string.IsNullOrEmpty(item.ReportFile))
+                                    {
+                                        <a href="~/LabReports/@item.ReportFile" target="_blank" class="btn btn-outline-success btn-sm me-1" title="Download PDF"><i class="fas fa-file-pdf"></i> PDF</a>
+                                    }
+                                    <a asp-action="EditLabReport" asp-route-id="@item.LabReportId" class="btn btn-outline-warning btn-sm me-1" title="Edit"><i class="fas fa-edit"></i> Edit</a>
+                                    <a asp-action="ChangeLabReportStatus" asp-route-id="@item.LabReportId" class="btn btn-outline-secondary btn-sm me-1" title="Status"><i class="fas fa-toggle-on"></i> Status</a>
+                                    <button class="btn btn-outline-danger btn-sm" onclick="confirmDeleteReport(@item.LabReportId, '@item.ReportNo')" title="Delete"><i class="fas fa-trash"></i></button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center py-4 text-muted">
+                                <i class="fas fa-file-excel fa-3x mb-3 d-block text-secondary"></i>
+                                No Lab Reports found matching your search.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+@if (TempData["Success"] != null)
+{
+    <script>
+        Swal.fire({ icon: 'success', title: 'Success', text: '@TempData["Success"]', timer: 3000, showConfirmButton: false });
+    </script>
+}
+@if (TempData["Error"] != null)
+{
+    <script>
+        Swal.fire({ icon: 'error', title: 'Error', text: '@TempData["Error"]' });
+    </script>
+}
+
+<script>
+    function confirmDeleteReport(id, reportNo) {
+        Swal.fire({
+            title: 'Delete Lab Report?',
+            text: 'Are you sure you want to delete Report ' + reportNo + '?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Yes, Delete'
+        }).then((r) => {
+            if (r.isConfirmed) {
+                window.location = '/Admin/DeleteLabReport/' + id;
+            }
+        });
+    }
+</script>

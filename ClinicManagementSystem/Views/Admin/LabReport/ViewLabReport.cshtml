@@ -1,0 +1,139 @@
+@model ClinicManagementSystem.Models.LabReportModel
+@{
+    ViewData["Title"] = "View Lab Report";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="mb-0 text-primary"><i class="fas fa-file-medical me-2"></i>Lab Report Details</h3>
+        <small class="text-muted">Report Number: <strong class="text-dark">@Model.ReportNo</strong></small>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="ManageLabReport" class="btn btn-secondary shadow-sm"><i class="fas fa-arrow-left me-1"></i> Back to List</a>
+        @if (!string.IsNullOrEmpty(Model.ReportFile))
+        {
+            <a href="~/LabReports/@Model.ReportFile" target="_blank" class="btn btn-success shadow-sm"><i class="fas fa-file-pdf me-1"></i> Open / Download PDF</a>
+        }
+        <a asp-action="EditLabReport" asp-route-id="@Model.LabReportId" class="btn btn-warning shadow-sm"><i class="fas fa-edit me-1"></i> Edit Report</a>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0"><i class="fas fa-notes-medical me-2"></i>@Model.ReportTitle</h5>
+                <div>
+                    @if (Model.ReportStatus == "Completed")
+                    {
+                        <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Completed</span>
+                    }
+                    else if (Model.ReportStatus == "Draft")
+                    {
+                        <span class="badge bg-warning text-dark"><i class="fas fa-edit me-1"></i>Draft</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary"><i class="fas fa-clock me-1"></i>Pending</span>
+                    }
+                </div>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-4">
+                    <!-- Report & Booking Meta -->
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded border h-100">
+                            <h6 class="text-muted text-uppercase mb-3"><i class="fas fa-info-circle me-2 text-primary"></i>Report Information</h6>
+                            <table class="table table-borderless mb-0">
+                                <tr>
+                                    <th class="ps-0 text-secondary" style="width: 40%;">Report No:</th>
+                                    <td class="fw-bold text-primary">@Model.ReportNo</td>
+                                </tr>
+                                <tr>
+                                    <th class="ps-0 text-secondary">Booking No:</th>
+                                    <td class="fw-bold">@Model.BookingNo</td>
+                                </tr>
+                                <tr>
+                                    <th class="ps-0 text-secondary">Report Date:</th>
+                                    <td>@(Model.ReportDate.HasValue ? Model.ReportDate.Value.ToString("dd MMM yyyy, hh:mm tt") : "N/A")</td>
+                                </tr>
+                                <tr>
+                                    <th class="ps-0 text-secondary">Lab Technician:</th>
+                                    <td class="fw-bold"><i class="fas fa-user-md text-info me-1"></i>@(string.IsNullOrEmpty(Model.TechnicianName) ? "Lab Staff" : Model.TechnicianName)</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Patient & Test Meta -->
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded border h-100">
+                            <h6 class="text-muted text-uppercase mb-3"><i class="fas fa-user-patient me-2 text-danger"></i>Patient & Test Summary</h6>
+                            <table class="table table-borderless mb-0">
+                                <tr>
+                                    <th class="ps-0 text-secondary" style="width: 40%;">Patient Name:</th>
+                                    <td class="fw-bold text-dark">@Model.PatientName</td>
+                                </tr>
+                                <tr>
+                                    <th class="ps-0 text-secondary">Mobile No:</th>
+                                    <td><i class="fas fa-phone text-secondary me-1"></i>@(string.IsNullOrEmpty(Model.MobileNo) ? "N/A" : Model.MobileNo)</td>
+                                </tr>
+                                <tr>
+                                    <th class="ps-0 text-secondary">Test Name:</th>
+                                    <td class="fw-bold text-primary">@Model.TestName</td>
+                                </tr>
+                                <tr>
+                                    <th class="ps-0 text-secondary">Test Category:</th>
+                                    <td><span class="badge bg-info text-dark">@Model.TestCategory</span></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Technician Remarks -->
+                    <div class="col-12">
+                        <div class="p-3 bg-light rounded border">
+                            <h6 class="text-muted text-uppercase mb-2"><i class="fas fa-comment-medical me-2 text-warning"></i>Technician Remarks / Findings</h6>
+                            <p class="mb-0 text-dark" style="white-space: pre-line;">@(string.IsNullOrEmpty(Model.ReportRemark) ? "No technician remarks specified." : Model.ReportRemark)</p>
+                        </div>
+                    </div>
+
+                    <!-- PDF Preview / Link -->
+                    <div class="col-12">
+                        <div class="p-3 bg-light rounded border">
+                            <h6 class="text-muted text-uppercase mb-3"><i class="fas fa-file-pdf me-2 text-danger"></i>Attached PDF Document</h6>
+                            @if (!string.IsNullOrEmpty(Model.ReportFile))
+                            {
+                                <div class="d-flex align-items-center justify-content-between p-3 bg-white border rounded">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-file-pdf fa-2x text-danger me-3"></i>
+                                        <div>
+                                            <div class="fw-bold text-dark">@Model.ReportFile</div>
+                                            <small class="text-muted">PDF Document</small>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <a href="~/LabReports/@Model.ReportFile" target="_blank" class="btn btn-outline-primary me-2"><i class="fas fa-external-link-alt me-1"></i> Open PDF</a>
+                                        <a href="~/LabReports/@Model.ReportFile" download class="btn btn-primary"><i class="fas fa-download me-1"></i> Download</a>
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <p class="text-muted mb-0">No PDF document attached to this report.</p>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-white border-top p-3 d-flex justify-content-between">
+                <a asp-action="ManageLabReport" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-1"></i> Back</a>
+                <div>
+                    <a asp-action="ChangeLabReportStatus" asp-route-id="@Model.LabReportId" class="btn btn-secondary me-2"><i class="fas fa-toggle-on me-1"></i> Change Status</a>
+                    <a asp-action="EditLabReport" asp-route-id="@Model.LabReportId" class="btn btn-warning"><i class="fas fa-edit me-1"></i> Edit Report</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

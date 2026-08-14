@@ -11658,6 +11658,2829 @@ AND IsDeleted=0", con);
 
             return RedirectToAction("ManageMedicalCamp");
         }
+
+        [HttpGet]
+        public IActionResult ManageCampRegistration()
+        {
+
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+
+            List<CampRegistrationModel> list =
+                new List<CampRegistrationModel>();
+
+
+            try
+            {
+                using (SqlConnection con =
+                    new SqlConnection(cs))
+                {
+                    con.Open();
+
+
+                    string query = @"
+SELECT
+
+    -- Registration
+    cr.CampRegistrationId,
+    cr.CampId,
+    cr.CustomerId,
+
+    cr.RegistrationNo,
+    cr.RegistrationDate,
+
+    cr.ParticipantName,
+    cr.MobileNo,
+    cr.Email,
+    cr.Age,
+    cr.Gender,
+    cr.HealthConcern,
+
+    cr.RegistrationStatus,
+    cr.PaymentStatus,
+    cr.Amount,
+    cr.AdminRemark,
+
+    cr.IsActive,
+    cr.IsDeleted,
+
+    cr.CreatedDate,
+    cr.UpdatedDate,
+
+
+    -- Customer
+    c.FullName AS CustomerName,
+
+
+    -- Medical Camp
+    mc.CampTitle,
+    mc.CampImage,
+    mc.CampDate,
+    mc.StartTime,
+    mc.EndTime,
+    mc.Venue,
+    mc.Organizer,
+    mc.RegistrationFee,
+    mc.MaxParticipants,
+    mc.AvailableSeats,
+
+
+    -- Doctor
+    d.DoctorName,
+
+
+    -- Department
+    dep.DepartmentName
+
+
+FROM tbl_CampRegistration cr
+
+
+INNER JOIN tbl_Customer c
+    ON cr.CustomerId = c.CustomerId
+
+
+INNER JOIN tbl_MedicalCamp mc
+    ON cr.CampId = mc.CampId
+
+
+LEFT JOIN tbl_Doctor d
+    ON mc.DoctorId = d.DoctorId
+
+
+LEFT JOIN tbl_Department dep
+    ON mc.DepartmentId = dep.DepartmentId
+
+
+WHERE
+    cr.IsDeleted = 0
+
+
+ORDER BY
+    cr.RegistrationDate DESC";
+
+
+                    using (SqlCommand cmd =
+                        new SqlCommand(query, con))
+                    {
+                        using (SqlDataReader dr =
+                            cmd.ExecuteReader())
+                        {
+                            while (dr.Read())
+                            {
+                                CampRegistrationModel model =
+                                    new CampRegistrationModel();
+
+
+                                model.CampRegistrationId =
+                                    Convert.ToInt64(
+                                        dr["CampRegistrationId"]);
+
+
+                                model.CampId =
+                                    Convert.ToInt64(
+                                        dr["CampId"]);
+
+
+                                model.CustomerId =
+                                    Convert.ToInt64(
+                                        dr["CustomerId"]);
+
+
+                                model.RegistrationNo =
+                                    dr["RegistrationNo"] ==
+                                    DBNull.Value
+                                    ? ""
+                                    : dr["RegistrationNo"].ToString();
+
+
+                                if (dr["RegistrationDate"] !=
+                                    DBNull.Value)
+                                {
+                                    model.RegistrationDate =
+                                        Convert.ToDateTime(
+                                            dr["RegistrationDate"]);
+                                }
+
+
+                                model.ParticipantName =
+                                    dr["ParticipantName"] ==
+                                    DBNull.Value
+                                    ? ""
+                                    : dr["ParticipantName"].ToString();
+
+
+                                model.MobileNo =
+                                    dr["MobileNo"] ==
+                                    DBNull.Value
+                                    ? ""
+                                    : dr["MobileNo"].ToString();
+
+
+                                model.Email =
+                                    dr["Email"] ==
+                                    DBNull.Value
+                                    ? ""
+                                    : dr["Email"].ToString();
+
+
+                                if (dr["Age"] != DBNull.Value)
+                                {
+                                    model.Age =
+                                        Convert.ToInt32(
+                                            dr["Age"]);
+                                }
+
+
+                                model.Gender =
+                                    dr["Gender"] ==
+                                    DBNull.Value
+                                    ? ""
+                                    : dr["Gender"].ToString();
+
+
+                                model.HealthConcern =
+                                    dr["HealthConcern"] ==
+                                    DBNull.Value
+                                    ? ""
+                                    : dr["HealthConcern"].ToString();
+
+
+
+                                model.RegistrationStatus =
+                                    dr["RegistrationStatus"] ==
+                                    DBNull.Value
+                                    ? ""
+                                    : dr["RegistrationStatus"].ToString();
+
+
+                                model.PaymentStatus =
+                                    dr["PaymentStatus"] ==
+                                    DBNull.Value
+                                    ? ""
+                                    : dr["PaymentStatus"].ToString();
+
+
+                                model.Amount =
+                                    dr["Amount"] ==
+                                    DBNull.Value
+                                    ? 0
+                                    : Convert.ToDecimal(
+                                        dr["Amount"]);
+
+
+                                model.AdminRemark =
+                                    dr["AdminRemark"] ==
+                                    DBNull.Value
+                                    ? ""
+                                    : dr["AdminRemark"].ToString();
+
+
+
+                                model.CustomerName =
+                                    dr["CustomerName"] ==
+                                    DBNull.Value
+                                    ? ""
+                                    : dr["CustomerName"].ToString();
+
+
+                                model.CampTitle =
+                                    dr["CampTitle"] ==
+                                    DBNull.Value
+                                    ? ""
+                                    : dr["CampTitle"].ToString();
+
+
+                                model.CampImage =
+                                    dr["CampImage"] ==
+                                    DBNull.Value
+                                    ? ""
+                                    : dr["CampImage"].ToString();
+
+
+                                if (dr["CampDate"] !=
+                                    DBNull.Value)
+                                {
+                                    model.CampDate =
+                                        Convert.ToDateTime(
+                                            dr["CampDate"]);
+                                }
+
+
+                                if (dr["StartTime"] !=
+                                    DBNull.Value)
+                                {
+                                    model.StartTime =
+                                        (TimeSpan)
+                                        dr["StartTime"];
+                                }
+
+
+                                if (dr["EndTime"] !=
+                                    DBNull.Value)
+                                {
+                                    model.EndTime =
+                                        (TimeSpan)
+                                        dr["EndTime"];
+                                }
+
+
+                                model.Venue =
+                                    dr["Venue"] ==
+                                    DBNull.Value
+                                    ? ""
+                                    : dr["Venue"].ToString();
+
+
+                                model.Organizer =
+                                    dr["Organizer"] ==
+                                    DBNull.Value
+                                    ? ""
+                                    : dr["Organizer"].ToString();
+
+
+
+                                model.RegistrationFee =
+                                    dr["RegistrationFee"] ==
+                                    DBNull.Value
+                                    ? 0
+                                    : Convert.ToDecimal(
+                                        dr["RegistrationFee"]);
+
+
+                                model.MaxParticipants =
+                                    dr["MaxParticipants"] ==
+                                    DBNull.Value
+                                    ? 0
+                                    : Convert.ToInt32(
+                                        dr["MaxParticipants"]);
+
+
+                                model.AvailableSeats =
+                                    dr["AvailableSeats"] ==
+                                    DBNull.Value
+                                    ? 0
+                                    : Convert.ToInt32(
+                                        dr["AvailableSeats"]);
+
+
+                                model.DoctorName =
+                                    dr["DoctorName"] ==
+                                    DBNull.Value
+                                    ? ""
+                                    : dr["DoctorName"].ToString();
+
+
+
+                                model.DepartmentName =
+                                    dr["DepartmentName"] ==
+                                    DBNull.Value
+                                    ? ""
+                                    : dr["DepartmentName"].ToString();
+
+
+                                model.IsActive =
+                                    dr["IsActive"] ==
+                                    DBNull.Value
+                                    ? false
+                                    : Convert.ToBoolean(
+                                        dr["IsActive"]);
+
+
+                                model.IsDeleted =
+                                    dr["IsDeleted"] ==
+                                    DBNull.Value
+                                    ? false
+                                    : Convert.ToBoolean(
+                                        dr["IsDeleted"]);
+
+
+                                if (dr["CreatedDate"] !=
+                                    DBNull.Value)
+                                {
+                                    model.CreatedDate =
+                                        Convert.ToDateTime(
+                                            dr["CreatedDate"]);
+                                }
+
+
+                                if (dr["UpdatedDate"] !=
+                                    DBNull.Value)
+                                {
+                                    model.UpdatedDate =
+                                        Convert.ToDateTime(
+                                            dr["UpdatedDate"]);
+                                }
+
+
+                                list.Add(model);
+                            }
+                        }
+                    }
+                }
+
+
+                return View(list);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] =
+                    "Unable to load camp registrations: "
+                    + ex.Message;
+
+
+                return View(list);
+            }
+        }
+
+        [HttpGet]
+        public IActionResult ViewCampRegistration(long id)
+        {
+
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+
+            CampRegistrationModel model =
+                new CampRegistrationModel();
+
+
+            try
+            {
+                using (SqlConnection con =
+                    new SqlConnection(cs))
+                {
+                    con.Open();
+
+
+
+                    string query = @"
+SELECT
+
+    -- Registration
+    cr.CampRegistrationId,
+    cr.CampId,
+    cr.CustomerId,
+
+    cr.RegistrationNo,
+    cr.RegistrationDate,
+
+    cr.ParticipantName,
+    cr.MobileNo,
+    cr.Email,
+    cr.Age,
+    cr.Gender,
+    cr.HealthConcern,
+
+    cr.RegistrationStatus,
+    cr.PaymentStatus,
+    cr.Amount,
+    cr.AdminRemark,
+
+    cr.IsActive,
+    cr.IsDeleted,
+
+    cr.CreatedDate,
+    cr.UpdatedDate,
+
+
+    -- Customer
+    c.FullName AS CustomerName,
+
+
+    -- Medical Camp
+    mc.CampTitle,
+    mc.CampImage,
+    mc.CampBanner,
+    mc.CampDescription,
+    mc.CampDate,
+    mc.StartTime,
+    mc.EndTime,
+    mc.Venue,
+    mc.Organizer,
+    mc.Benefits,
+    mc.Instructions,
+    mc.ContactNumber,
+    mc.Email AS CampEmail,
+
+    mc.RegistrationFee,
+    mc.MaxParticipants,
+    mc.AvailableSeats,
+
+
+    -- Doctor
+    d.DoctorName,
+
+
+    -- Department
+    dep.DepartmentName
+
+
+FROM tbl_CampRegistration cr
+
+
+INNER JOIN tbl_Customer c
+    ON cr.CustomerId = c.CustomerId
+
+
+INNER JOIN tbl_MedicalCamp mc
+    ON cr.CampId = mc.CampId
+
+
+LEFT JOIN tbl_Doctor d
+    ON mc.DoctorId = d.DoctorId
+
+
+LEFT JOIN tbl_Department dep
+    ON mc.DepartmentId = dep.DepartmentId
+
+
+WHERE
+    cr.CampRegistrationId = @CampRegistrationId
+    AND cr.IsDeleted = 0";
+
+
+                    using (SqlCommand cmd =
+                        new SqlCommand(query, con))
+                    {
+                        cmd.Parameters.Add(
+                            "@CampRegistrationId",
+                            SqlDbType.BigInt).Value = id;
+
+
+                        using (SqlDataReader dr =
+                            cmd.ExecuteReader())
+                        {
+
+                            if (dr.Read())
+                            {
+
+                                model.CampRegistrationId =
+                                    Convert.ToInt64(
+                                        dr["CampRegistrationId"]);
+
+
+                                model.CampId =
+                                    Convert.ToInt64(
+                                        dr["CampId"]);
+
+
+                                model.CustomerId =
+                                    Convert.ToInt64(
+                                        dr["CustomerId"]);
+
+
+                                model.RegistrationNo =
+                                    dr["RegistrationNo"] ==
+                                    DBNull.Value
+                                    ? ""
+                                    : dr["RegistrationNo"].ToString();
+
+
+                                if (dr["RegistrationDate"] !=
+                                    DBNull.Value)
+                                {
+                                    model.RegistrationDate =
+                                        Convert.ToDateTime(
+                                            dr["RegistrationDate"]);
+                                }
+
+
+                                model.ParticipantName =
+                                    dr["ParticipantName"] ==
+                                    DBNull.Value
+                                    ? ""
+                                    : dr["ParticipantName"].ToString();
+
+
+                                model.MobileNo =
+                                    dr["MobileNo"] ==
+                                    DBNull.Value
+                                    ? ""
+                                    : dr["MobileNo"].ToString();
+
+
+                                model.Email =
+                                    dr["Email"] ==
+                                    DBNull.Value
+                                    ? ""
+                                    : dr["Email"].ToString();
+
+
+                                if (dr["Age"] != DBNull.Value)
+                                {
+                                    model.Age =
+                                        Convert.ToInt32(
+                                            dr["Age"]);
+                                }
+
+
+                                model.Gender =
+                                    dr["Gender"] ==
+                                    DBNull.Value
+                                    ? ""
+                                    : dr["Gender"].ToString();
+
+
+                                model.HealthConcern =
+                                    dr["HealthConcern"] ==
+                                    DBNull.Value
+                                    ? ""
+                                    : dr["HealthConcern"].ToString();
+
+
+                                model.RegistrationStatus =
+                                    dr["RegistrationStatus"] ==
+                                    DBNull.Value
+                                    ? ""
+                                    : dr["RegistrationStatus"].ToString();
+
+
+                                model.PaymentStatus =
+                                    dr["PaymentStatus"] ==
+                                    DBNull.Value
+                                    ? ""
+                                    : dr["PaymentStatus"].ToString();
+
+
+                                model.Amount =
+                                    dr["Amount"] ==
+                                    DBNull.Value
+                                    ? 0
+                                    : Convert.ToDecimal(
+                                        dr["Amount"]);
+
+
+                                model.AdminRemark =
+                                    dr["AdminRemark"] ==
+                                    DBNull.Value
+                                    ? ""
+                                    : dr["AdminRemark"].ToString();
+
+
+                                model.CustomerName =
+                                    dr["CustomerName"] ==
+                                    DBNull.Value
+                                    ? ""
+                                    : dr["CustomerName"].ToString();
+
+
+                                model.CampTitle =
+                                    dr["CampTitle"] ==
+                                    DBNull.Value
+                                    ? ""
+                                    : dr["CampTitle"].ToString();
+
+
+                                model.CampImage =
+                                    dr["CampImage"] ==
+                                    DBNull.Value
+                                    ? ""
+                                    : dr["CampImage"].ToString();
+
+
+                                model.CampBanner =
+                                    dr["CampBanner"] ==
+                                    DBNull.Value
+                                    ? ""
+                                    : dr["CampBanner"].ToString();
+
+
+                                model.CampDescription =
+                                    dr["CampDescription"] ==
+                                    DBNull.Value
+                                    ? ""
+                                    : dr["CampDescription"].ToString();
+
+
+                                if (dr["CampDate"] !=
+                                    DBNull.Value)
+                                {
+                                    model.CampDate =
+                                        Convert.ToDateTime(
+                                            dr["CampDate"]);
+                                }
+
+
+                                if (dr["StartTime"] !=
+                                    DBNull.Value)
+                                {
+                                    model.StartTime =
+                                        (TimeSpan)
+                                        dr["StartTime"];
+                                }
+
+
+                                if (dr["EndTime"] !=
+                                    DBNull.Value)
+                                {
+                                    model.EndTime =
+                                        (TimeSpan)
+                                        dr["EndTime"];
+                                }
+
+
+
+                                model.Venue =
+                                    dr["Venue"] ==
+                                    DBNull.Value
+                                    ? ""
+                                    : dr["Venue"].ToString();
+
+
+                                model.Organizer =
+                                    dr["Organizer"] ==
+                                    DBNull.Value
+                                    ? ""
+                                    : dr["Organizer"].ToString();
+
+
+                                model.Benefits =
+                                    dr["Benefits"] ==
+                                    DBNull.Value
+                                    ? ""
+                                    : dr["Benefits"].ToString();
+
+
+                                model.Instructions =
+                                    dr["Instructions"] ==
+                                    DBNull.Value
+                                    ? ""
+                                    : dr["Instructions"].ToString();
+
+
+                                model.ContactNumber =
+                                    dr["ContactNumber"] ==
+                                    DBNull.Value
+                                    ? ""
+                                    : dr["ContactNumber"].ToString();
+
+
+                                model.CampEmail =
+                                    dr["CampEmail"] ==
+                                    DBNull.Value
+                                    ? ""
+                                    : dr["CampEmail"].ToString();
+
+
+                                model.RegistrationFee =
+                                    dr["RegistrationFee"] ==
+                                    DBNull.Value
+                                    ? 0
+                                    : Convert.ToDecimal(
+                                        dr["RegistrationFee"]);
+
+
+                                model.MaxParticipants =
+                                    dr["MaxParticipants"] ==
+                                    DBNull.Value
+                                    ? 0
+                                    : Convert.ToInt32(
+                                        dr["MaxParticipants"]);
+
+
+                                model.AvailableSeats =
+                                    dr["AvailableSeats"] ==
+                                    DBNull.Value
+                                    ? 0
+                                    : Convert.ToInt32(
+                                        dr["AvailableSeats"]);
+
+
+
+                                model.DoctorName =
+                                    dr["DoctorName"] ==
+                                    DBNull.Value
+                                    ? ""
+                                    : dr["DoctorName"].ToString();
+
+
+                                model.DepartmentName =
+                                    dr["DepartmentName"] ==
+                                    DBNull.Value
+                                    ? ""
+                                    : dr["DepartmentName"].ToString();
+
+
+
+                                model.IsActive =
+                                    dr["IsActive"] ==
+                                    DBNull.Value
+                                    ? false
+                                    : Convert.ToBoolean(
+                                        dr["IsActive"]);
+
+
+                                model.IsDeleted =
+                                    dr["IsDeleted"] ==
+                                    DBNull.Value
+                                    ? false
+                                    : Convert.ToBoolean(
+                                        dr["IsDeleted"]);
+
+
+                                if (dr["CreatedDate"] !=
+                                    DBNull.Value)
+                                {
+                                    model.CreatedDate =
+                                        Convert.ToDateTime(
+                                            dr["CreatedDate"]);
+                                }
+
+
+                                if (dr["UpdatedDate"] !=
+                                    DBNull.Value)
+                                {
+                                    model.UpdatedDate =
+                                        Convert.ToDateTime(
+                                            dr["UpdatedDate"]);
+                                }
+                            }
+                            else
+                            {
+                                TempData["Error"] =
+                                    "Camp registration not found.";
+
+                                return RedirectToAction(
+                                    "ManageCampRegistration");
+                            }
+                        }
+                    }
+                }
+
+
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] =
+                    "Unable to load camp registration details: "
+                    + ex.Message;
+
+                return RedirectToAction(
+                    "ManageCampRegistration");
+            }
+        }
+
+        [HttpGet]
+        public IActionResult ChangeCampRegistrationStatus(long id)
+        {
+
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            CampRegistrationModel model =
+                new CampRegistrationModel();
+
+            try
+            {
+                using (SqlConnection con = new SqlConnection(cs))
+                {
+                    con.Open();
+
+                    string query = @"
+                SELECT
+                    cr.CampRegistrationId,
+                    cr.CampId,
+                    cr.CustomerId,
+                    cr.RegistrationNo,
+                    cr.RegistrationDate,
+                    cr.ParticipantName,
+                    cr.MobileNo,
+                    cr.Email,
+                    cr.Age,
+                    cr.Gender,
+                    cr.HealthConcern,
+                    cr.RegistrationStatus,
+                    cr.PaymentStatus,
+                    cr.Amount,
+                    cr.AdminRemark,
+                    cr.IsActive,
+                    cr.IsDeleted,
+                    cr.CreatedDate,
+                    cr.UpdatedDate,
+
+                    c.CustomerName,
+
+                    mc.CampTitle,
+                    mc.CampDate,
+                    mc.StartTime,
+                    mc.EndTime,
+                    mc.Venue,
+                    mc.Organizer
+
+                FROM tbl_CampRegistration cr
+
+                INNER JOIN tbl_Customer c
+                    ON cr.CustomerId = c.CustomerId
+
+                INNER JOIN tbl_MedicalCamp mc
+                    ON cr.CampId = mc.CampId
+
+                WHERE
+                    cr.CampRegistrationId = @CampRegistrationId
+                    AND cr.IsDeleted = 0";
+
+
+                    using (SqlCommand cmd =
+                        new SqlCommand(query, con))
+                    {
+                        cmd.Parameters.Add(
+                            "@CampRegistrationId",
+                            SqlDbType.BigInt).Value = id;
+
+
+                        using (SqlDataReader dr =
+                            cmd.ExecuteReader())
+                        {
+                            if (dr.Read())
+                            {
+                                
+
+                                model.CampRegistrationId =
+                                    Convert.ToInt64(
+                                        dr["CampRegistrationId"]);
+
+                                model.CampId =
+                                    Convert.ToInt64(
+                                        dr["CampId"]);
+
+                                model.CustomerId =
+                                    Convert.ToInt64(
+                                        dr["CustomerId"]);
+
+
+                                model.RegistrationNo =
+                                    dr["RegistrationNo"] == DBNull.Value
+                                        ? ""
+                                        : dr["RegistrationNo"].ToString();
+
+
+                                if (dr["RegistrationDate"] != DBNull.Value)
+                                {
+                                    model.RegistrationDate =
+                                        Convert.ToDateTime(
+                                            dr["RegistrationDate"]);
+                                }
+
+                                model.ParticipantName =
+                                    dr["ParticipantName"] == DBNull.Value
+                                        ? ""
+                                        : dr["ParticipantName"].ToString();
+
+
+                                model.MobileNo =
+                                    dr["MobileNo"] == DBNull.Value
+                                        ? ""
+                                        : dr["MobileNo"].ToString();
+
+
+                                model.Email =
+                                    dr["Email"] == DBNull.Value
+                                        ? ""
+                                        : dr["Email"].ToString();
+
+
+                                if (dr["Age"] != DBNull.Value)
+                                {
+                                    model.Age =
+                                        Convert.ToInt32(
+                                            dr["Age"]);
+                                }
+
+
+                                model.Gender =
+                                    dr["Gender"] == DBNull.Value
+                                        ? ""
+                                        : dr["Gender"].ToString();
+
+
+                                model.HealthConcern =
+                                    dr["HealthConcern"] == DBNull.Value
+                                        ? ""
+                                        : dr["HealthConcern"].ToString();
+
+
+                                model.RegistrationStatus =
+                                    dr["RegistrationStatus"] == DBNull.Value
+                                        ? "Pending"
+                                        : dr["RegistrationStatus"].ToString();
+
+
+                                model.PaymentStatus =
+                                    dr["PaymentStatus"] == DBNull.Value
+                                        ? ""
+                                        : dr["PaymentStatus"].ToString();
+
+
+                                model.Amount =
+                                    dr["Amount"] == DBNull.Value
+                                        ? 0
+                                        : Convert.ToDecimal(
+                                            dr["Amount"]);
+
+
+                                model.AdminRemark =
+                                    dr["AdminRemark"] == DBNull.Value
+                                        ? ""
+                                        : dr["AdminRemark"].ToString();
+
+
+                                model.CustomerName =
+                                    dr["CustomerName"] == DBNull.Value
+                                        ? ""
+                                        : dr["CustomerName"].ToString();
+
+
+                                model.CampTitle =
+                                    dr["CampTitle"] == DBNull.Value
+                                        ? ""
+                                        : dr["CampTitle"].ToString();
+
+
+                                if (dr["CampDate"] != DBNull.Value)
+                                {
+                                    model.CampDate =
+                                        Convert.ToDateTime(
+                                            dr["CampDate"]);
+                                }
+
+
+                                if (dr["StartTime"] != DBNull.Value)
+                                {
+                                    model.StartTime =
+                                        (TimeSpan)dr["StartTime"];
+                                }
+
+
+                                if (dr["EndTime"] != DBNull.Value)
+                                {
+                                    model.EndTime =
+                                        (TimeSpan)dr["EndTime"];
+                                }
+
+
+                                model.Venue =
+                                    dr["Venue"] == DBNull.Value
+                                        ? ""
+                                        : dr["Venue"].ToString();
+
+
+                                model.Organizer =
+                                    dr["Organizer"] == DBNull.Value
+                                        ? ""
+                                        : dr["Organizer"].ToString();
+
+
+
+                                model.IsActive =
+                                    dr["IsActive"] == DBNull.Value
+                                        ? false
+                                        : Convert.ToBoolean(
+                                            dr["IsActive"]);
+
+
+                                model.IsDeleted =
+                                    dr["IsDeleted"] == DBNull.Value
+                                        ? false
+                                        : Convert.ToBoolean(
+                                            dr["IsDeleted"]);
+
+
+                                if (dr["CreatedDate"] != DBNull.Value)
+                                {
+                                    model.CreatedDate =
+                                        Convert.ToDateTime(
+                                            dr["CreatedDate"]);
+                                }
+
+
+                                if (dr["UpdatedDate"] != DBNull.Value)
+                                {
+                                    model.UpdatedDate =
+                                        Convert.ToDateTime(
+                                            dr["UpdatedDate"]);
+                                }
+                            }
+                            else
+                            {
+                                TempData["Error"] =
+                                    "Camp registration not found.";
+
+                                return RedirectToAction(
+                                    "ManageCampRegistration");
+                            }
+                        }
+                    }
+                }
+
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] =
+                    "Unable to load registration status details: "
+                    + ex.Message;
+
+                return RedirectToAction(
+                    "ManageCampRegistration");
+            }
+        }
+    
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult ChangeCampRegistrationStatus(
+            CampRegistrationModel model)
+        {
+
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            if (model.CampRegistrationId <= 0)
+            {
+                TempData["Error"] =
+                    "Invalid camp registration.";
+
+                return RedirectToAction(
+                    "ManageCampRegistration");
+            }
+
+
+            if (string.IsNullOrWhiteSpace(
+                model.RegistrationStatus))
+            {
+                TempData["Error"] =
+                    "Please select registration status.";
+
+                return RedirectToAction(
+                    "ChangeCampRegistrationStatus",
+                    new
+                    {
+                        id = model.CampRegistrationId
+                    });
+            }
+
+            string[] allowedStatuses =
+            {
+        "Pending",
+        "Confirmed",
+        "Completed",
+        "Cancelled"
+    };
+
+
+            if (!allowedStatuses.Contains(
+                model.RegistrationStatus))
+            {
+                TempData["Error"] =
+                    "Invalid registration status.";
+
+                return RedirectToAction(
+                    "ChangeCampRegistrationStatus",
+                    new
+                    {
+                        id = model.CampRegistrationId
+                    });
+            }
+
+
+            try
+            {
+                using (SqlConnection con =
+                    new SqlConnection(cs))
+                {
+                    con.Open();
+
+
+                    string checkQuery = @"
+                SELECT COUNT(*)
+                FROM tbl_CampRegistration
+                WHERE CampRegistrationId = @CampRegistrationId
+                AND IsDeleted = 0";
+
+
+                    using (SqlCommand checkCmd =
+                        new SqlCommand(checkQuery, con))
+                    {
+                        checkCmd.Parameters.Add(
+                            "@CampRegistrationId",
+                            SqlDbType.BigInt).Value =
+                            model.CampRegistrationId;
+
+
+                        int count =
+                            Convert.ToInt32(
+                                checkCmd.ExecuteScalar());
+
+
+                        if (count == 0)
+                        {
+                            TempData["Error"] =
+                                "Camp registration not found.";
+
+                            return RedirectToAction(
+                                "ManageCampRegistration");
+                        }
+                    }
+
+                    string updateQuery = @"
+                UPDATE tbl_CampRegistration
+                SET
+                    RegistrationStatus = @RegistrationStatus,
+                    AdminRemark = @AdminRemark,
+                    UpdatedDate = GETDATE()
+                WHERE
+                    CampRegistrationId = @CampRegistrationId
+                    AND IsDeleted = 0";
+
+
+                    using (SqlCommand cmd =
+                        new SqlCommand(updateQuery, con))
+                    {
+                        cmd.Parameters.Add(
+                            "@RegistrationStatus",
+                            SqlDbType.NVarChar, 50).Value =
+                            model.RegistrationStatus.Trim();
+
+
+                        cmd.Parameters.Add(
+                            "@AdminRemark",
+                            SqlDbType.NVarChar, -1).Value =
+                            string.IsNullOrWhiteSpace(
+                                model.AdminRemark)
+                            ? (object)DBNull.Value
+                            : model.AdminRemark.Trim();
+
+
+                        cmd.Parameters.Add(
+                            "@CampRegistrationId",
+                            SqlDbType.BigInt).Value =
+                            model.CampRegistrationId;
+
+
+                        int rowsAffected =
+                            cmd.ExecuteNonQuery();
+
+
+                        if (rowsAffected > 0)
+                        {
+                            TempData["Success"] =
+                                "Registration status changed to "
+                                + model.RegistrationStatus
+                                + " successfully.";
+                        }
+                        else
+                        {
+                            TempData["Error"] =
+                                "Unable to update registration status.";
+                        }
+                    }
+                }
+
+                return RedirectToAction(
+                    "ViewCampRegistration",
+                    new
+                    {
+                        id = model.CampRegistrationId
+                    });
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] =
+                    "Unable to change registration status: "
+                    + ex.Message;
+
+                return RedirectToAction(
+                    "ViewCampRegistration",
+                    new
+                    {
+                        id = model.CampRegistrationId
+                    });
+            }
+        }
+        
+        [HttpGet]
+        public IActionResult PrintCampRegistration(long id)
+        {
+
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+
+            CampRegistrationModel model =
+                new CampRegistrationModel();
+
+
+            try
+            {
+                using (SqlConnection con =
+                    new SqlConnection(cs))
+                {
+                    con.Open();
+
+
+                    string query = @"
+SELECT
+
+    -- Registration
+    cr.CampRegistrationId,
+    cr.CampId,
+    cr.CustomerId,
+    cr.RegistrationNo,
+    cr.RegistrationDate,
+    cr.ParticipantName,
+    cr.MobileNo,
+    cr.Email,
+    cr.Age,
+    cr.Gender,
+    cr.HealthConcern,
+    cr.RegistrationStatus,
+    cr.PaymentStatus,
+    cr.Amount,
+    cr.AdminRemark,
+    cr.IsActive,
+    cr.IsDeleted,
+    cr.CreatedDate,
+    cr.UpdatedDate,
+
+    -- Customer
+    c.FullName AS CustomerName,
+
+    -- Camp
+    mc.CampTitle,
+    mc.CampImage,
+    mc.CampDate,
+    mc.StartTime,
+    mc.EndTime,
+    mc.Venue,
+    mc.Organizer,
+    mc.RegistrationFee,
+    mc.MaxParticipants,
+    mc.AvailableSeats,
+
+    -- Doctor
+    d.DoctorName,
+
+    -- Department
+    dep.DepartmentName
+
+FROM tbl_CampRegistration cr
+
+INNER JOIN tbl_Customer c
+    ON cr.CustomerId = c.CustomerId
+
+INNER JOIN tbl_MedicalCamp mc
+    ON cr.CampId = mc.CampId
+
+LEFT JOIN tbl_Doctor d
+    ON mc.DoctorId = d.DoctorId
+
+LEFT JOIN tbl_Department dep
+    ON mc.DepartmentId = dep.DepartmentId
+
+WHERE
+    cr.CampRegistrationId = @CampRegistrationId
+    AND cr.IsDeleted = 0";
+
+
+                    using (SqlCommand cmd =
+                        new SqlCommand(query, con))
+                    {
+                        cmd.Parameters.Add(
+                            "@CampRegistrationId",
+                            SqlDbType.BigInt).Value = id;
+
+
+                        using (SqlDataReader dr =
+                            cmd.ExecuteReader())
+                        {
+                            if (!dr.Read())
+                            {
+                                TempData["Error"] =
+                                    "Camp registration not found.";
+
+                                return RedirectToAction(
+                                    "ManageCampRegistration");
+                            }
+
+                            model.CampRegistrationId =
+                                Convert.ToInt64(
+                                    dr["CampRegistrationId"]);
+
+
+                            model.CampId =
+                                Convert.ToInt64(
+                                    dr["CampId"]);
+
+
+                            model.CustomerId =
+                                Convert.ToInt64(
+                                    dr["CustomerId"]);
+
+
+                            model.RegistrationNo =
+                                dr["RegistrationNo"] ==
+                                DBNull.Value
+                                ? ""
+                                : dr["RegistrationNo"].ToString();
+
+
+                            if (dr["RegistrationDate"] !=
+                                DBNull.Value)
+                            {
+                                model.RegistrationDate =
+                                    Convert.ToDateTime(
+                                        dr["RegistrationDate"]);
+                            }
+
+                            model.ParticipantName =
+                                dr["ParticipantName"] ==
+                                DBNull.Value
+                                ? ""
+                                : dr["ParticipantName"].ToString();
+
+
+                            model.MobileNo =
+                                dr["MobileNo"] ==
+                                DBNull.Value
+                                ? ""
+                                : dr["MobileNo"].ToString();
+
+
+                            model.Email =
+                                dr["Email"] ==
+                                DBNull.Value
+                                ? ""
+                                : dr["Email"].ToString();
+
+
+                            if (dr["Age"] != DBNull.Value)
+                            {
+                                model.Age =
+                                    Convert.ToInt32(
+                                        dr["Age"]);
+                            }
+
+
+                            model.Gender =
+                                dr["Gender"] ==
+                                DBNull.Value
+                                ? ""
+                                : dr["Gender"].ToString();
+
+
+                            model.HealthConcern =
+                                dr["HealthConcern"] ==
+                                DBNull.Value
+                                ? ""
+                                : dr["HealthConcern"].ToString();
+
+
+                            model.RegistrationStatus =
+                                dr["RegistrationStatus"] ==
+                                DBNull.Value
+                                ? ""
+                                : dr["RegistrationStatus"].ToString();
+
+
+                            model.PaymentStatus =
+                                dr["PaymentStatus"] ==
+                                DBNull.Value
+                                ? ""
+                                : dr["PaymentStatus"].ToString();
+
+
+                            model.Amount =
+                                dr["Amount"] ==
+                                DBNull.Value
+                                ? 0
+                                : Convert.ToDecimal(
+                                    dr["Amount"]);
+
+
+                            model.AdminRemark =
+                                dr["AdminRemark"] ==
+                                DBNull.Value
+                                ? ""
+                                : dr["AdminRemark"].ToString();
+
+
+                            model.CustomerName =
+                                dr["CustomerName"] ==
+                                DBNull.Value
+                                ? ""
+                                : dr["CustomerName"].ToString();
+
+
+                            model.CampTitle =
+                                dr["CampTitle"] ==
+                                DBNull.Value
+                                ? ""
+                                : dr["CampTitle"].ToString();
+
+
+                            model.CampImage =
+                                dr["CampImage"] ==
+                                DBNull.Value
+                                ? ""
+                                : dr["CampImage"].ToString();
+
+
+                            if (dr["CampDate"] !=
+                                DBNull.Value)
+                            {
+                                model.CampDate =
+                                    Convert.ToDateTime(
+                                        dr["CampDate"]);
+                            }
+
+                            if (dr["StartTime"] !=
+                                DBNull.Value)
+                            {
+                                model.StartTime =
+                                    (TimeSpan)
+                                    dr["StartTime"];
+                            }
+
+
+                            if (dr["EndTime"] !=
+                                DBNull.Value)
+                            {
+                                model.EndTime =
+                                    (TimeSpan)
+                                    dr["EndTime"];
+                            }
+
+                            model.Venue =
+                                dr["Venue"] ==
+                                DBNull.Value
+                                ? ""
+                                : dr["Venue"].ToString();
+
+
+                            model.Organizer =
+                                dr["Organizer"] ==
+                                DBNull.Value
+                                ? ""
+                                : dr["Organizer"].ToString();
+
+
+                            model.RegistrationFee =
+                                dr["RegistrationFee"] ==
+                                DBNull.Value
+                                ? 0
+                                : Convert.ToDecimal(
+                                    dr["RegistrationFee"]);
+
+
+                            model.MaxParticipants =
+                                dr["MaxParticipants"] ==
+                                DBNull.Value
+                                ? 0
+                                : Convert.ToInt32(
+                                    dr["MaxParticipants"]);
+
+
+                            model.AvailableSeats =
+                                dr["AvailableSeats"] ==
+                                DBNull.Value
+                                ? 0
+                                : Convert.ToInt32(
+                                    dr["AvailableSeats"]);
+
+
+                            model.DoctorName =
+                                dr["DoctorName"] ==
+                                DBNull.Value
+                                ? ""
+                                : dr["DoctorName"].ToString();
+
+
+                            model.DepartmentName =
+                                dr["DepartmentName"] ==
+                                DBNull.Value
+                                ? ""
+                                : dr["DepartmentName"].ToString();
+
+
+                            model.IsActive =
+                                dr["IsActive"] ==
+                                DBNull.Value
+                                ? false
+                                : Convert.ToBoolean(
+                                    dr["IsActive"]);
+
+
+                            model.IsDeleted =
+                                dr["IsDeleted"] ==
+                                DBNull.Value
+                                ? false
+                                : Convert.ToBoolean(
+                                    dr["IsDeleted"]);
+
+
+
+                            if (dr["CreatedDate"] !=
+                                DBNull.Value)
+                            {
+                                model.CreatedDate =
+                                    Convert.ToDateTime(
+                                        dr["CreatedDate"]);
+                            }
+
+
+                            if (dr["UpdatedDate"] !=
+                                DBNull.Value)
+                            {
+                                model.UpdatedDate =
+                                    Convert.ToDateTime(
+                                        dr["UpdatedDate"]);
+                            }
+                        }
+                    }
+                }
+
+
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] =
+                    "Unable to print registration: "
+                    + ex.Message;
+
+                return RedirectToAction(
+                    "ManageCampRegistration");
+            }
+        }
+      
+
+        [HttpGet]
+        public IActionResult ManageLabTest(string search = "", string category = "")
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            List<LabTestModel> list = new List<LabTestModel>();
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                string query = @"SELECT * FROM tbl_LabTest
+                                 WHERE IsDeleted = 0
+                                 AND (@Search = '' OR TestName LIKE '%' + @Search + '%' OR Description LIKE '%' + @Search + '%')
+                                 AND (@Category = '' OR TestCategory = @Category)
+                                 ORDER BY LabTestId DESC";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+                cmd.Parameters.AddWithValue("@Search", search ?? "");
+                cmd.Parameters.AddWithValue("@Category", category ?? "");
+
+                con.Open();
+                SqlDataReader dr = cmd.ExecuteReader();
+                while (dr.Read())
+                {
+                    LabTestModel model = new LabTestModel
+                    {
+                        LabTestId = Convert.ToInt64(dr["LabTestId"]),
+                        TestName = dr["TestName"].ToString(),
+                        TestCategory = dr["TestCategory"] != DBNull.Value ? dr["TestCategory"].ToString() : "",
+                        Description = dr["Description"] != DBNull.Value ? dr["Description"].ToString() : "",
+                        SampleType = dr["SampleType"] != DBNull.Value ? dr["SampleType"].ToString() : "",
+                        PreparationInstructions = dr["PreparationInstructions"] != DBNull.Value ? dr["PreparationInstructions"].ToString() : "",
+                        ReportTime = dr["ReportTime"] != DBNull.Value ? dr["ReportTime"].ToString() : "",
+                        Price = Convert.ToDecimal(dr["Price"]),
+                        IsActive = Convert.ToBoolean(dr["IsActive"]),
+                        IsDeleted = Convert.ToBoolean(dr["IsDeleted"]),
+                        CreatedDate = Convert.ToDateTime(dr["CreatedDate"]),
+                        UpdatedDate = dr["UpdatedDate"] != DBNull.Value ? Convert.ToDateTime(dr["UpdatedDate"]) : null
+                    };
+                    list.Add(model);
+                }
+            }
+
+            ViewBag.Search = search;
+            ViewBag.Category = category;
+            return View("~/Views/Admin/LabTest/ManageLabTest.cshtml", list);
+        }
+
+        [HttpGet]
+        public IActionResult AddLabTest()
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            return View("~/Views/Admin/LabTest/AddLabTest.cshtml");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult AddLabTest(LabTestModel model)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return View("~/Views/Admin/LabTest/AddLabTest.cshtml", model);
+            }
+
+            try
+            {
+                using (SqlConnection con = new SqlConnection(cs))
+                {
+                    con.Open();
+
+                    SqlCommand checkCmd = new SqlCommand("SELECT COUNT(*) FROM tbl_LabTest WHERE TestName=@TestName AND IsDeleted=0", con);
+                    checkCmd.Parameters.AddWithValue("@TestName", model.TestName);
+                    int count = Convert.ToInt32(checkCmd.ExecuteScalar());
+
+                    if (count > 0)
+                    {
+                        ViewBag.Error = "A Lab Test with this name already exists.";
+                        return View("~/Views/Admin/LabTest/AddLabTest.cshtml", model);
+                    }
+
+                    SqlCommand cmd = new SqlCommand(@"
+                        INSERT INTO tbl_LabTest (TestName, TestCategory, Description, SampleType, PreparationInstructions, ReportTime, Price, IsActive, IsDeleted, CreatedDate)
+                        VALUES (@TestName, @TestCategory, @Description, @SampleType, @PreparationInstructions, @ReportTime, @Price, 1, 0, GETDATE())", con);
+
+                    cmd.Parameters.AddWithValue("@TestName", model.TestName);
+                    cmd.Parameters.AddWithValue("@TestCategory", (object)model.TestCategory ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@Description", (object)model.Description ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@SampleType", (object)model.SampleType ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@PreparationInstructions", (object)model.PreparationInstructions ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@ReportTime", (object)model.ReportTime ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@Price", model.Price);
+
+                    cmd.ExecuteNonQuery();
+
+                    TempData["Success"] = "Lab Test added successfully.";
+                    return RedirectToAction("ManageLabTest");
+                }
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Error = ex.Message;
+                return View("~/Views/Admin/LabTest/AddLabTest.cshtml", model);
+            }
+        }
+
+        [HttpGet]
+        public IActionResult EditLabTest(long id)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            LabTestModel model = new LabTestModel();
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                SqlCommand cmd = new SqlCommand("SELECT * FROM tbl_LabTest WHERE LabTestId=@LabTestId AND IsDeleted=0", con);
+                cmd.Parameters.AddWithValue("@LabTestId", id);
+
+                con.Open();
+                SqlDataReader dr = cmd.ExecuteReader();
+                if (dr.Read())
+                {
+                    model.LabTestId = Convert.ToInt64(dr["LabTestId"]);
+                    model.TestName = dr["TestName"].ToString();
+                    model.TestCategory = dr["TestCategory"] != DBNull.Value ? dr["TestCategory"].ToString() : "";
+                    model.Description = dr["Description"] != DBNull.Value ? dr["Description"].ToString() : "";
+                    model.SampleType = dr["SampleType"] != DBNull.Value ? dr["SampleType"].ToString() : "";
+                    model.PreparationInstructions = dr["PreparationInstructions"] != DBNull.Value ? dr["PreparationInstructions"].ToString() : "";
+                    model.ReportTime = dr["ReportTime"] != DBNull.Value ? dr["ReportTime"].ToString() : "";
+                    model.Price = Convert.ToDecimal(dr["Price"]);
+                    model.IsActive = Convert.ToBoolean(dr["IsActive"]);
+                }
+                else
+                {
+                    TempData["Error"] = "Lab Test not found.";
+                    return RedirectToAction("ManageLabTest");
+                }
+            }
+
+            return View("~/Views/Admin/LabTest/EditLabTest.cshtml", model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult EditLabTest(LabTestModel model)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return View("~/Views/Admin/LabTest/EditLabTest.cshtml", model);
+            }
+
+            try
+            {
+                using (SqlConnection con = new SqlConnection(cs))
+                {
+                    con.Open();
+
+                    SqlCommand checkCmd = new SqlCommand("SELECT COUNT(*) FROM tbl_LabTest WHERE TestName=@TestName AND LabTestId<>@LabTestId AND IsDeleted=0", con);
+                    checkCmd.Parameters.AddWithValue("@TestName", model.TestName);
+                    checkCmd.Parameters.AddWithValue("@LabTestId", model.LabTestId);
+                    int count = Convert.ToInt32(checkCmd.ExecuteScalar());
+
+                    if (count > 0)
+                    {
+                        ViewBag.Error = "Another Lab Test with this name already exists.";
+                        return View("~/Views/Admin/LabTest/EditLabTest.cshtml", model);
+                    }
+
+                    SqlCommand cmd = new SqlCommand(@"
+                        UPDATE tbl_LabTest
+                        SET TestName = @TestName,
+                            TestCategory = @TestCategory,
+                            Description = @Description,
+                            SampleType = @SampleType,
+                            PreparationInstructions = @PreparationInstructions,
+                            ReportTime = @ReportTime,
+                            Price = @Price,
+                            IsActive = @IsActive,
+                            UpdatedDate = GETDATE()
+                        WHERE LabTestId = @LabTestId", con);
+
+                    cmd.Parameters.AddWithValue("@TestName", model.TestName);
+                    cmd.Parameters.AddWithValue("@TestCategory", (object)model.TestCategory ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@Description", (object)model.Description ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@SampleType", (object)model.SampleType ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@PreparationInstructions", (object)model.PreparationInstructions ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@ReportTime", (object)model.ReportTime ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@Price", model.Price);
+                    cmd.Parameters.AddWithValue("@IsActive", model.IsActive);
+                    cmd.Parameters.AddWithValue("@LabTestId", model.LabTestId);
+
+                    cmd.ExecuteNonQuery();
+
+                    TempData["Success"] = "Lab Test updated successfully.";
+                    return RedirectToAction("ManageLabTest");
+                }
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Error = ex.Message;
+                return View("~/Views/Admin/LabTest/EditLabTest.cshtml", model);
+            }
+        }
+
+        [HttpGet]
+        public IActionResult ViewLabTest(long id)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            LabTestModel model = new LabTestModel();
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                SqlCommand cmd = new SqlCommand("SELECT * FROM tbl_LabTest WHERE LabTestId = @LabTestId AND IsDeleted = 0", con);
+                cmd.Parameters.AddWithValue("@LabTestId", id);
+
+                con.Open();
+                SqlDataReader dr = cmd.ExecuteReader();
+                if (dr.Read())
+                {
+                    model.LabTestId = Convert.ToInt64(dr["LabTestId"]);
+                    model.TestName = dr["TestName"].ToString();
+                    model.TestCategory = dr["TestCategory"] != DBNull.Value ? dr["TestCategory"].ToString() : "";
+                    model.Description = dr["Description"] != DBNull.Value ? dr["Description"].ToString() : "";
+                    model.SampleType = dr["SampleType"] != DBNull.Value ? dr["SampleType"].ToString() : "";
+                    model.PreparationInstructions = dr["PreparationInstructions"] != DBNull.Value ? dr["PreparationInstructions"].ToString() : "";
+                    model.ReportTime = dr["ReportTime"] != DBNull.Value ? dr["ReportTime"].ToString() : "";
+                    model.Price = Convert.ToDecimal(dr["Price"]);
+                    model.IsActive = Convert.ToBoolean(dr["IsActive"]);
+                    model.IsDeleted = Convert.ToBoolean(dr["IsDeleted"]);
+                    model.CreatedDate = Convert.ToDateTime(dr["CreatedDate"]);
+                    model.UpdatedDate = dr["UpdatedDate"] != DBNull.Value ? Convert.ToDateTime(dr["UpdatedDate"]) : null;
+                }
+                else
+                {
+                    TempData["Error"] = "Lab Test not found.";
+                    return RedirectToAction("ManageLabTest");
+                }
+            }
+
+            return View("~/Views/Admin/LabTest/ViewLabTest.cshtml", model);
+        }
+
+        [HttpGet]
+        public IActionResult DeleteLabTest(long id)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            try
+            {
+                using (SqlConnection con = new SqlConnection(cs))
+                {
+                    SqlCommand cmd = new SqlCommand("UPDATE tbl_LabTest SET IsDeleted = 1, UpdatedDate = GETDATE() WHERE LabTestId = @LabTestId", con);
+                    cmd.Parameters.AddWithValue("@LabTestId", id);
+
+                    con.Open();
+                    int result = cmd.ExecuteNonQuery();
+
+                    if (result > 0)
+                    {
+                        TempData["Success"] = "Lab Test deleted successfully.";
+                    }
+                    else
+                    {
+                        TempData["Error"] = "Lab Test not found.";
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = ex.Message;
+            }
+
+            return RedirectToAction("ManageLabTest");
+        }
+
+        [HttpGet]
+        public IActionResult ChangeLabTestStatus(long id)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            LabTestModel model = new LabTestModel();
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                SqlCommand cmd = new SqlCommand("SELECT LabTestId, TestName, IsActive FROM tbl_LabTest WHERE LabTestId=@LabTestId AND IsDeleted=0", con);
+                cmd.Parameters.AddWithValue("@LabTestId", id);
+
+                con.Open();
+                SqlDataReader dr = cmd.ExecuteReader();
+                if (dr.Read())
+                {
+                    model.LabTestId = Convert.ToInt64(dr["LabTestId"]);
+                    model.TestName = dr["TestName"].ToString();
+                    model.IsActive = Convert.ToBoolean(dr["IsActive"]);
+                }
+                else
+                {
+                    TempData["Error"] = "Lab Test not found.";
+                    return RedirectToAction("ManageLabTest");
+                }
+            }
+
+            return View("~/Views/Admin/LabTest/ChangeLabTestStatus.cshtml", model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult ChangeLabTestStatus(long id, bool isActive)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            try
+            {
+                using (SqlConnection con = new SqlConnection(cs))
+                {
+                    SqlCommand cmd = new SqlCommand("UPDATE tbl_LabTest SET IsActive = @IsActive, UpdatedDate = GETDATE() WHERE LabTestId = @LabTestId AND IsDeleted = 0", con);
+                    cmd.Parameters.AddWithValue("@IsActive", isActive);
+                    cmd.Parameters.AddWithValue("@LabTestId", id);
+
+                    con.Open();
+                    int result = cmd.ExecuteNonQuery();
+
+                    if (result > 0)
+                    {
+                        TempData["Success"] = "Lab Test status updated successfully.";
+                    }
+                    else
+                    {
+                        TempData["Error"] = "Lab Test not found.";
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = ex.Message;
+            }
+
+            return RedirectToAction("ManageLabTest");
+        }
+
+
+        [HttpGet]
+        public IActionResult ManageLabBooking(string search = "", string status = "", string paymentStatus = "")
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            List<LabBookingModel> list = new List<LabBookingModel>();
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                string query = @"
+                    SELECT B.*, T.TestName, T.TestCategory, T.SampleType, T.ReportTime, T.Price AS TestPrice, C.FullName AS CustomerName
+                    FROM tbl_LabBooking B
+                    INNER JOIN tbl_LabTest T ON B.LabTestId = T.LabTestId
+                    LEFT JOIN tbl_Customer C ON B.CustomerId = C.CustomerId
+                    WHERE B.IsDeleted = 0
+                    AND (@Search = '' OR B.BookingNo LIKE '%' + @Search + '%' OR B.PatientName LIKE '%' + @Search + '%' OR B.MobileNo LIKE '%' + @Search + '%')
+                    AND (@Status = '' OR B.TestStatus = @Status)
+                    AND (@PaymentStatus = '' OR B.PaymentStatus = @PaymentStatus)
+                    ORDER BY B.LabBookingId DESC";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+                cmd.Parameters.AddWithValue("@Search", search ?? "");
+                cmd.Parameters.AddWithValue("@Status", status ?? "");
+                cmd.Parameters.AddWithValue("@PaymentStatus", paymentStatus ?? "");
+
+                con.Open();
+                SqlDataReader dr = cmd.ExecuteReader();
+                while (dr.Read())
+                {
+                    LabBookingModel model = new LabBookingModel
+                    {
+                        LabBookingId = Convert.ToInt64(dr["LabBookingId"]),
+                        LabTestId = Convert.ToInt64(dr["LabTestId"]),
+                        CustomerId = Convert.ToInt64(dr["CustomerId"]),
+                        BookingNo = dr["BookingNo"].ToString(),
+                        BookingDate = Convert.ToDateTime(dr["BookingDate"]),
+                        PatientName = dr["PatientName"].ToString(),
+                        MobileNo = dr["MobileNo"] != DBNull.Value ? dr["MobileNo"].ToString() : "",
+                        Email = dr["Email"] != DBNull.Value ? dr["Email"].ToString() : "",
+                        Age = dr["Age"] != DBNull.Value ? Convert.ToInt32(dr["Age"]) : null,
+                        Gender = dr["Gender"] != DBNull.Value ? dr["Gender"].ToString() : "",
+                        PreferredDate = dr["PreferredDate"] != DBNull.Value ? Convert.ToDateTime(dr["PreferredDate"]) : null,
+                        PreferredTime = dr["PreferredTime"] != DBNull.Value ? dr["PreferredTime"].ToString() : "",
+                        HealthConcern = dr["HealthConcern"] != DBNull.Value ? dr["HealthConcern"].ToString() : "",
+                        TestStatus = dr["TestStatus"].ToString(),
+                        PaymentStatus = dr["PaymentStatus"].ToString(),
+                        Amount = Convert.ToDecimal(dr["Amount"]),
+                        AdminRemark = dr["AdminRemark"] != DBNull.Value ? dr["AdminRemark"].ToString() : "",
+                        IsActive = Convert.ToBoolean(dr["IsActive"]),
+                        IsDeleted = Convert.ToBoolean(dr["IsDeleted"]),
+                        CreatedDate = Convert.ToDateTime(dr["CreatedDate"]),
+                        UpdatedDate = dr["UpdatedDate"] != DBNull.Value ? Convert.ToDateTime(dr["UpdatedDate"]) : null,
+                        TestName = dr["TestName"] != DBNull.Value ? dr["TestName"].ToString() : "",
+                        TestCategory = dr["TestCategory"] != DBNull.Value ? dr["TestCategory"].ToString() : "",
+                        SampleType = dr["SampleType"] != DBNull.Value ? dr["SampleType"].ToString() : "",
+                        ReportTime = dr["ReportTime"] != DBNull.Value ? dr["ReportTime"].ToString() : "",
+                        TestPrice = dr["TestPrice"] != DBNull.Value ? Convert.ToDecimal(dr["TestPrice"]) : 0,
+                        CustomerName = dr["CustomerName"] != DBNull.Value ? dr["CustomerName"].ToString() : ""
+                    };
+                    list.Add(model);
+                }
+            }
+
+            ViewBag.Search = search;
+            ViewBag.Status = status;
+            ViewBag.PaymentStatus = paymentStatus;
+            return View("~/Views/Admin/LabBooking/ManageLabBooking.cshtml", list);
+        }
+
+        [HttpGet]
+        public IActionResult ViewLabBooking(long id)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            LabBookingModel model = new LabBookingModel();
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                string query = @"
+                    SELECT B.*, T.TestName, T.TestCategory, T.SampleType, T.ReportTime, T.Price AS TestPrice, C.FullName AS CustomerName
+                    FROM tbl_LabBooking B
+                    INNER JOIN tbl_LabTest T ON B.LabTestId = T.LabTestId
+                    LEFT JOIN tbl_Customer C ON B.CustomerId = C.CustomerId
+                    WHERE B.LabBookingId = @LabBookingId AND B.IsDeleted = 0";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+                cmd.Parameters.AddWithValue("@LabBookingId", id);
+
+                con.Open();
+                SqlDataReader dr = cmd.ExecuteReader();
+                if (dr.Read())
+                {
+                    model.LabBookingId = Convert.ToInt64(dr["LabBookingId"]);
+                    model.LabTestId = Convert.ToInt64(dr["LabTestId"]);
+                    model.CustomerId = Convert.ToInt64(dr["CustomerId"]);
+                    model.BookingNo = dr["BookingNo"].ToString();
+                    model.BookingDate = Convert.ToDateTime(dr["BookingDate"]);
+                    model.PatientName = dr["PatientName"].ToString();
+                    model.MobileNo = dr["MobileNo"] != DBNull.Value ? dr["MobileNo"].ToString() : "";
+                    model.Email = dr["Email"] != DBNull.Value ? dr["Email"].ToString() : "";
+                    model.Age = dr["Age"] != DBNull.Value ? Convert.ToInt32(dr["Age"]) : null;
+                    model.Gender = dr["Gender"] != DBNull.Value ? dr["Gender"].ToString() : "";
+                    model.PreferredDate = dr["PreferredDate"] != DBNull.Value ? Convert.ToDateTime(dr["PreferredDate"]) : null;
+                    model.PreferredTime = dr["PreferredTime"] != DBNull.Value ? dr["PreferredTime"].ToString() : "";
+                    model.HealthConcern = dr["HealthConcern"] != DBNull.Value ? dr["HealthConcern"].ToString() : "";
+                    model.TestStatus = dr["TestStatus"].ToString();
+                    model.PaymentStatus = dr["PaymentStatus"].ToString();
+                    model.Amount = Convert.ToDecimal(dr["Amount"]);
+                    model.AdminRemark = dr["AdminRemark"] != DBNull.Value ? dr["AdminRemark"].ToString() : "";
+                    model.IsActive = Convert.ToBoolean(dr["IsActive"]);
+                    model.IsDeleted = Convert.ToBoolean(dr["IsDeleted"]);
+                    model.CreatedDate = Convert.ToDateTime(dr["CreatedDate"]);
+                    model.UpdatedDate = dr["UpdatedDate"] != DBNull.Value ? Convert.ToDateTime(dr["UpdatedDate"]) : null;
+                    model.TestName = dr["TestName"] != DBNull.Value ? dr["TestName"].ToString() : "";
+                    model.TestCategory = dr["TestCategory"] != DBNull.Value ? dr["TestCategory"].ToString() : "";
+                    model.SampleType = dr["SampleType"] != DBNull.Value ? dr["SampleType"].ToString() : "";
+                    model.ReportTime = dr["ReportTime"] != DBNull.Value ? dr["ReportTime"].ToString() : "";
+                    model.TestPrice = dr["TestPrice"] != DBNull.Value ? Convert.ToDecimal(dr["TestPrice"]) : 0;
+                    model.CustomerName = dr["CustomerName"] != DBNull.Value ? dr["CustomerName"].ToString() : "";
+                }
+                else
+                {
+                    TempData["Error"] = "Lab Booking not found.";
+                    return RedirectToAction("ManageLabBooking");
+                }
+            }
+
+            return View("~/Views/Admin/LabBooking/ViewLabBooking.cshtml", model);
+        }
+
+        [HttpGet]
+        public IActionResult ChangeLabBookingStatus(long id)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            LabBookingModel model = new LabBookingModel();
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                string query = @"
+                    SELECT B.*, T.TestName, C.FullName AS CustomerName
+                    FROM tbl_LabBooking B
+                    INNER JOIN tbl_LabTest T ON B.LabTestId = T.LabTestId
+                    LEFT JOIN tbl_Customer C ON B.CustomerId = C.CustomerId
+                    WHERE B.LabBookingId = @LabBookingId AND B.IsDeleted = 0";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+                cmd.Parameters.AddWithValue("@LabBookingId", id);
+
+                con.Open();
+                SqlDataReader dr = cmd.ExecuteReader();
+                if (dr.Read())
+                {
+                    model.LabBookingId = Convert.ToInt64(dr["LabBookingId"]);
+                    model.BookingNo = dr["BookingNo"].ToString();
+                    model.PatientName = dr["PatientName"].ToString();
+                    model.TestStatus = dr["TestStatus"].ToString();
+                    model.PaymentStatus = dr["PaymentStatus"].ToString();
+                    model.AdminRemark = dr["AdminRemark"] != DBNull.Value ? dr["AdminRemark"].ToString() : "";
+                    model.TestName = dr["TestName"] != DBNull.Value ? dr["TestName"].ToString() : "";
+                    model.CustomerName = dr["CustomerName"] != DBNull.Value ? dr["CustomerName"].ToString() : "";
+                }
+                else
+                {
+                    TempData["Error"] = "Lab Booking not found.";
+                    return RedirectToAction("ManageLabBooking");
+                }
+            }
+
+            return View("~/Views/Admin/LabBooking/ChangeLabBookingStatus.cshtml", model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult ChangeLabBookingStatus(long id, string testStatus, string paymentStatus, string adminRemark)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            try
+            {
+                using (SqlConnection con = new SqlConnection(cs))
+                {
+                    SqlCommand cmd = new SqlCommand(@"
+                        UPDATE tbl_LabBooking
+                        SET TestStatus = @TestStatus,
+                            PaymentStatus = @PaymentStatus,
+                            AdminRemark = @AdminRemark,
+                            UpdatedDate = GETDATE()
+                        WHERE LabBookingId = @LabBookingId AND IsDeleted = 0", con);
+
+                    cmd.Parameters.AddWithValue("@TestStatus", testStatus ?? "Pending");
+                    cmd.Parameters.AddWithValue("@PaymentStatus", paymentStatus ?? "Pending");
+                    cmd.Parameters.AddWithValue("@AdminRemark", (object)adminRemark ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@LabBookingId", id);
+
+                    con.Open();
+                    int result = cmd.ExecuteNonQuery();
+
+                    if (result > 0)
+                    {
+                        TempData["Success"] = "Lab Booking status updated successfully.";
+                    }
+                    else
+                    {
+                        TempData["Error"] = "Lab Booking not found.";
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = ex.Message;
+            }
+
+            return RedirectToAction("ManageLabBooking");
+        }
+
+        [HttpGet]
+        public IActionResult DeleteLabBooking(long id)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            try
+            {
+                using (SqlConnection con = new SqlConnection(cs))
+                {
+                    SqlCommand cmd = new SqlCommand("UPDATE tbl_LabBooking SET IsDeleted = 1, UpdatedDate = GETDATE() WHERE LabBookingId = @LabBookingId", con);
+                    cmd.Parameters.AddWithValue("@LabBookingId", id);
+
+                    con.Open();
+                    int result = cmd.ExecuteNonQuery();
+
+                    if (result > 0)
+                    {
+                        TempData["Success"] = "Lab Booking deleted successfully.";
+                    }
+                    else
+                    {
+                        TempData["Error"] = "Lab Booking not found.";
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = ex.Message;
+            }
+
+            return RedirectToAction("ManageLabBooking");
+        }
+
+        // =========================================================
+        // LAB REPORT MODULE
+        // =========================================================
+
+        [HttpGet]
+        public IActionResult ManageLabReport(string search = "", string status = "")
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            List<LabReportModel> list = new List<LabReportModel>();
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                string query = @"
+                    SELECT R.*, B.BookingNo, B.PatientName, B.MobileNo, B.Email, B.TestStatus, B.Amount, B.BookingDate,
+                           T.TestName, T.TestCategory, C.FullName AS CustomerName
+                    FROM tbl_LabReport R
+                    INNER JOIN tbl_LabBooking B ON R.LabBookingId = B.LabBookingId
+                    INNER JOIN tbl_LabTest T ON R.LabTestId = T.LabTestId
+                    LEFT JOIN tbl_Customer C ON R.CustomerId = C.CustomerId
+                    WHERE R.IsDeleted = 0
+                    AND (@Search = '' OR R.ReportNo LIKE '%' + @Search + '%' OR B.BookingNo LIKE '%' + @Search + '%' OR B.PatientName LIKE '%' + @Search + '%' OR R.ReportTitle LIKE '%' + @Search + '%')
+                    AND (@Status = '' OR R.ReportStatus = @Status)
+                    ORDER BY R.LabReportId DESC";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+                cmd.Parameters.AddWithValue("@Search", search ?? "");
+                cmd.Parameters.AddWithValue("@Status", status ?? "");
+
+                con.Open();
+                SqlDataReader dr = cmd.ExecuteReader();
+                while (dr.Read())
+                {
+                    LabReportModel model = new LabReportModel
+                    {
+                        LabReportId = Convert.ToInt64(dr["LabReportId"]),
+                        LabBookingId = Convert.ToInt64(dr["LabBookingId"]),
+                        LabTestId = Convert.ToInt64(dr["LabTestId"]),
+                        CustomerId = Convert.ToInt64(dr["CustomerId"]),
+                        ReportNo = dr["ReportNo"].ToString(),
+                        ReportDate = dr["ReportDate"] != DBNull.Value ? Convert.ToDateTime(dr["ReportDate"]) : null,
+                        ReportFile = dr["ReportFile"] != DBNull.Value ? dr["ReportFile"].ToString() : "",
+                        ReportTitle = dr["ReportTitle"] != DBNull.Value ? dr["ReportTitle"].ToString() : "",
+                        TechnicianName = dr["TechnicianName"] != DBNull.Value ? dr["TechnicianName"].ToString() : "",
+                        ReportStatus = dr["ReportStatus"].ToString(),
+                        ReportRemark = dr["ReportRemark"] != DBNull.Value ? dr["ReportRemark"].ToString() : "",
+                        IsActive = Convert.ToBoolean(dr["IsActive"]),
+                        IsDeleted = Convert.ToBoolean(dr["IsDeleted"]),
+                        CreatedDate = Convert.ToDateTime(dr["CreatedDate"]),
+                        UpdatedDate = dr["UpdatedDate"] != DBNull.Value ? Convert.ToDateTime(dr["UpdatedDate"]) : null,
+                        BookingNo = dr["BookingNo"] != DBNull.Value ? dr["BookingNo"].ToString() : "",
+                        TestName = dr["TestName"] != DBNull.Value ? dr["TestName"].ToString() : "",
+                        TestCategory = dr["TestCategory"] != DBNull.Value ? dr["TestCategory"].ToString() : "",
+                        CustomerName = dr["CustomerName"] != DBNull.Value ? dr["CustomerName"].ToString() : "",
+                        PatientName = dr["PatientName"] != DBNull.Value ? dr["PatientName"].ToString() : "",
+                        MobileNo = dr["MobileNo"] != DBNull.Value ? dr["MobileNo"].ToString() : "",
+                        Email = dr["Email"] != DBNull.Value ? dr["Email"].ToString() : "",
+                        TestStatus = dr["TestStatus"] != DBNull.Value ? dr["TestStatus"].ToString() : "",
+                        Amount = dr["Amount"] != DBNull.Value ? Convert.ToDecimal(dr["Amount"]) : 0,
+                        BookingDate = dr["BookingDate"] != DBNull.Value ? Convert.ToDateTime(dr["BookingDate"]) : null
+                    };
+                    list.Add(model);
+                }
+            }
+
+            ViewBag.Search = search;
+            ViewBag.Status = status;
+            return View("~/Views/Admin/LabReport/ManageLabReport.cshtml", list);
+        }
+
+        [HttpGet]
+        public IActionResult UploadLabReport(long? bookingId = null)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            LabReportModel model = new LabReportModel();
+            List<SelectListItem> bookingList = new List<SelectListItem>();
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                con.Open();
+                SqlCommand cmd = new SqlCommand(@"
+                    SELECT B.LabBookingId, B.BookingNo, B.PatientName, B.LabTestId, B.CustomerId, T.TestName
+                    FROM tbl_LabBooking B
+                    INNER JOIN tbl_LabTest T ON B.LabTestId = T.LabTestId
+                    WHERE B.IsDeleted = 0 ORDER BY B.LabBookingId DESC", con);
+
+                SqlDataReader dr = cmd.ExecuteReader();
+                bookingList.Add(new SelectListItem { Text = "-- Select Booking --", Value = "" });
+                while (dr.Read())
+                {
+                    string bId = dr["LabBookingId"].ToString();
+                    bookingList.Add(new SelectListItem
+                    {
+                        Text = $"{dr["BookingNo"]} - {dr["PatientName"]} ({dr["TestName"]})",
+                        Value = bId,
+                        Selected = (bookingId.HasValue && bookingId.Value.ToString() == bId)
+                    });
+                }
+                dr.Close();
+
+                if (bookingId.HasValue && bookingId.Value > 0)
+                {
+                    SqlCommand bCmd = new SqlCommand(@"
+                        SELECT B.LabBookingId, B.LabTestId, B.CustomerId, B.BookingNo, B.PatientName, T.TestName
+                        FROM tbl_LabBooking B
+                        INNER JOIN tbl_LabTest T ON B.LabTestId = T.LabTestId
+                        WHERE B.LabBookingId = @LabBookingId AND B.IsDeleted = 0", con);
+                    bCmd.Parameters.AddWithValue("@LabBookingId", bookingId.Value);
+                    SqlDataReader bDr = bCmd.ExecuteReader();
+                    if (bDr.Read())
+                    {
+                        model.LabBookingId = Convert.ToInt64(bDr["LabBookingId"]);
+                        model.LabTestId = Convert.ToInt64(bDr["LabTestId"]);
+                        model.CustomerId = Convert.ToInt64(bDr["CustomerId"]);
+                        model.BookingNo = bDr["BookingNo"].ToString();
+                        model.PatientName = bDr["PatientName"].ToString();
+                        model.TestName = bDr["TestName"].ToString();
+                        model.ReportTitle = $"{bDr["TestName"]} Report for {bDr["PatientName"]}";
+                    }
+                    bDr.Close();
+                }
+            }
+
+            ViewBag.BookingList = bookingList;
+            return View("~/Views/Admin/LabReport/UploadLabReport.cshtml", model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult UploadLabReport(LabReportModel model, IFormFile? ReportFile)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            if (model.LabBookingId <= 0)
+            {
+                ModelState.AddModelError("LabBookingId", "Please select a Lab Booking.");
+            }
+
+            if (ReportFile == null || ReportFile.Length == 0)
+            {
+                ModelState.AddModelError("ReportFile", "Please upload a valid PDF report file.");
+            }
+            else if (!Path.GetExtension(ReportFile.FileName).Equals(".pdf", StringComparison.OrdinalIgnoreCase))
+            {
+                ModelState.AddModelError("ReportFile", "Only PDF files are allowed.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                List<SelectListItem> bookingList = new List<SelectListItem>();
+                using (SqlConnection con = new SqlConnection(cs))
+                {
+                    con.Open();
+                    SqlCommand cmd = new SqlCommand(@"
+                        SELECT B.LabBookingId, B.BookingNo, B.PatientName, T.TestName
+                        FROM tbl_LabBooking B
+                        INNER JOIN tbl_LabTest T ON B.LabTestId = T.LabTestId
+                        WHERE B.IsDeleted = 0 ORDER BY B.LabBookingId DESC", con);
+                    SqlDataReader dr = cmd.ExecuteReader();
+                    bookingList.Add(new SelectListItem { Text = "-- Select Booking --", Value = "" });
+                    while (dr.Read())
+                    {
+                        bookingList.Add(new SelectListItem
+                        {
+                            Text = $"{dr["BookingNo"]} - {dr["PatientName"]} ({dr["TestName"]})",
+                            Value = dr["LabBookingId"].ToString(),
+                            Selected = (model.LabBookingId.ToString() == dr["LabBookingId"].ToString())
+                        });
+                    }
+                }
+                ViewBag.BookingList = bookingList;
+                return View("~/Views/Admin/LabReport/UploadLabReport.cshtml", model);
+            }
+
+            try
+            {
+                using (SqlConnection con = new SqlConnection(cs))
+                {
+                    con.Open();
+
+                    // Get LabTestId and CustomerId from booking if not provided
+                    SqlCommand bCmd = new SqlCommand("SELECT LabTestId, CustomerId FROM tbl_LabBooking WHERE LabBookingId=@LabBookingId", con);
+                    bCmd.Parameters.AddWithValue("@LabBookingId", model.LabBookingId);
+                    SqlDataReader bDr = bCmd.ExecuteReader();
+                    if (bDr.Read())
+                    {
+                        model.LabTestId = Convert.ToInt64(bDr["LabTestId"]);
+                        model.CustomerId = Convert.ToInt64(bDr["CustomerId"]);
+                    }
+                    bDr.Close();
+
+                    // Save File
+                    string folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "LabReports");
+                    if (!Directory.Exists(folderPath))
+                    {
+                        Directory.CreateDirectory(folderPath);
+                    }
+
+                    string fileName = "Report_" + Guid.NewGuid().ToString("N") + Path.GetExtension(ReportFile!.FileName);
+                    string filePath = Path.Combine(folderPath, fileName);
+
+                    using (FileStream stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        ReportFile.CopyTo(stream);
+                    }
+
+                    string reportNo = "REP" + DateTime.Now.ToString("yyyyMMddHHmmss");
+
+                    SqlCommand cmd = new SqlCommand(@"
+                        INSERT INTO tbl_LabReport (LabBookingId, LabTestId, CustomerId, ReportNo, ReportDate, ReportFile, ReportTitle, TechnicianName, ReportStatus, ReportRemark, IsActive, IsDeleted, CreatedDate)
+                        VALUES (@LabBookingId, @LabTestId, @CustomerId, @ReportNo, GETDATE(), @ReportFile, @ReportTitle, @TechnicianName, @ReportStatus, @ReportRemark, 1, 0, GETDATE())", con);
+
+                    cmd.Parameters.AddWithValue("@LabBookingId", model.LabBookingId);
+                    cmd.Parameters.AddWithValue("@LabTestId", model.LabTestId);
+                    cmd.Parameters.AddWithValue("@CustomerId", model.CustomerId);
+                    cmd.Parameters.AddWithValue("@ReportNo", reportNo);
+                    cmd.Parameters.AddWithValue("@ReportFile", fileName);
+                    cmd.Parameters.AddWithValue("@ReportTitle", (object)model.ReportTitle ?? "Lab Test Report");
+                    cmd.Parameters.AddWithValue("@TechnicianName", (object)model.TechnicianName ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@ReportStatus", string.IsNullOrEmpty(model.ReportStatus) ? "Completed" : model.ReportStatus);
+                    cmd.Parameters.AddWithValue("@ReportRemark", (object)model.ReportRemark ?? DBNull.Value);
+
+                    cmd.ExecuteNonQuery();
+
+                    // Update corresponding booking status to Completed
+                    SqlCommand uCmd = new SqlCommand("UPDATE tbl_LabBooking SET TestStatus = 'Completed', UpdatedDate = GETDATE() WHERE LabBookingId = @LabBookingId", con);
+                    uCmd.Parameters.AddWithValue("@LabBookingId", model.LabBookingId);
+                    uCmd.ExecuteNonQuery();
+
+                    TempData["Success"] = "Lab Report uploaded successfully.";
+                    return RedirectToAction("ManageLabReport");
+                }
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Error = ex.Message;
+                return View("~/Views/Admin/LabReport/UploadLabReport.cshtml", model);
+            }
+        }
+
+        [HttpGet]
+        public IActionResult ViewLabReport(long id)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            LabReportModel model = new LabReportModel();
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                string query = @"
+                    SELECT R.*, B.BookingNo, B.PatientName, B.MobileNo, B.Email, B.TestStatus, B.Amount, B.BookingDate,
+                           T.TestName, T.TestCategory, C.FullName AS CustomerName
+                    FROM tbl_LabReport R
+                    INNER JOIN tbl_LabBooking B ON R.LabBookingId = B.LabBookingId
+                    INNER JOIN tbl_LabTest T ON R.LabTestId = T.LabTestId
+                    LEFT JOIN tbl_Customer C ON R.CustomerId = C.CustomerId
+                    WHERE R.LabReportId = @LabReportId AND R.IsDeleted = 0";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+                cmd.Parameters.AddWithValue("@LabReportId", id);
+
+                con.Open();
+                SqlDataReader dr = cmd.ExecuteReader();
+                if (dr.Read())
+                {
+                    model.LabReportId = Convert.ToInt64(dr["LabReportId"]);
+                    model.LabBookingId = Convert.ToInt64(dr["LabBookingId"]);
+                    model.LabTestId = Convert.ToInt64(dr["LabTestId"]);
+                    model.CustomerId = Convert.ToInt64(dr["CustomerId"]);
+                    model.ReportNo = dr["ReportNo"].ToString();
+                    model.ReportDate = dr["ReportDate"] != DBNull.Value ? Convert.ToDateTime(dr["ReportDate"]) : null;
+                    model.ReportFile = dr["ReportFile"] != DBNull.Value ? dr["ReportFile"].ToString() : "";
+                    model.ReportTitle = dr["ReportTitle"] != DBNull.Value ? dr["ReportTitle"].ToString() : "";
+                    model.TechnicianName = dr["TechnicianName"] != DBNull.Value ? dr["TechnicianName"].ToString() : "";
+                    model.ReportStatus = dr["ReportStatus"].ToString();
+                    model.ReportRemark = dr["ReportRemark"] != DBNull.Value ? dr["ReportRemark"].ToString() : "";
+                    model.IsActive = Convert.ToBoolean(dr["IsActive"]);
+                    model.IsDeleted = Convert.ToBoolean(dr["IsDeleted"]);
+                    model.CreatedDate = Convert.ToDateTime(dr["CreatedDate"]);
+                    model.UpdatedDate = dr["UpdatedDate"] != DBNull.Value ? Convert.ToDateTime(dr["UpdatedDate"]) : null;
+                    model.BookingNo = dr["BookingNo"] != DBNull.Value ? dr["BookingNo"].ToString() : "";
+                    model.TestName = dr["TestName"] != DBNull.Value ? dr["TestName"].ToString() : "";
+                    model.TestCategory = dr["TestCategory"] != DBNull.Value ? dr["TestCategory"].ToString() : "";
+                    model.CustomerName = dr["CustomerName"] != DBNull.Value ? dr["CustomerName"].ToString() : "";
+                    model.PatientName = dr["PatientName"] != DBNull.Value ? dr["PatientName"].ToString() : "";
+                    model.MobileNo = dr["MobileNo"] != DBNull.Value ? dr["MobileNo"].ToString() : "";
+                    model.Email = dr["Email"] != DBNull.Value ? dr["Email"].ToString() : "";
+                    model.TestStatus = dr["TestStatus"] != DBNull.Value ? dr["TestStatus"].ToString() : "";
+                    model.Amount = dr["Amount"] != DBNull.Value ? Convert.ToDecimal(dr["Amount"]) : 0;
+                    model.BookingDate = dr["BookingDate"] != DBNull.Value ? Convert.ToDateTime(dr["BookingDate"]) : null;
+                }
+                else
+                {
+                    TempData["Error"] = "Lab Report not found.";
+                    return RedirectToAction("ManageLabReport");
+                }
+            }
+
+            return View("~/Views/Admin/LabReport/ViewLabReport.cshtml", model);
+        }
+
+        [HttpGet]
+        public IActionResult EditLabReport(long id)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            LabReportModel model = new LabReportModel();
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                string query = @"
+                    SELECT R.*, B.BookingNo, B.PatientName, T.TestName
+                    FROM tbl_LabReport R
+                    INNER JOIN tbl_LabBooking B ON R.LabBookingId = B.LabBookingId
+                    INNER JOIN tbl_LabTest T ON R.LabTestId = T.LabTestId
+                    WHERE R.LabReportId = @LabReportId AND R.IsDeleted = 0";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+                cmd.Parameters.AddWithValue("@LabReportId", id);
+
+                con.Open();
+                SqlDataReader dr = cmd.ExecuteReader();
+                if (dr.Read())
+                {
+                    model.LabReportId = Convert.ToInt64(dr["LabReportId"]);
+                    model.LabBookingId = Convert.ToInt64(dr["LabBookingId"]);
+                    model.LabTestId = Convert.ToInt64(dr["LabTestId"]);
+                    model.CustomerId = Convert.ToInt64(dr["CustomerId"]);
+                    model.ReportNo = dr["ReportNo"].ToString();
+                    model.ReportDate = dr["ReportDate"] != DBNull.Value ? Convert.ToDateTime(dr["ReportDate"]) : null;
+                    model.ReportFile = dr["ReportFile"] != DBNull.Value ? dr["ReportFile"].ToString() : "";
+                    model.ReportTitle = dr["ReportTitle"] != DBNull.Value ? dr["ReportTitle"].ToString() : "";
+                    model.TechnicianName = dr["TechnicianName"] != DBNull.Value ? dr["TechnicianName"].ToString() : "";
+                    model.ReportStatus = dr["ReportStatus"].ToString();
+                    model.ReportRemark = dr["ReportRemark"] != DBNull.Value ? dr["ReportRemark"].ToString() : "";
+                    model.BookingNo = dr["BookingNo"].ToString();
+                    model.PatientName = dr["PatientName"].ToString();
+                    model.TestName = dr["TestName"].ToString();
+                }
+                else
+                {
+                    TempData["Error"] = "Lab Report not found.";
+                    return RedirectToAction("ManageLabReport");
+                }
+            }
+
+            return View("~/Views/Admin/LabReport/EditLabReport.cshtml", model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult EditLabReport(LabReportModel model, IFormFile? ReportFile)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            try
+            {
+                using (SqlConnection con = new SqlConnection(cs))
+                {
+                    con.Open();
+
+                    string oldFile = "";
+                    SqlCommand oldCmd = new SqlCommand("SELECT ReportFile FROM tbl_LabReport WHERE LabReportId=@LabReportId", con);
+                    oldCmd.Parameters.AddWithValue("@LabReportId", model.LabReportId);
+                    object obj = oldCmd.ExecuteScalar();
+                    if (obj != null)
+                    {
+                        oldFile = obj.ToString();
+                    }
+
+                    string fileName = oldFile;
+
+                    if (ReportFile != null && ReportFile.Length > 0)
+                    {
+                        if (!Path.GetExtension(ReportFile.FileName).Equals(".pdf", StringComparison.OrdinalIgnoreCase))
+                        {
+                            ViewBag.Error = "Only PDF files are allowed.";
+                            return View("~/Views/Admin/LabReport/EditLabReport.cshtml", model);
+                        }
+
+                        string folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "LabReports");
+                        if (!Directory.Exists(folderPath))
+                        {
+                            Directory.CreateDirectory(folderPath);
+                        }
+
+                        if (!string.IsNullOrEmpty(oldFile))
+                        {
+                            string oldPath = Path.Combine(folderPath, oldFile);
+                            if (System.IO.File.Exists(oldPath))
+                            {
+                                System.IO.File.Delete(oldPath);
+                            }
+                        }
+
+                        fileName = "Report_" + Guid.NewGuid().ToString("N") + Path.GetExtension(ReportFile.FileName);
+                        string newPath = Path.Combine(folderPath, fileName);
+
+                        using (FileStream stream = new FileStream(newPath, FileMode.Create))
+                        {
+                            ReportFile.CopyTo(stream);
+                        }
+                    }
+
+                    SqlCommand cmd = new SqlCommand(@"
+                        UPDATE tbl_LabReport
+                        SET ReportTitle = @ReportTitle,
+                            TechnicianName = @TechnicianName,
+                            ReportStatus = @ReportStatus,
+                            ReportRemark = @ReportRemark,
+                            ReportFile = @ReportFile,
+                            UpdatedDate = GETDATE()
+                        WHERE LabReportId = @LabReportId AND IsDeleted = 0", con);
+
+                    cmd.Parameters.AddWithValue("@ReportTitle", (object)model.ReportTitle ?? "Lab Test Report");
+                    cmd.Parameters.AddWithValue("@TechnicianName", (object)model.TechnicianName ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@ReportStatus", (object)model.ReportStatus ?? "Completed");
+                    cmd.Parameters.AddWithValue("@ReportRemark", (object)model.ReportRemark ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@ReportFile", fileName);
+                    cmd.Parameters.AddWithValue("@LabReportId", model.LabReportId);
+
+                    cmd.ExecuteNonQuery();
+
+                    TempData["Success"] = "Lab Report updated successfully.";
+                    return RedirectToAction("ManageLabReport");
+                }
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Error = ex.Message;
+                return View("~/Views/Admin/LabReport/EditLabReport.cshtml", model);
+            }
+        }
+
+        [HttpGet]
+        public IActionResult DeleteLabReport(long id)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            try
+            {
+                using (SqlConnection con = new SqlConnection(cs))
+                {
+                    SqlCommand cmd = new SqlCommand("UPDATE tbl_LabReport SET IsDeleted = 1, UpdatedDate = GETDATE() WHERE LabReportId = @LabReportId", con);
+                    cmd.Parameters.AddWithValue("@LabReportId", id);
+
+                    con.Open();
+                    int result = cmd.ExecuteNonQuery();
+
+                    if (result > 0)
+                    {
+                        TempData["Success"] = "Lab Report deleted successfully.";
+                    }
+                    else
+                    {
+                        TempData["Error"] = "Lab Report not found.";
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = ex.Message;
+            }
+
+            return RedirectToAction("ManageLabReport");
+        }
+
+        [HttpGet]
+        public IActionResult ChangeLabReportStatus(long id)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            LabReportModel model = new LabReportModel();
+
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                string query = @"
+                    SELECT R.*, B.BookingNo, B.PatientName, T.TestName
+                    FROM tbl_LabReport R
+                    INNER JOIN tbl_LabBooking B ON R.LabBookingId = B.LabBookingId
+                    INNER JOIN tbl_LabTest T ON R.LabTestId = T.LabTestId
+                    WHERE R.LabReportId = @LabReportId AND R.IsDeleted = 0";
+
+                SqlCommand cmd = new SqlCommand(query, con);
+                cmd.Parameters.AddWithValue("@LabReportId", id);
+
+                con.Open();
+                SqlDataReader dr = cmd.ExecuteReader();
+                if (dr.Read())
+                {
+                    model.LabReportId = Convert.ToInt64(dr["LabReportId"]);
+                    model.ReportNo = dr["ReportNo"].ToString();
+                    model.ReportTitle = dr["ReportTitle"] != DBNull.Value ? dr["ReportTitle"].ToString() : "";
+                    model.ReportStatus = dr["ReportStatus"].ToString();
+                    model.ReportRemark = dr["ReportRemark"] != DBNull.Value ? dr["ReportRemark"].ToString() : "";
+                    model.BookingNo = dr["BookingNo"].ToString();
+                    model.PatientName = dr["PatientName"].ToString();
+                    model.TestName = dr["TestName"].ToString();
+                }
+                else
+                {
+                    TempData["Error"] = "Lab Report not found.";
+                    return RedirectToAction("ManageLabReport");
+                }
+            }
+
+            return View("~/Views/Admin/LabReport/ChangeLabReportStatus.cshtml", model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult ChangeLabReportStatus(long id, string reportStatus, string reportRemark)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            try
+            {
+                using (SqlConnection con = new SqlConnection(cs))
+                {
+                    SqlCommand cmd = new SqlCommand(@"
+                        UPDATE tbl_LabReport
+                        SET ReportStatus = @ReportStatus,
+                            ReportRemark = @ReportRemark,
+                            UpdatedDate = GETDATE()
+                        WHERE LabReportId = @LabReportId AND IsDeleted = 0", con);
+
+                    cmd.Parameters.AddWithValue("@ReportStatus", reportStatus ?? "Completed");
+                    cmd.Parameters.AddWithValue("@ReportRemark", (object)reportRemark ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@LabReportId", id);
+
+                    con.Open();
+                    int result = cmd.ExecuteNonQuery();
+
+                    if (result > 0)
+                    {
+                        TempData["Success"] = "Lab Report status updated successfully.";
+                    }
+                    else
+                    {
+                        TempData["Error"] = "Lab Report not found.";
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = ex.Message;
+            }
+
+            return RedirectToAction("ManageLabReport");
+        }
+
         // ===========================
         // Logout
         // ===========================

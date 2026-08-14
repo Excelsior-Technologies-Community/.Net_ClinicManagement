@@ -134,6 +134,9 @@
                             </a>
                         </li>
                         
+                       
+                        
+
                         <li class="nav-item">
                             <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "HealthTips" ? "active" : "")"
                                asp-controller="Customer"
@@ -168,6 +171,11 @@
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link" asp-controller="Customer" asp-action="MedicalCamps">
+                                <i class="fa-solid fa-calendar-check me-1"></i> Medical Camps
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link"
                                asp-controller="Customer"
                                asp-action="Contact">
@@ -190,6 +198,13 @@
 
                             </a>
 
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @(ViewContext.RouteData.Values["Action"]?.ToString() == "LabTests" ? "active" : "")"
+                               asp-controller="Customer"
+                               asp-action="LabTests">
+                                <i class="fa-solid fa-flask me-1"></i> Lab Tests
+                            </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" asp-controller="Customer" asp-action="EditProfile">
@@ -226,11 +241,19 @@
                                 </li>
                                 <li>
                                     <a class="dropdown-item py-2" asp-controller="Customer" asp-action="MyPrescriptions">
-                                        <i class="fa-solid fa-file-prescription"></i> My Prescriptions
+                                        <i class="fa-solid fa-file-prescription me-2"></i> My Prescriptions
                                     </a>
                                 </li>
-                                
-                               
+                                <li>
+                                    <a class="dropdown-item py-2" asp-controller="Customer" asp-action="MyLabTests">
+                                        <i class="fa-solid fa-calendar-check me-2 text-success"></i> My Lab Bookings
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item py-2" asp-controller="Customer" asp-action="MyLabReports">
+                                        <i class="fa-solid fa-file-medical-alt me-2 text-warning"></i> My Lab Reports
+                                    </a>
+                                </li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
                                     <a class="dropdown-item py-2 text-danger fw-semibold" asp-controller="Customer" asp-action="Logout">

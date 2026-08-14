@@ -1,0 +1,102 @@
+@model ClinicManagementSystem.Models.LabReportModel
+@{
+    ViewData["Title"] = "Edit Lab Report";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="mb-0 text-primary"><i class="fas fa-edit me-2"></i>Edit Lab Report</h3>
+        <small class="text-muted">Report Number: <strong class="text-dark">@Model.ReportNo</strong></small>
+    </div>
+    <a asp-action="ManageLabReport" class="btn btn-secondary shadow-sm"><i class="fas fa-arrow-left me-1"></i> Back to List</a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-9">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0"><i class="fas fa-file-medical-alt me-2"></i>Edit Report #@Model.ReportNo</h5>
+                <span class="badge bg-dark text-white">Booking: @Model.BookingNo</span>
+            </div>
+            <div class="card-body p-4">
+                @if (ViewBag.Error != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="fas fa-exclamation-triangle me-2"></i>@ViewBag.Error
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+
+                <form asp-action="EditLabReport" method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="LabReportId" />
+                    <input type="hidden" asp-for="LabBookingId" />
+                    <input type="hidden" asp-for="LabTestId" />
+                    <input type="hidden" asp-for="CustomerId" />
+
+                    <div class="p-3 bg-light rounded border mb-4">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>Patient Name:</strong> @Model.PatientName</p>
+                                <p class="mb-0"><strong>Test Name:</strong> <span class="text-primary fw-bold">@Model.TestName</span></p>
+                            </div>
+                            <div class="col-md-6 text-md-end">
+                                <p class="mb-1"><strong>Booking No:</strong> @Model.BookingNo</p>
+                                <p class="mb-0"><strong>Report Date:</strong> @(Model.ReportDate.HasValue ? Model.ReportDate.Value.ToString("dd MMM yyyy") : "N/A")</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="ReportTitle" class="form-label fw-bold">Report Title</label>
+                            <input asp-for="ReportTitle" class="form-control" />
+                            <span asp-validation-for="ReportTitle" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="TechnicianName" class="form-label fw-bold">Lab Technician / Doctor</label>
+                            <input asp-for="TechnicianName" class="form-control" />
+                            <span asp-validation-for="TechnicianName" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Update PDF File (Optional)</label>
+                        @if (!string.IsNullOrEmpty(Model.ReportFile))
+                        {
+                            <div class="mb-2">
+                                <span class="badge bg-secondary p-2 me-2"><i class="fas fa-file-pdf me-1 text-danger"></i>Current: @Model.ReportFile</span>
+                                <a href="~/LabReports/@Model.ReportFile" target="_blank" class="small text-primary">View Current File</a>
+                            </div>
+                        }
+                        <input type="file" name="ReportFile" class="form-control" accept=".pdf" />
+                        <small class="form-text text-muted">Leave empty to keep existing file. Only PDF files are allowed.</small>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="ReportStatus" class="form-label fw-bold">Report Status</label>
+                            <select asp-for="ReportStatus" class="form-select">
+                                <!option value="Completed" @(Model.ReportStatus == "Completed" ? "selected" : "")>Completed</!option>
+                                <!option value="Draft" @(Model.ReportStatus == "Draft" ? "selected" : "")>Draft</!option>
+                                <!option value="Pending" @(Model.ReportStatus == "Pending" ? "selected" : "")>Pending</!option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="ReportRemark" class="form-label fw-bold">Technician Remarks / Findings</label>
+                        <textarea asp-for="ReportRemark" class="form-control" rows="4">@Model.ReportRemark</textarea>
+                        <span asp-validation-for="ReportRemark" class="text-danger small"></span>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <a asp-action="ManageLabReport" class="btn btn-secondary"><i class="fas fa-times me-1"></i> Cancel</a>
+                        <button type="submit" class="btn btn-warning"><i class="fas fa-save me-1"></i> Update Report</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

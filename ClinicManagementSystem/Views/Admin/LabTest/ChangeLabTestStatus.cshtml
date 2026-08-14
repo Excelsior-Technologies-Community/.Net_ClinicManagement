@@ -1,0 +1,55 @@
+@model ClinicManagementSystem.Models.LabTestModel
+@{
+    ViewData["Title"] = "Change Lab Test Status";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="mb-0 text-primary"><i class="fas fa-toggle-on me-2"></i>Change Lab Test Status</h3>
+        <small class="text-muted">Activate or deactivate test availability for patient bookings</small>
+    </div>
+    <a asp-action="ManageLabTest" class="btn btn-secondary shadow-sm"><i class="fas fa-arrow-left me-1"></i> Back to List</a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="card-title mb-0"><i class="fas fa-flask me-2"></i>Update Test Status</h5>
+            </div>
+            <div class="card-body p-4 text-center">
+                <h5 class="text-primary mb-2">@Model.TestName</h5>
+                <p class="text-muted mb-4">Lab Test ID: #@Model.LabTestId</p>
+
+                <form asp-action="ChangeLabTestStatus" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="LabTestId" />
+
+                    <div class="p-4 bg-light rounded border mb-4 text-start">
+                        <label class="form-label fw-bold d-block mb-3">Current Active Status:</label>
+                        
+                        <div class="form-check form-radio mb-2">
+                            <input class="form-check-input" type="radio" name="isActive" id="statusActive" value="true" @(Model.IsActive ? "checked" : "")>
+                            <label class="form-check-label text-success fw-bold" for="statusActive">
+                                <i class="fas fa-check-circle me-1"></i> Active (Available for bookings)
+                            </label>
+                        </div>
+                        
+                        <div class="form-check form-radio">
+                            <input class="form-check-input" type="radio" name="isActive" id="statusInactive" value="false" @(!Model.IsActive ? "checked" : "")>
+                            <label class="form-check-label text-danger fw-bold" for="statusInactive">
+                                <i class="fas fa-times-circle me-1"></i> Inactive (Hidden from patients)
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-center gap-3">
+                        <a asp-action="ManageLabTest" class="btn btn-secondary"><i class="fas fa-times me-1"></i> Cancel</a>
+                        <button type="submit" class="btn btn-primary px-4"><i class="fas fa-save me-1"></i> Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

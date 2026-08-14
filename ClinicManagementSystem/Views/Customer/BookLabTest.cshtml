@@ -1,0 +1,260 @@
+@model ClinicManagementSystem.Models.LabBookingModel
+@{
+    ViewData["Title"] = "Book Lab Test - " + Model.TestName;
+    Layout = "~/Views/Shared/_CustomerLayout.cshtml";
+}
+
+<div class="mb-4">
+    <a asp-action="LabTests" class="btn btn-outline-secondary rounded-pill"><i class="fa-solid fa-arrow-left me-1"></i> Back to Lab Tests</a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-0 rounded-4 overflow-hidden mb-4">
+            <div class="card-header bg-primary text-white p-4">
+                <h4 class="fw-bold mb-1"><i class="fa-solid fa-calendar-plus me-2"></i>Book Diagnostic Lab Test</h4>
+                <small class="text-white-50">Complete your patient information and schedule sample collection</small>
+            </div>
+            <div class="card-body p-4 p-md-5 bg-white">
+                @if (ViewBag.Error != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show rounded-3 mb-4" role="alert">
+                        <i class="fa-solid fa-triangle-exclamation me-2"></i>@ViewBag.Error
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+
+                <!-- Selected Test Summary -->
+                <div class="p-3 bg-light rounded-4 border mb-4 d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="badge bg-primary text-white mb-1">@Model.TestCategory</span>
+                        <h5 class="fw-bold text-dark mb-0">@Model.TestName</h5>
+                        <small class="text-muted"><i class="fa-solid fa-vial me-1"></i>Sample: @(string.IsNullOrEmpty(Model.SampleType) ? "Blood / Urine" : Model.SampleType)</small>
+                    </div>
+                    <div class="text-end">
+                        <small class="text-muted d-block">Test Fee</small>
+                        <h4 class="fw-bold text-success mb-0">₹@Model.Amount.ToString("N2")</h4>
+                    </div>
+                </div>
+
+                <form asp-controller="Customer"
+                      asp-action="BookLabTest"
+                      method="post">
+
+                    @Html.AntiForgeryToken()
+
+                    <input type="hidden" asp-for="LabTestId" />
+                    <input type="hidden" asp-for="Amount" />
+
+                    <div asp-validation-summary="ModelOnly"
+                         class="alert alert-danger mb-3">
+                    </div>
+
+                    <!-- Patient Information -->
+
+                    <div class="row g-3 mb-3">
+
+                        <div class="col-md-6">
+                            <label asp-for="PatientName"
+                                   class="form-label fw-semibold">
+                                Patient Full Name
+                                <span class="text-danger">*</span>
+                            </label>
+
+                            <input asp-for="PatientName"
+                                   class="form-control bg-light"
+                                   required />
+
+                            <span asp-validation-for="PatientName"
+                                  class="text-danger small">
+                            </span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="MobileNo"
+                                   class="form-label fw-semibold">
+                                Mobile Number
+                                <span class="text-danger">*</span>
+                            </label>
+
+                            <input asp-for="MobileNo"
+                                   class="form-control bg-light"
+                                   required />
+
+                            <span asp-validation-for="MobileNo"
+                                  class="text-danger small">
+                            </span>
+                        </div>
+
+                    </div>
+
+
+                    <div class="row g-3 mb-3">
+
+                        <div class="col-md-6">
+                            <label asp-for="Email"
+                                   class="form-label fw-semibold">
+                                Email Address
+                            </label>
+
+                            <input asp-for="Email"
+                                   type="email"
+                                   class="form-control bg-light" />
+
+                            <span asp-validation-for="Email"
+                                  class="text-danger small">
+                            </span>
+                        </div>
+
+
+                        <div class="col-md-3">
+                            <label asp-for="Age"
+                                   class="form-label fw-semibold">
+                                Age (Years)
+                            </label>
+
+                            <input asp-for="Age"
+                                   type="number"
+                                   class="form-control bg-light"
+                                   min="1"
+                                   max="120" />
+
+                            <span asp-validation-for="Age"
+                                  class="text-danger small">
+                            </span>
+                        </div>
+
+
+                        <div class="col-md-3">
+                            <label asp-for="Gender"
+                                   class="form-label fw-semibold">
+                                Gender
+                            </label>
+
+                            <select asp-for="Gender"
+                                    class="form-select bg-light">
+
+                                <option value="">Select</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+
+                            </select>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Schedule -->
+
+                    <div class="row g-3 mb-3">
+
+                        <div class="col-md-6">
+
+                            <label asp-for="PreferredDate"
+                                   class="form-label fw-semibold">
+                                Preferred Date
+                                <span class="text-danger">*</span>
+                            </label>
+
+                            <input asp-for="PreferredDate"
+                                   type="date"
+                                   class="form-control bg-light"
+                                   min="@DateTime.Today.ToString("yyyy-MM-dd")"
+                                   required />
+
+                            <span asp-validation-for="PreferredDate"
+                                  class="text-danger small">
+                            </span>
+
+                        </div>
+
+
+                        <div class="col-md-6">
+
+                            <label asp-for="PreferredTime"
+                                   class="form-label fw-semibold">
+                                Preferred Time Slot
+                            </label>
+
+                            <select asp-for="PreferredTime"
+                                    class="form-select bg-light">
+
+                                <option value="">
+                                    Select Time Slot
+                                </option>
+
+                                <option value="Morning (08:00 AM - 11:00 AM)">
+                                    Morning (08:00 AM - 11:00 AM)
+                                </option>
+
+                                <option value="Midday (11:00 AM - 02:00 PM)">
+                                    Midday (11:00 AM - 02:00 PM)
+                                </option>
+
+                                <option value="Afternoon (02:00 PM - 05:00 PM)">
+                                    Afternoon (02:00 PM - 05:00 PM)
+                                </option>
+
+                                <option value="Evening (05:00 PM - 08:00 PM)">
+                                    Evening (05:00 PM - 08:00 PM)
+                                </option>
+
+                            </select>
+
+                            <span asp-validation-for="PreferredTime"
+                                  class="text-danger small">
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Health Concern -->
+
+                    <div class="mb-4">
+
+                        <label asp-for="HealthConcern"
+                               class="form-label fw-semibold">
+                            Health Symptoms / Doctor Advice Notes
+                        </label>
+
+                        <textarea asp-for="HealthConcern"
+                                  class="form-control bg-light"
+                                  rows="3">
+        </textarea>
+
+                    </div>
+
+
+                    <!-- Buttons -->
+
+                    <div class="d-flex justify-content-end gap-3 pt-3">
+
+                        <a asp-controller="Customer"
+                           asp-action="LabTests"
+                           class="btn btn-light rounded-pill px-4">
+
+                            Cancel
+
+                        </a>
+
+
+                        <button type="submit"
+                                class="btn btn-primary rounded-pill px-4 fw-semibold shadow-sm">
+
+                            <i class="fa-solid fa-check-circle me-1"></i>
+
+                            Confirm &amp; Book Test
+
+                        </button>
+
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

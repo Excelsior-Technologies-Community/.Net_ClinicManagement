@@ -1,0 +1,76 @@
+@model ClinicManagementSystem.Models.LabBookingModel
+@{
+    ViewData["Title"] = "Change Lab Booking Status";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="mb-0 text-primary"><i class="fas fa-tasks me-2"></i>Update Lab Booking Status</h3>
+        <small class="text-muted">Booking Reference: <strong class="text-dark">@Model.BookingNo</strong></small>
+    </div>
+    <a asp-action="ManageLabBooking" class="btn btn-secondary shadow-sm"><i class="fas fa-arrow-left me-1"></i> Back to List</a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0"><i class="fas fa-edit me-2"></i>Status & Remark Form</h5>
+                <span class="badge bg-dark text-white">#@Model.BookingNo</span>
+            </div>
+            <div class="card-body p-4">
+                <div class="p-3 bg-light rounded border mb-4">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p class="mb-1 text-secondary"><strong>Patient Name:</strong> @Model.PatientName</p>
+                            <p class="mb-0 text-secondary"><strong>Test Name:</strong> <span class="text-primary fw-bold">@Model.TestName</span></p>
+                        </div>
+                        <div class="col-md-6 text-md-end">
+                            <p class="mb-1 text-secondary"><strong>Customer Account:</strong> @(string.IsNullOrEmpty(Model.CustomerName) ? "Guest" : Model.CustomerName)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <form asp-action="ChangeLabBookingStatus" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model.LabBookingId" />
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Test Status <span class="text-danger">*</span></label>
+                            <select name="testStatus" class="form-select" required>
+                                <!option value="Pending" @(Model.TestStatus == "Pending" ? "selected" : "")>Pending</!option>
+                                <!option value="Sample Collected" @(Model.TestStatus == "Sample Collected" ? "selected" : "")>Sample Collected</!option>
+                                <!option value="In Progress" @(Model.TestStatus == "In Progress" ? "selected" : "")>In Progress</!option>
+                                <!option value="Completed" @(Model.TestStatus == "Completed" ? "selected" : "")>Completed</!option>
+                                <!option value="Cancelled" @(Model.TestStatus == "Cancelled" ? "selected" : "")>Cancelled</!option>
+                            </select>
+                            <small class="form-text text-muted">Current status of sample processing</small>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Payment Status <span class="text-danger">*</span></label>
+                            <select name="paymentStatus" class="form-select" required>
+                                <!option value="Pending" @(Model.PaymentStatus == "Pending" ? "selected" : "")>Pending</!option>
+                                <!option value="Paid" @(Model.PaymentStatus == "Paid" ? "selected" : "")>Paid</!option>
+                                <!option value="Refunded" @(Model.PaymentStatus == "Refunded" ? "selected" : "")>Refunded</!option>
+                            </select>
+                            <small class="form-text text-muted">Payment status for this booking</small>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Admin Remark / Internal Notes</label>
+                        <textarea name="adminRemark" class="form-control" rows="4" placeholder="Enter notes or updates regarding sample collection, delays, or payment verification...">@Model.AdminRemark</textarea>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <a asp-action="ManageLabBooking" class="btn btn-secondary"><i class="fas fa-times me-1"></i> Cancel</a>
+                        <button type="submit" class="btn btn-warning"><i class="fas fa-save me-1"></i> Update Booking Status</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

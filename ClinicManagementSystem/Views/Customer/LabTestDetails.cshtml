@@ -1,0 +1,70 @@
+@model ClinicManagementSystem.Models.LabTestModel
+@{
+    ViewData["Title"] = Model.TestName + " - Test Details";
+    Layout = "~/Views/Shared/_CustomerLayout.cshtml";
+}
+
+<div class="mb-4">
+    <a asp-action="LabTests" class="btn btn-outline-secondary rounded-pill"><i class="fa-solid fa-arrow-left me-1"></i> Back to Lab Tests</a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-9">
+        <div class="card shadow-sm border-0 rounded-4 overflow-hidden mb-4">
+            <div class="bg-primary text-white p-4 p-md-5 d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="badge bg-light text-primary fw-semibold px-3 py-2 rounded-pill mb-2">
+                        <i class="fa-solid fa-tags me-1"></i>@Model.TestCategory
+                    </span>
+                    <h2 class="fw-bold mb-1">@Model.TestName</h2>
+                    <p class="mb-0 text-white-50"><i class="fa-solid fa-vial me-1"></i>Sample: @(string.IsNullOrEmpty(Model.SampleType) ? "Blood / Urine" : Model.SampleType)</p>
+                </div>
+                <div class="text-end">
+                    <div class="fs-6 text-white-50">Test Fee</div>
+                    <h2 class="fw-bold text-white mb-0">₹@Model.Price.ToString("N2")</h2>
+                </div>
+            </div>
+
+            <div class="card-body p-4 p-md-5 bg-white">
+                <!-- Overview -->
+                <div class="mb-4">
+                    <h5 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="fa-solid fa-circle-info text-primary me-2"></i>Test Overview & Description</h5>
+                    <p class="text-secondary lh-lg mb-0" style="white-space: pre-line;">@(string.IsNullOrEmpty(Model.Description) ? "Comprehensive diagnostic clinical test for complete patient health evaluation." : Model.Description)</p>
+                </div>
+
+                <div class="row g-4 mb-4">
+                    <!-- Sample Requirements -->
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded-4 h-100 border">
+                            <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-flask text-info me-2"></i>Sample & Test Specifications</h6>
+                            <ul class="list-unstyled mb-0">
+                                <li class="mb-2"><strong class="text-secondary">Sample Type:</strong> <span class="text-dark fw-semibold ms-1">@(string.IsNullOrEmpty(Model.SampleType) ? "Standard Blood / Urine" : Model.SampleType)</span></li>
+                                <li class="mb-2"><strong class="text-secondary">Report Delivery:</strong> <span class="text-dark fw-semibold ms-1">@(string.IsNullOrEmpty(Model.ReportTime) ? "Within 24 Hours" : Model.ReportTime)</span></li>
+                                <li><strong class="text-secondary">Category:</strong> <span class="badge bg-primary-subtle text-primary ms-1">@Model.TestCategory</span></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Preparation Instructions -->
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded-4 h-100 border">
+                            <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-clipboard-list text-warning me-2"></i>Patient Preparation Instructions</h6>
+                            <p class="text-secondary small mb-0" style="white-space: pre-line;">@(string.IsNullOrEmpty(Model.PreparationInstructions) ? "No special fasting or prior preparation required unless advised by consultant physician." : Model.PreparationInstructions)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Booking Action -->
+                <div class="p-4 bg-primary-subtle rounded-4 d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+                    <div>
+                        <h5 class="fw-bold text-primary mb-1">Ready to book this lab test?</h5>
+                        <small class="text-muted">Select your preferred date & time for sample collection.</small>
+                    </div>
+                    <a asp-action="BookLabTest" asp-route-id="@Model.LabTestId" class="btn btn-primary btn-lg px-4 rounded-pill fw-semibold shadow-sm">
+                        <i class="fa-solid fa-calendar-plus me-2"></i> Book Lab Test Now
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

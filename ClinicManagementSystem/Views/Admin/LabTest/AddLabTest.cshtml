@@ -1,0 +1,96 @@
+@model ClinicManagementSystem.Models.LabTestModel
+@{
+    ViewData["Title"] = "Add Lab Test";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="mb-0 text-primary"><i class="fas fa-plus-circle me-2"></i>Add New Lab Test</h3>
+        <small class="text-muted">Fill in diagnostic test details to add to laboratory catalog</small>
+    </div>
+    <a asp-action="ManageLabTest" class="btn btn-secondary shadow-sm"><i class="fas fa-arrow-left me-1"></i> Back to List</a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0"><i class="fas fa-flask me-2"></i>Lab Test Details</h5>
+            </div>
+            <div class="card-body p-4">
+                @if (ViewBag.Error != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="fas fa-exclamation-triangle me-2"></i>@ViewBag.Error
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+
+                <form asp-action="AddLabTest" method="post">
+                    @Html.AntiForgeryToken()
+                    
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="TestName" class="form-label fw-bold">Test Name <span class="text-danger">*</span></label>
+                            <input asp-for="TestName" class="form-control" placeholder="e.g. Complete Blood Count (CBC)" required />
+                            <span asp-validation-for="TestName" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="TestCategory" class="form-label fw-bold">Test Category</label>
+                            <select asp-for="TestCategory" class="form-select">
+                                <option value="">-- Select Category --</option>
+                                <option value="Blood Test">Blood Test</option>
+                                <option value="Pathology">Pathology</option>
+                                <option value="Radiology">Radiology</option>
+                                <option value="Urine Test">Urine Test</option>
+                                <option value="Health Checkup">Health Checkup</option>
+                                <option value="Cardiology">Cardiology</option>
+                                <option value="Microbiology">Microbiology</option>
+                            </select>
+                            <span asp-validation-for="TestCategory" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label asp-for="Price" class="form-label fw-bold">Price (₹) <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input asp-for="Price" type="number" step="0.01" min="0" class="form-control" placeholder="0.00" required />
+                            </div>
+                            <span asp-validation-for="Price" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="SampleType" class="form-label fw-bold">Sample Type</label>
+                            <input asp-for="SampleType" class="form-control" placeholder="e.g. Blood, Urine, Saliva" />
+                            <span asp-validation-for="SampleType" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="ReportTime" class="form-label fw-bold">Expected Report Time</label>
+                            <input asp-for="ReportTime" class="form-control" placeholder="e.g. Same Day, 24 Hours" />
+                            <span asp-validation-for="ReportTime" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="PreparationInstructions" class="form-label fw-bold">Preparation Instructions</label>
+                        <textarea asp-for="PreparationInstructions" class="form-control" rows="3" placeholder="e.g. Fasting required for 10-12 hours prior to sample collection."></textarea>
+                        <span asp-validation-for="PreparationInstructions" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="Description" class="form-label fw-bold">Test Description</label>
+                        <textarea asp-for="Description" class="form-control" rows="4" placeholder="Briefly describe what this test checks and measures..."></textarea>
+                        <span asp-validation-for="Description" class="text-danger small"></span>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <a asp-action="ManageLabTest" class="btn btn-secondary"><i class="fas fa-times me-1"></i> Cancel</a>
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i> Save Lab Test</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,2298 @@
+﻿@model List<ClinicManagementSystem.Models.CampRegistrationModel>
+
+@{
+    ViewData["Title"] = "Manage Camp Registrations";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+
+    int totalRegistrations = Model?.Count ?? 0;
+
+    int pendingCount = Model?.Count(x =>
+        x.RegistrationStatus == "Pending") ?? 0;
+
+    int confirmedCount = Model?.Count(x =>
+        x.RegistrationStatus == "Confirmed") ?? 0;
+
+    int cancelledCount = Model?.Count(x =>
+        x.RegistrationStatus == "Cancelled") ?? 0;
+
+    int completedCount = Model?.Count(x =>
+        x.RegistrationStatus == "Completed") ?? 0;
+}
+
+
+<div class="container-fluid py-4 manage-registration-page">
+
+
+    <!-- =========================================
+         Page Header
+    ========================================== -->
+
+    <div class="page-header mb-4">
+
+        <div class="row align-items-center">
+
+            <div class="col-lg-8">
+
+                <span class="header-badge">
+
+                    <i class="fa-solid fa-clipboard-list me-2"></i>
+
+                    Medical Camp Management
+
+                </span>
+
+                <h1 class="fw-bold mt-3 mb-2">
+
+                    Manage Camp Registrations
+
+                </h1>
+
+                <p class="mb-0">
+
+                    View, monitor and manage customer registrations
+                    for all medical camps.
+
+                </p>
+
+            </div>
+
+
+            <div class="col-lg-4 text-lg-end d-none d-lg-block">
+
+                <div class="header-icon">
+
+                    <i class="fa-solid fa-users-medical"></i>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =========================================
+         Summary Cards
+    ========================================== -->
+
+    <div class="row g-3 mb-4">
+
+
+        <!-- Total -->
+
+        <div class="col-xl-3 col-md-6">
+
+            <div class="summary-card">
+
+                <div class="summary-icon total">
+
+                    <i class="fa-solid fa-users"></i>
+
+                </div>
+
+                <div class="summary-content">
+
+                    <span>
+                        Total Registrations
+                    </span>
+
+                    <h3>
+                        @totalRegistrations
+                    </h3>
+
+                    <small>
+                        All active registrations
+                    </small>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Pending -->
+
+        <div class="col-xl-3 col-md-6">
+
+            <div class="summary-card">
+
+                <div class="summary-icon pending">
+
+                    <i class="fa-solid fa-clock"></i>
+
+                </div>
+
+                <div class="summary-content">
+
+                    <span>
+                        Pending
+                    </span>
+
+                    <h3>
+                        @pendingCount
+                    </h3>
+
+                    <small>
+                        Awaiting confirmation
+                    </small>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Confirmed -->
+
+        <div class="col-xl-3 col-md-6">
+
+            <div class="summary-card">
+
+                <div class="summary-icon confirmed">
+
+                    <i class="fa-solid fa-circle-check"></i>
+
+                </div>
+
+                <div class="summary-content">
+
+                    <span>
+                        Confirmed
+                    </span>
+
+                    <h3>
+                        @confirmedCount
+                    </h3>
+
+                    <small>
+                        Confirmed participants
+                    </small>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Completed -->
+
+        <div class="col-xl-3 col-md-6">
+
+            <div class="summary-card">
+
+                <div class="summary-icon completed">
+
+                    <i class="fa-solid fa-check-double"></i>
+
+                </div>
+
+                <div class="summary-content">
+
+                    <span>
+                        Completed
+                    </span>
+
+                    <h3>
+                        @completedCount
+                    </h3>
+
+                    <small>
+                        Completed camps
+                    </small>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =========================================
+         Filter / Search Card
+    ========================================== -->
+
+    <div class="filter-card mb-4">
+
+        <div class="filter-header">
+
+            <div>
+
+                <h5 class="mb-1">
+
+                    <i class="fa-solid fa-filter me-2"></i>
+
+                    Search & Filter Registrations
+
+                </h5>
+
+                <p class="mb-0">
+
+                    Find registrations quickly using the options below.
+
+                </p>
+
+            </div>
+
+            <button type="button"
+                    class="btn btn-light btn-sm"
+                    id="clearFilters">
+
+                <i class="fa-solid fa-rotate-left me-1"></i>
+
+                Reset
+
+            </button>
+
+        </div>
+
+
+        <div class="row g-3 mt-2">
+
+
+            <!-- Search -->
+
+            <div class="col-xl-4 col-lg-6">
+
+                <label class="form-label">
+
+                    Search Registration
+
+                </label>
+
+                <div class="search-input">
+
+                    <i class="fa-solid fa-magnifying-glass"></i>
+
+                    <input type="text"
+                           id="registrationSearch"
+                           class="form-control"
+                           placeholder="Registration no, customer, mobile..." />
+
+                </div>
+
+            </div>
+
+
+            <!-- Camp -->
+
+            <div class="col-xl-3 col-lg-6">
+
+                <label class="form-label">
+
+                    Medical Camp
+
+                </label>
+
+                <select id="campFilter"
+                        class="form-select">
+
+                    <option value="">
+                        All Medical Camps
+                    </option>
+
+                    @if (Model != null)
+                    {
+                        foreach (var camp in Model
+                            .Where(x => !string.IsNullOrWhiteSpace(x.CampTitle))
+                            .GroupBy(x => x.CampTitle)
+                            .Select(x => x.First())
+                            .OrderBy(x => x.CampTitle))
+                        {
+                            <option value="@camp.CampTitle">
+                                @camp.CampTitle
+                            </option>
+                        }
+                    }
+
+                </select>
+
+            </div>
+
+
+            <!-- Status -->
+
+            <div class="col-xl-2 col-lg-6">
+
+                <label class="form-label">
+
+                    Status
+
+                </label>
+
+                <select id="statusFilter"
+                        class="form-select">
+
+                    <option value="">
+                        All Status
+                    </option>
+
+                    <option value="Pending">
+                        Pending
+                    </option>
+
+                    <option value="Confirmed">
+                        Confirmed
+                    </option>
+
+                    <option value="Cancelled">
+                        Cancelled
+                    </option>
+
+                    <option value="Completed">
+                        Completed
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- Payment -->
+
+            <div class="col-xl-3 col-lg-6">
+
+                <label class="form-label">
+
+                    Payment Status
+
+                </label>
+
+                <select id="paymentFilter"
+                        class="form-select">
+
+                    <option value="">
+                        All Payment Status
+                    </option>
+
+                    <option value="Paid">
+                        Paid
+                    </option>
+
+                    <option value="Pending">
+                        Pending
+                    </option>
+
+                    <option value="NotRequired">
+                        Not Required
+                    </option>
+
+                </select>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =========================================
+         Registration Table Card
+    ========================================== -->
+
+    <div class="registration-table-card">
+
+
+        <!-- Table Header -->
+
+        <div class="table-card-header">
+
+            <div>
+
+                <h5 class="mb-1">
+
+                    <i class="fa-solid fa-list-check me-2"></i>
+
+                    Camp Registrations
+
+                </h5>
+
+                <p class="mb-0">
+
+                    Manage customer registrations and their status.
+
+                </p>
+
+            </div>
+
+
+            <div class="record-count">
+
+                <span id="visibleRecordCount">
+
+                    @totalRegistrations
+
+                </span>
+
+                <small>
+                    Records
+                </small>
+
+            </div>
+
+        </div>
+
+
+        <!-- =========================================
+             Table
+        ========================================== -->
+
+        <div class="table-responsive">
+
+            <table class="table registration-table mb-0"
+                   id="registrationTable">
+
+                <thead>
+
+                    <tr>
+
+                        <th>
+                            #
+                        </th>
+
+                        <th>
+                            Registration
+                        </th>
+
+                        <th>
+                            Customer
+                        </th>
+
+                        <th>
+                            Medical Camp
+                        </th>
+
+                        <th>
+                            Camp Date
+                        </th>
+
+                        <th>
+                            Participant
+                        </th>
+
+                        <th>
+                            Payment
+                        </th>
+
+                        <th>
+                            Status
+                        </th>
+
+                        <th class="text-center">
+                            Action
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    @if (Model != null && Model.Count > 0)
+                    {
+                        int srNo = 1;
+
+                        foreach (var item in Model)
+                        {
+                            <tr class="registration-row"
+                                data-registration="@item.RegistrationNo"
+                                data-customer="@item.CustomerName"
+                                data-mobile="@item.MobileNo"
+                                data-camp="@item.CampTitle"
+                                data-status="@item.RegistrationStatus"
+                                data-payment="@item.PaymentStatus">
+
+                                <td>
+
+                                    <span class="serial-number">
+
+                                        @srNo
+
+                                    </span>
+
+                                </td>
+
+
+                                <!-- Registration -->
+
+                                <td>
+
+                                    <div class="registration-info">
+
+                                        <div class="registration-icon">
+
+                                            <i class="fa-solid fa-file-medical"></i>
+
+                                        </div>
+
+                                        <div>
+
+                                            <strong>
+
+                                                @item.RegistrationNo
+
+                                            </strong>
+
+                                            <small>
+
+                                                @item.RegistrationDate
+                                                    .ToString("dd MMM yyyy")
+
+                                            </small>
+
+                                        </div>
+
+                                    </div>
+
+                                </td>
+
+
+                                <!-- Customer -->
+
+                                <td>
+
+                                    <div class="customer-info">
+
+                                        <div class="customer-avatar">
+
+                                            @{
+                                                string customerInitial = "U";
+
+                                                if (!string.IsNullOrWhiteSpace(item.CustomerName))
+                                                {
+                                                    customerInitial = item.CustomerName.Trim()
+                                                    .Substring(0, 1)
+                                                    .ToUpper();
+                                                }
+                                            }
+
+                                            <span>
+                                                @customerInitial
+                                            </span>
+
+                                        </div>
+
+                                        <div>
+
+                                            <strong>
+
+                                                @item.CustomerName
+
+                                            </strong>
+
+                                            <small>
+
+                                                @item.MobileNo
+
+                                            </small>
+
+                                        </div>
+
+                                    </div>
+
+                                </td>
+
+
+                                <!-- Medical Camp -->
+
+                                <td>
+
+                                    <div class="camp-info">
+
+                                        <strong>
+
+                                            @item.CampTitle
+
+                                        </strong>
+
+                                        <small>
+
+                                            <i class="fa-solid fa-location-dot me-1"></i>
+
+                                            @item.Venue
+
+                                        </small>
+
+                                    </div>
+
+                                </td>
+
+
+                                <!-- Camp Date -->
+
+                                <td>
+
+                                    <div class="date-info">
+
+                                        <strong>
+
+                                            @item.CampDate?
+                                                .ToString("dd MMM yyyy")
+
+                                        </strong>
+
+                                        @if (item.StartTime.HasValue)
+                                        {
+                                            <small>
+                                                <i class="fa-regular fa-clock me-1"></i>
+                                                @DateTime.Today.Add(item.StartTime.Value).ToString("hh:mm tt")
+                                            </small>
+                                        }
+
+                                    </div>
+
+                                </td>
+
+
+                                <!-- Participant -->
+
+                                <td>
+
+                                    <div class="participant-info">
+
+                                        <strong>
+
+                                            @item.ParticipantName
+
+                                        </strong>
+
+                                        <small>
+
+                                            @item.Gender
+                                            @if (item.Age.HasValue)
+                                            {
+                                                <text>
+                                                    • @item.Age yrs
+                                                </text>
+                                            }
+
+                                        </small>
+
+                                    </div>
+
+                                </td>
+
+
+                                <!-- Payment -->
+
+                                <td>
+
+                                    @if (item.PaymentStatus == "Paid")
+                                    {
+                                        <span class="payment-badge paid">
+
+                                            <i class="fa-solid fa-circle-check me-1"></i>
+
+                                            Paid
+
+                                        </span>
+                                    }
+                                    else if (item.PaymentStatus == "Pending")
+                                    {
+                                        <span class="payment-badge pending">
+
+                                            <i class="fa-solid fa-clock me-1"></i>
+
+                                            Pending
+
+                                        </span>
+                                    }
+                                    else if (item.PaymentStatus == "NotRequired")
+                                    {
+                                        <span class="payment-badge free">
+
+                                            <i class="fa-solid fa-check me-1"></i>
+
+                                            Free
+
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="payment-badge">
+
+                                            @item.PaymentStatus
+
+                                        </span>
+                                    }
+
+                                    <small class="amount-text">
+
+                                        ₹ @item.Amount.ToString("N2")
+
+                                    </small>
+
+                                </td>
+
+
+                                <!-- Status -->
+
+                                <td>
+
+                                    @if (item.RegistrationStatus == "Confirmed")
+                                    {
+                                        <span class="registration-status confirmed">
+
+                                            <i class="fa-solid fa-circle-check me-1"></i>
+
+                                            Confirmed
+
+                                        </span>
+                                    }
+                                    else if (item.RegistrationStatus == "Pending")
+                                    {
+                                        <span class="registration-status pending">
+
+                                            <i class="fa-solid fa-clock me-1"></i>
+
+                                            Pending
+
+                                        </span>
+                                    }
+                                    else if (item.RegistrationStatus == "Cancelled")
+                                    {
+                                        <span class="registration-status cancelled">
+
+                                            <i class="fa-solid fa-circle-xmark me-1"></i>
+
+                                            Cancelled
+
+                                        </span>
+                                    }
+                                    else if (item.RegistrationStatus == "Completed")
+                                    {
+                                        <span class="registration-status completed">
+
+                                            <i class="fa-solid fa-check-double me-1"></i>
+
+                                            Completed
+
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="registration-status pending">
+
+                                            @item.RegistrationStatus
+
+                                        </span>
+                                    }
+
+                                </td>
+
+
+                                <!-- Action -->
+
+                                <td class="text-center">
+
+                                    <div class="action-buttons">
+
+                                        <a asp-controller="Admin"
+                                           asp-action="ViewCampRegistration"
+                                           asp-route-id="@item.CampRegistrationId"
+                                           class="action-btn view"
+                                           title="View Details">
+
+                                            <i class="fa-solid fa-eye"></i>
+
+                                        </a>
+                                        <a asp-controller="Admin"
+                                           asp-action="ChangeCampRegistrationStatus"
+                                           asp-route-id="@item.CampRegistrationId"
+                                           class="action-btn status"
+                                           title="Change Status">
+
+                                            <i class="fa-solid fa-rotate"></i>
+
+                                        </a>
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+
+                            srNo++;
+                        }
+                    }
+                    else
+                    {
+                        <tr id="noRegistrationData">
+
+                            <td colspan="9">
+
+                                <div class="empty-state">
+
+                                    <div class="empty-icon">
+
+                                        <i class="fa-solid fa-clipboard-xmark"></i>
+
+                                    </div>
+
+                                    <h5>
+
+                                        No Camp Registrations Found
+
+                                    </h5>
+
+                                    <p>
+
+                                        There are currently no medical camp
+                                        registrations available.
+
+                                    </p>
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+                    }
+
+                </tbody>
+
+            </table>
+
+        </div>
+        <!-- =========================================
+             Table Footer
+        ========================================== -->
+
+        <div class="table-footer">
+
+            <div class="footer-info">
+
+                Showing
+
+                <strong id="footerRecordCount">
+                    @totalRegistrations
+                </strong>
+
+                registration(s)
+
+            </div>
+
+            <div class="footer-hint">
+
+                <i class="fa-solid fa-circle-info me-1"></i>
+
+                Use filters to find specific registrations.
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================
+         Quick Status Legend
+    ========================================== -->
+
+    <div class="status-legend mt-4">
+
+        <div class="legend-title">
+
+            <i class="fa-solid fa-circle-info me-2"></i>
+
+            Registration Status
+
+        </div>
+
+        <div class="legend-items">
+
+            <span>
+
+                <i class="fa-solid fa-circle-check confirmed-dot"></i>
+
+                Confirmed
+
+            </span>
+
+            <span>
+
+                <i class="fa-solid fa-clock pending-dot"></i>
+
+                Pending
+
+            </span>
+
+            <span>
+
+                <i class="fa-solid fa-circle-xmark cancelled-dot"></i>
+
+                Cancelled
+
+            </span>
+
+            <span>
+
+                <i class="fa-solid fa-check-double completed-dot"></i>
+
+                Completed
+
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================
+         CSS
+    ========================================== -->
+
+    <style>
+
+        /* =========================================
+                   Main Page
+                ========================================== */
+
+        .manage-registration-page {
+            max-width: 1600px;
+        }
+
+
+        /* =========================================
+                   Page Header
+                ========================================== */
+
+        .page-header {
+            position: relative;
+            overflow: hidden;
+            padding: 35px;
+            border-radius: 22px;
+            color: #fff;
+            background: linear-gradient( 135deg, #0d6efd, #2563eb, #0891b2 );
+            box-shadow: 0 15px 35px rgba(13,110,253,.16);
+        }
+
+            .page-header::before {
+                content: "";
+                position: absolute;
+                width: 280px;
+                height: 280px;
+                right: -100px;
+                top: -140px;
+                border-radius: 50%;
+                background: rgba(255,255,255,.07);
+            }
+
+            .page-header::after {
+                content: "";
+                position: absolute;
+                width: 180px;
+                height: 180px;
+                left: 45%;
+                bottom: -120px;
+                border-radius: 50%;
+                background: rgba(255,255,255,.05);
+            }
+
+        .header-badge {
+            position: relative;
+            z-index: 2;
+            display: inline-block;
+            padding: 7px 14px;
+            border-radius: 20px;
+            background: rgba(255,255,255,.15);
+            border: 1px solid rgba(255,255,255,.2);
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .page-header h1,
+        .page-header p {
+            position: relative;
+            z-index: 2;
+        }
+
+        .page-header h1 {
+            font-size: 34px;
+        }
+
+        .page-header p {
+            max-width: 700px;
+            opacity: .9;
+            font-size: 13px;
+        }
+
+        .header-icon {
+            position: relative;
+            z-index: 2;
+            font-size: 90px;
+            opacity: .14;
+        }
+
+
+        /* =========================================
+                   Summary Cards
+                ========================================== */
+
+        .summary-card {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 20px;
+            background: #fff;
+            border: 1px solid #edf0f5;
+            border-radius: 16px;
+            box-shadow: 0 7px 22px rgba(0,0,0,.05);
+            transition: .25s ease;
+        }
+
+            .summary-card:hover {
+                transform: translateY(-4px);
+                box-shadow: 0 13px 30px rgba(0,0,0,.08);
+            }
+
+        .summary-icon {
+            width: 54px;
+            height: 54px;
+            min-width: 54px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 14px;
+            font-size: 21px;
+        }
+
+            .summary-icon.total {
+                color: #0d6efd;
+                background: #eaf2ff;
+            }
+
+            .summary-icon.pending {
+                color: #f59e0b;
+                background: #fff5df;
+            }
+
+            .summary-icon.confirmed {
+                color: #198754;
+                background: #eaf8f0;
+            }
+
+            .summary-icon.completed {
+                color: #7c3aed;
+                background: #f1eaff;
+            }
+
+        .summary-content span {
+            display: block;
+            color: #596273;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .summary-content h3 {
+            margin: 3px 0;
+            color: #172033;
+            font-size: 25px;
+            font-weight: 700;
+        }
+
+        .summary-content small {
+            color: #9aa3b1;
+            font-size: 9px;
+        }
+
+
+        /* =========================================
+                   Filter Card
+                ========================================== */
+
+        .filter-card {
+            padding: 22px;
+            background: #fff;
+            border: 1px solid #edf0f5;
+            border-radius: 17px;
+            box-shadow: 0 7px 22px rgba(0,0,0,.05);
+        }
+
+        .filter-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            padding-bottom: 17px;
+            border-bottom: 1px solid #edf0f5;
+        }
+
+            .filter-header h5 {
+                color: #263143;
+                font-size: 15px;
+                font-weight: 700;
+            }
+
+                .filter-header h5 i {
+                    color: #0d6efd;
+                }
+
+            .filter-header p {
+                color: #8a94a6;
+                font-size: 10px;
+            }
+
+            .filter-header .btn {
+                border: 1px solid #e3e8ef;
+                color: #596273;
+                border-radius: 8px;
+                font-size: 10px;
+            }
+
+        .form-label {
+            display: block;
+            margin-bottom: 6px;
+            color: #596273;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .form-select,
+        .form-control {
+            min-height: 42px;
+            border-color: #e2e7ee;
+            border-radius: 9px;
+            color: #343b4a;
+            font-size: 11px;
+            box-shadow: none !important;
+        }
+
+            .form-select:focus,
+            .form-control:focus {
+                border-color: #86b7fe;
+            }
+
+        .search-input {
+            position: relative;
+        }
+
+            .search-input i {
+                position: absolute;
+                left: 14px;
+                top: 50%;
+                transform: translateY(-50%);
+                color: #9aa3b1;
+                font-size: 12px;
+                z-index: 2;
+            }
+
+            .search-input .form-control {
+                padding-left: 38px;
+            }
+
+
+        /* =========================================
+                   Table Card
+                ========================================== */
+
+        .registration-table-card {
+            background: #fff;
+            border: 1px solid #edf0f5;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0,0,0,.06);
+        }
+
+        .table-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            padding: 21px 23px;
+            border-bottom: 1px solid #edf0f5;
+        }
+
+            .table-card-header h5 {
+                color: #263143;
+                font-size: 15px;
+                font-weight: 700;
+            }
+
+                .table-card-header h5 i {
+                    color: #0d6efd;
+                }
+
+            .table-card-header p {
+                color: #8a94a6;
+                font-size: 10px;
+            }
+
+        .record-count {
+            min-width: 70px;
+            padding: 7px 11px;
+            text-align: center;
+            border-radius: 9px;
+            background: #eef5ff;
+        }
+
+            .record-count span {
+                color: #0d6efd;
+                font-size: 15px;
+                font-weight: 700;
+            }
+
+            .record-count small {
+                display: block;
+                color: #6c757d;
+                font-size: 8px;
+            }
+
+
+        /* =========================================
+                   Table
+                ========================================== */
+
+        .registration-table {
+            min-width: 1250px;
+        }
+
+            .registration-table thead th {
+                padding: 13px 12px;
+                border-bottom: 1px solid #e5e9ef;
+                background: #f8fafc;
+                color: #7b8494;
+                font-size: 9px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: .3px;
+                white-space: nowrap;
+            }
+
+            .registration-table tbody td {
+                padding: 14px 12px;
+                border-bottom: 1px solid #f0f2f5;
+                vertical-align: middle;
+            }
+
+            .registration-table tbody tr {
+                transition: .2s ease;
+            }
+
+                .registration-table tbody tr:hover {
+                    background: #f9fbff;
+                }
+
+
+        /* =========================================
+                   Serial Number
+                ========================================== */
+
+        .serial-number {
+            width: 28px;
+            height: 28px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            color: #64748b;
+            background: #f1f5f9;
+            font-size: 10px;
+            font-weight: 700;
+        }
+
+
+        /* =========================================
+                   Registration Info
+                ========================================== */
+
+        .registration-info {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+        }
+
+        .registration-icon {
+            width: 36px;
+            height: 36px;
+            min-width: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 9px;
+            color: #0d6efd;
+            background: #eaf2ff;
+            font-size: 13px;
+        }
+
+        .registration-info strong {
+            display: block;
+            color: #263143;
+            font-size: 10px;
+            white-space: nowrap;
+        }
+
+        .registration-info small {
+            display: block;
+            margin-top: 2px;
+            color: #9aa3b1;
+            font-size: 8px;
+        }
+
+
+        /* =========================================
+                   Customer Info
+                ========================================== */
+
+        .customer-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .customer-avatar {
+            width: 35px;
+            height: 35px;
+            min-width: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            color: #0d6efd;
+            background: #eaf2ff;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .customer-info strong {
+            display: block;
+            max-width: 130px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: #343b4a;
+            font-size: 10px;
+        }
+
+        .customer-info small {
+            display: block;
+            margin-top: 2px;
+            color: #9aa3b1;
+            font-size: 8px;
+        }
+
+
+        /* =========================================
+                   Camp Info
+                ========================================== */
+
+        .camp-info strong {
+            display: block;
+            max-width: 180px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: #343b4a;
+            font-size: 10px;
+        }
+
+        .camp-info small {
+            display: block;
+            max-width: 180px;
+            margin-top: 3px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: #9aa3b1;
+            font-size: 8px;
+        }
+
+
+        /* =========================================
+                   Date Info
+                ========================================== */
+
+        .date-info strong {
+            display: block;
+            color: #343b4a;
+            font-size: 10px;
+            white-space: nowrap;
+        }
+
+        .date-info small {
+            display: block;
+            margin-top: 3px;
+            color: #9aa3b1;
+            font-size: 8px;
+        }
+
+
+        /* =========================================
+                   Participant Info
+                ========================================== */
+
+        .participant-info strong {
+            display: block;
+            max-width: 130px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: #343b4a;
+            font-size: 10px;
+        }
+
+        .participant-info small {
+            display: block;
+            margin-top: 3px;
+            color: #9aa3b1;
+            font-size: 8px;
+        }
+
+
+        /* =========================================
+                   Payment Badge
+                ========================================== */
+
+        .payment-badge {
+            display: inline-block;
+            padding: 5px 8px;
+            border-radius: 15px;
+            font-size: 8px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+            .payment-badge.paid {
+                color: #198754;
+                background: #eaf8f0;
+            }
+
+            .payment-badge.pending {
+                color: #9a6700;
+                background: #fff5df;
+            }
+
+            .payment-badge.free {
+                color: #198754;
+                background: #eaf8f0;
+            }
+
+        .amount-text {
+            display: block;
+            margin-top: 4px;
+            color: #596273;
+            font-size: 8px;
+        }
+
+
+        /* =========================================
+                   Registration Status
+                ========================================== */
+
+        .registration-status {
+            display: inline-block;
+            padding: 6px 9px;
+            border-radius: 17px;
+            font-size: 8px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+            .registration-status.confirmed {
+                color: #198754;
+                background: #eaf8f0;
+            }
+
+            .registration-status.pending {
+                color: #9a6700;
+                background: #fff5df;
+            }
+
+            .registration-status.cancelled {
+                color: #dc3545;
+                background: #fff0f1;
+            }
+
+            .registration-status.completed {
+                color: #7c3aed;
+                background: #f1eaff;
+            }
+
+
+        /* =========================================
+                   Action Buttons
+                ========================================== */
+
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .action-btn {
+            width: 31px;
+            height: 31px;
+            border: 0;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: .2s ease;
+            font-size: 11px;
+        }
+
+            .action-btn:hover {
+                transform: translateY(-2px);
+            }
+
+            .action-btn.view {
+                color: #0d6efd;
+                background: #eaf2ff;
+            }
+
+            .action-btn.status {
+                color: #7c3aed;
+                background: #f1eaff;
+            }
+
+
+        /* =========================================
+                   Empty State
+                ========================================== */
+
+        .empty-state {
+            padding: 60px 20px;
+            text-align: center;
+        }
+
+        .empty-icon {
+            width: 75px;
+            height: 75px;
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            color: #0d6efd;
+            background: #eef5ff;
+            font-size: 30px;
+        }
+
+        .empty-state h5 {
+            color: #263143;
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .empty-state p {
+            margin: 5px 0 0;
+            color: #9aa3b1;
+            font-size: 11px;
+        }
+
+
+        /* =========================================
+                   Table Footer
+                ========================================== */
+
+        .table-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            padding: 15px 22px;
+            background: #fafbfd;
+            border-top: 1px solid #edf0f5;
+        }
+
+        .footer-info {
+            color: #8a94a6;
+            font-size: 10px;
+        }
+
+            .footer-info strong {
+                color: #343b4a;
+            }
+
+        .footer-hint {
+            color: #9aa3b1;
+            font-size: 9px;
+        }
+
+
+        /* =========================================
+                   Status Legend
+                ========================================== */
+
+        .status-legend {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            padding: 15px 20px;
+            background: #fff;
+            border: 1px solid #edf0f5;
+            border-radius: 13px;
+        }
+
+        .legend-title {
+            color: #596273;
+            font-size: 10px;
+            font-weight: 700;
+        }
+
+        .legend-items {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+        }
+
+            .legend-items span {
+                color: #7b8494;
+                font-size: 9px;
+            }
+
+            .legend-items i {
+                margin-right: 4px;
+            }
+
+        .confirmed-dot {
+            color: #198754;
+        }
+
+        .pending-dot {
+            color: #f59e0b;
+        }
+
+        .cancelled-dot {
+            color: #dc3545;
+        }
+
+        .completed-dot {
+            color: #7c3aed;
+        }
+
+
+        /* =========================================
+                   Responsive
+                ========================================== */
+
+        @@media(max-width:991px) {
+
+            .page-header {
+                padding: 28px;
+            }
+
+                .page-header h1 {
+                    font-size: 29px;
+                }
+
+            .status-legend {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+        }
+
+
+        @@media(max-width:767px) {
+
+            .page-header {
+                padding: 23px;
+                border-radius: 17px;
+            }
+
+                .page-header h1 {
+                    font-size: 25px;
+                }
+
+            .filter-card {
+                padding: 17px;
+            }
+
+            .filter-header {
+                align-items: flex-start;
+            }
+
+            .table-card-header {
+                padding: 18px;
+            }
+
+            .table-footer {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .legend-items {
+                flex-wrap: wrap;
+                gap: 10px 15px;
+            }
+        }
+
+
+        @@media(max-width:480px) {
+
+            .page-header {
+                padding: 20px 17px;
+            }
+
+                .page-header h1 {
+                    font-size: 22px;
+                }
+
+            .filter-header {
+                flex-direction: column;
+            }
+
+                .filter-header .btn {
+                    width: 100%;
+                }
+
+            .table-card-header {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .record-count {
+                width: 100%;
+            }
+        }
+
+    </style>
+    <!-- =========================================
+         JavaScript
+    ========================================== -->
+
+    <script>
+
+        $(document).ready(function () {
+
+            // =========================================
+            // Filter Elements
+            // =========================================
+
+            var searchInput =
+                $("#registrationSearch");
+
+            var campFilter =
+                $("#campFilter");
+
+            var statusFilter =
+                $("#statusFilter");
+
+            var paymentFilter =
+                $("#paymentFilter");
+
+            var rows =
+                $(".registration-row");
+
+            var totalRows =
+                rows.length;
+
+
+            // =========================================
+            // Apply Filters
+            // =========================================
+
+            function applyFilters() {
+
+                var search =
+                    searchInput.val()
+                        .toLowerCase()
+                        .trim();
+
+                var camp =
+                    campFilter.val()
+                        .toLowerCase()
+                        .trim();
+
+                var status =
+                    statusFilter.val()
+                        .toLowerCase()
+                        .trim();
+
+                var payment =
+                    paymentFilter.val()
+                        .toLowerCase()
+                        .trim();
+
+
+                var visibleCount = 0;
+
+
+                rows.each(function () {
+
+                    var row =
+                        $(this);
+
+                    var registration =
+                        String(
+                            row.data("registration") || ""
+                        ).toLowerCase();
+
+                    var customer =
+                        String(
+                            row.data("customer") || ""
+                        ).toLowerCase();
+
+                    var mobile =
+                        String(
+                            row.data("mobile") || ""
+                        ).toLowerCase();
+
+                    var campName =
+                        String(
+                            row.data("camp") || ""
+                        ).toLowerCase();
+
+                    var rowStatus =
+                        String(
+                            row.data("status") || ""
+                        ).toLowerCase();
+
+                    var rowPayment =
+                        String(
+                            row.data("payment") || ""
+                        ).toLowerCase();
+
+
+                    // =========================================
+                    // Search Match
+                    // =========================================
+
+                    var searchMatch =
+                        search === "" ||
+                        registration.includes(search) ||
+                        customer.includes(search) ||
+                        mobile.includes(search) ||
+                        campName.includes(search);
+
+
+                    // =========================================
+                    // Camp Match
+                    // =========================================
+
+                    var campMatch =
+                        camp === "" ||
+                        campName === camp;
+
+
+                    // =========================================
+                    // Status Match
+                    // =========================================
+
+                    var statusMatch =
+                        status === "" ||
+                        rowStatus === status;
+
+
+                    // =========================================
+                    // Payment Match
+                    // =========================================
+
+                    var paymentMatch =
+                        payment === "" ||
+                        rowPayment === payment;
+
+
+                    // =========================================
+                    // Final Match
+                    // =========================================
+
+                    if (
+                        searchMatch &&
+                        campMatch &&
+                        statusMatch &&
+                        paymentMatch
+                    ) {
+
+                        row.show();
+
+                        visibleCount++;
+
+                    }
+                    else {
+
+                        row.hide();
+
+                    }
+
+                });
+
+
+                // =========================================
+                // Update Count
+                // =========================================
+
+                $("#visibleRecordCount")
+                    .text(visibleCount);
+
+                $("#footerRecordCount")
+                    .text(visibleCount);
+
+
+                // =========================================
+                // No Result Message
+                // =========================================
+
+                $("#filterNoResult").remove();
+
+
+                if (visibleCount === 0) {
+
+                    $("#registrationTable tbody")
+                        .append(`
+
+                            <tr id="filterNoResult">
+
+                                <td colspan="9">
+
+                                    <div class="empty-state">
+
+                                        <div class="empty-icon">
+
+                                            <i class="fa-solid fa-magnifying-glass"></i>
+
+                                        </div>
+
+                                        <h5>
+                                            No Registrations Found
+                                        </h5>
+
+                                        <p>
+                                            No registration matches your
+                                            selected search or filter criteria.
+                                        </p>
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+
+                        `);
+
+                }
+
+            }
+
+
+            // =========================================
+            // Search Event
+            // =========================================
+
+            searchInput.on(
+                "keyup",
+                function () {
+
+                    applyFilters();
+
+                }
+            );
+
+
+            // =========================================
+            // Camp Filter
+            // =========================================
+
+            campFilter.on(
+                "change",
+                function () {
+
+                    applyFilters();
+
+                }
+            );
+
+
+            // =========================================
+            // Status Filter
+            // =========================================
+
+            statusFilter.on(
+                "change",
+                function () {
+
+                    applyFilters();
+
+                }
+            );
+
+
+            // =========================================
+            // Payment Filter
+            // =========================================
+
+            paymentFilter.on(
+                "change",
+                function () {
+
+                    applyFilters();
+
+                }
+            );
+
+
+            // =========================================
+            // Reset Filters
+            // =========================================
+
+            $("#clearFilters").on(
+                "click",
+                function () {
+
+                    searchInput.val("");
+
+                    campFilter.val("");
+
+                    statusFilter.val("");
+
+                    paymentFilter.val("");
+
+
+                    applyFilters();
+
+
+                    // Small visual feedback
+
+                    $(this)
+                        .addClass("active");
+
+                    setTimeout(
+                        function () {
+
+                            $("#clearFilters")
+                                .removeClass("active");
+
+                        },
+                        300
+                    );
+
+                }
+            );
+
+
+            // =========================================
+            // View Registration
+            // =========================================
+
+            $(".action-btn.view").on(
+                "click",
+                function () {
+
+                    var id =
+                        $(this).data("id");
+
+
+                    if (!id) {
+
+                        Swal.fire({
+
+                            icon: "error",
+
+                            title: "Invalid Registration",
+
+                            text:
+                                "Registration details could not be loaded."
+
+                        });
+
+                        return;
+
+                    }
+
+
+                       window.location.href =
+        '@Url.Action("ViewCampRegistration")' +
+        '?id=' +
+        id;
+
+                }
+            );
+
+
+            // =========================================
+            // Change Registration Status
+            // =========================================
+
+            $(".action-btn.status").on(
+                "click",
+                function () {
+
+                    var id =
+                        $(this).data("id");
+
+
+                    if (!id) {
+
+                        Swal.fire({
+
+                            icon: "error",
+
+                            title: "Invalid Registration",
+
+                            text:
+                                "Registration ID was not found."
+
+                        });
+
+                        return;
+
+                    }
+
+
+                    window.location.href =
+                        '@Url.Action("ChangeCampRegistrationStatus")' +
+                        '?id=' +
+                        id;
+
+                }
+            );
+
+
+            // =========================================
+            // Row Hover
+            // =========================================
+
+            $(".registration-row").on(
+                "mouseenter",
+                function () {
+
+                    $(this).addClass(
+                        "registration-row-hover"
+                    );
+
+                }
+            );
+
+
+            $(".registration-row").on(
+                "mouseleave",
+                function () {
+
+                    $(this).removeClass(
+                        "registration-row-hover"
+                    );
+
+                }
+            );
+
+
+            // =========================================
+            // Initialize
+            // =========================================
+
+            applyFilters();
+
+        });
+
+    </script>
+
+
+    <!-- =========================================
+         Success / Error Messages
+    ========================================== -->
+    @if (TempData["Success"] != null)
+    {
+        <script>
+
+            $(document).ready(function () {
+
+                Swal.fire({
+
+                    icon: "success",
+
+                    title: "Success",
+
+                    text:
+                        "@TempData["Success"]",
+
+                    confirmButtonColor:
+                        "#0d6efd",
+
+                    timer: 2500,
+
+                    timerProgressBar: true
+
+                });
+
+            });
+
+        </script>
+    }
+
+
+    @if (TempData["Error"] != null)
+    {
+        <script>
+
+            $(document).ready(function () {
+
+                Swal.fire({
+
+                    icon: "error",
+
+                    title: "Error",
+
+                    text:
+                        "@TempData["Error"]",
+
+                    confirmButtonColor:
+                        "#dc3545"
+
+                });
+
+            });
+
+        </script>
+    }
+
+
+    <!-- =========================================
+         Additional CSS
+    ========================================== -->
+
+    <style>
+
+        .registration-row-hover {
+            background: #f7faff !important;
+        }
+
+        #clearFilters.active {
+            background: #eaf2ff;
+            color: #0d6efd;
+        }
+
+        .filter-card,
+        .registration-table-card,
+        .summary-card {
+            animation: fadeInUp .4s ease;
+        }
+
+        @@keyframes fadeInUp {
+
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @@media(max-width:767px) {
+
+            .registration-table-card {
+                border-radius: 13px;
+            }
+
+            .table-card-header {
+                gap: 10px;
+            }
+        }
+
+    </style>
+
+</div>

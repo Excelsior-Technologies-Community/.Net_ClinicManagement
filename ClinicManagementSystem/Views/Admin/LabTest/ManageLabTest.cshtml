@@ -1,0 +1,151 @@
+@model List<ClinicManagementSystem.Models.LabTestModel>
+@{
+    ViewData["Title"] = "Manage Lab Tests";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="mb-0 text-primary"><i class="fas fa-flask me-2"></i>Manage Lab Tests</h3>
+        <small class="text-muted">View, search, edit and manage diagnostic tests</small>
+    </div>
+    <a asp-action="AddLabTest" class="btn btn-primary shadow-sm"><i class="fas fa-plus me-1"></i> Add Lab Test</a>
+</div>
+
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body bg-light rounded">
+        <form method="get" asp-action="ManageLabTest" class="row g-3">
+            <div class="col-md-5">
+                <div class="input-group">
+                    <span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
+                    <input type="text" name="search" value="@ViewBag.Search" class="form-control" placeholder="Search test name or description..." />
+                </div>
+            </div>
+            <div class="col-md-4">
+                <select name="category" class="form-select">
+                    <option value="">-- All Categories --</option>
+                    <!option value="Blood Test" @(ViewBag.Category == "Blood Test" ? "selected" : "")>Blood Test</!option>
+                    <!option value="Pathology" @(ViewBag.Category == "Pathology" ? "selected" : "")>Pathology</!option>
+                    <!option value="Radiology" @(ViewBag.Category == "Radiology" ? "selected" : "")>Radiology</!option>
+                    <!option value="Urine Test" @(ViewBag.Category == "Urine Test" ? "selected" : "")>Urine Test</!option>
+                    <!option value="Health Checkup" @(ViewBag.Category == "Health Checkup" ? "selected" : "")>Health Checkup</!option>
+                    <!option value="Cardiology" @(ViewBag.Category == "Cardiology" ? "selected" : "")>Cardiology</!option>
+                </select>
+            </div>
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-primary w-100"><i class="fas fa-filter me-1"></i> Filter</button>
+                <a asp-action="ManageLabTest" class="btn btn-outline-secondary"><i class="fas fa-undo"></i></a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0"><i class="fas fa-list me-2"></i>Lab Tests List</h5>
+        <span class="badge bg-light text-primary">Total: @(Model?.Count ?? 0)</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover table-striped align-middle mb-0" id="labTestTable">
+                <thead class="table-dark">
+                    <tr>
+                        <th class="ps-3">#</th>
+                        <th>Test Name</th>
+                        <th>Category</th>
+                        <th>Sample Type</th>
+                        <th>Report Time</th>
+                        <th>Price (₹)</th>
+                        <th>Status</th>
+                        <th class="text-end pe-3">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        int i = 1;
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="ps-3 fw-bold">@i</td>
+                                <td>
+                                    <div class="fw-bold text-dark">@item.TestName</div>
+                                    @if (!string.IsNullOrEmpty(item.Description))
+                                    {
+                                        <small class="text-muted text-truncate d-inline-block" style="max-width: 250px;">@item.Description</small>
+                                    }
+                                </td>
+                                <td>
+                                    <span class="badge bg-info text-dark"><i class="fas fa-tag me-1"></i>@(string.IsNullOrEmpty(item.TestCategory) ? "General" : item.TestCategory)</span>
+                                </td>
+                                <td><i class="fas fa-vial text-danger me-1"></i>@(string.IsNullOrEmpty(item.SampleType) ? "N/A" : item.SampleType)</td>
+                                <td><i class="fas fa-clock text-warning me-1"></i>@(string.IsNullOrEmpty(item.ReportTime) ? "Standard" : item.ReportTime)</td>
+                                <td class="fw-bold text-success">₹@item.Price.ToString("N2")</td>
+                                <td>
+                                    @if (item.IsActive)
+                                    {
+                                        <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Active</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger"><i class="fas fa-times-circle me-1"></i>Inactive</span>
+                                    }
+                                </td>
+                                <td class="text-end pe-3">
+                                    <a asp-action="ViewLabTest" asp-route-id="@item.LabTestId" class="btn btn-outline-info btn-sm me-1" title="View"><i class="fas fa-eye"></i> View</a>
+                                    <a asp-action="EditLabTest" asp-route-id="@item.LabTestId" class="btn btn-outline-warning btn-sm me-1" title="Edit"><i class="fas fa-edit"></i> Edit</a>
+                                    <a asp-action="ChangeLabTestStatus" asp-route-id="@item.LabTestId" class="btn btn-outline-secondary btn-sm me-1" title="Change Status"><i class="fas fa-toggle-on"></i> Status</a>
+                                    <button class="btn btn-outline-danger btn-sm" onclick="confirmDelete(@item.LabTestId, '@item.TestName')" title="Delete"><i class="fas fa-trash"></i></button>
+                                </td>
+                            </tr>
+                            i++;
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="8" class="text-center py-4 text-muted">
+                                <i class="fas fa-flask fa-3x mb-3 d-block text-secondary"></i>
+                                No Lab Tests found matching your criteria.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+@if (TempData["Success"] != null)
+{
+    <script>
+        Swal.fire({ icon: 'success', title: 'Success', text: '@TempData["Success"]', timer: 3000, showConfirmButton: false });
+    </script>
+}
+@if (TempData["Error"] != null)
+{
+    <script>
+        Swal.fire({ icon: 'error', title: 'Error', text: '@TempData["Error"]' });
+    </script>
+}
+
+<script>
+    function confirmDelete(id, name) {
+        Swal.fire({
+            title: 'Delete Lab Test?',
+            text: 'Are you sure you want to delete "' + name + '"?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Yes, Delete'
+        }).then((r) => {
+            if (r.isConfirmed) {
+                window.location = '/Admin/DeleteLabTest/' + id;
+            }
+        });
+    }
+</script>

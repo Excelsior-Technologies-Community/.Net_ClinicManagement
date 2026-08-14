@@ -1,0 +1,124 @@
+@model IEnumerable<ClinicManagementSystem.Models.LabTestModel>
+@{
+    ViewData["Title"] = "Diagnostic Lab Tests";
+    Layout = "~/Views/Shared/_CustomerLayout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold text-primary mb-1"><i class="fa-solid fa-flask text-info me-2"></i>Diagnostic Lab Tests</h2>
+        <p class="text-muted mb-0">Browse our comprehensive health check packages and clinical lab tests</p>
+    </div>
+    @if (Context.Session.GetString("CustomerId") != null)
+    {
+        <div class="d-flex gap-2">
+            <a asp-controller="Customer" asp-action="MyLabTests" class="btn btn-outline-primary rounded-pill"><i class="fa-solid fa-calendar-check me-1"></i> My Bookings</a>
+            <a asp-controller="Customer" asp-action="MyLabReports" class="btn btn-primary rounded-pill"><i class="fa-solid fa-file-medical-alt me-1"></i> My Reports</a>
+        </div>
+    }
+</div>
+
+<!-- Filters & Search Bar -->
+<div class="card shadow-sm border-0 mb-4 rounded-4">
+    <div class="card-body p-4 bg-white rounded-4">
+        <form method="get" asp-action="LabTests">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold text-secondary small">Search Test</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                        <input type="text" name="search" value="@ViewBag.Search" class="form-control bg-light border-start-0" placeholder="Search test name, category or description..." />
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold text-secondary small">Filter Category</label>
+                    <select name="category" class="form-select bg-light">
+                        <option value="">All Categories</option>
+                        <!option value="Blood Test" @(ViewBag.Category == "Blood Test" ? "selected" : "")>Blood Test</!option>
+                        <!option value="Urine Test" @(ViewBag.Category == "Urine Test" ? "selected" : "")>Urine Test</!option>
+                        <!option value="Imaging & X-Ray" @(ViewBag.Category == "Imaging & X-Ray" ? "selected" : "")>Imaging & X-Ray</!option>
+                        <!option value="Cardiac & Heart" @(ViewBag.Category == "Cardiac & Heart" ? "selected" : "")>Cardiac & Heart</!option>
+                        <!option value="Diabetes & Sugar" @(ViewBag.Category == "Diabetes & Sugar" ? "selected" : "")>Diabetes & Sugar</!option>
+                        <!option value="Full Body Checkup" @(ViewBag.Category == "Full Body Checkup" ? "selected" : "")>Full Body Checkup</!option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label fw-semibold text-secondary small">Max Price (₹)</label>
+                    <input type="number" name="maxPrice" value="@ViewBag.MaxPrice" class="form-control bg-light" placeholder="e.g. 2000" step="50" min="0" />
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label fw-semibold text-secondary small">Sort By</label>
+                    <select name="sort" class="form-select bg-light">
+                        <option value="">Default</option>
+                        <!option value="price_asc" @(ViewBag.Sort == "price_asc" ? "selected" : "")>Price: Low to High</!option>
+                        <!option value="price_desc" @(ViewBag.Sort == "price_desc" ? "selected" : "")>Price: High to Low</!option>
+                        <!option value="name" @(ViewBag.Sort == "name" ? "selected" : "")>Test Name A-Z</!option>
+                    </select>
+                </div>
+
+                <div class="col-md-1">
+                    <button type="submit" class="btn btn-primary w-100 rounded-3"><i class="fa-solid fa-filter"></i> Filter</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Tests Catalog Cards -->
+@if (Model != null && Model.Any())
+{
+    <div class="row g-4 mb-5">
+        @foreach (var test in Model)
+        {
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 shadow-sm border-0 rounded-4 transition-hover overflow-hidden">
+                    <div class="card-header bg-white border-0 pt-4 px-4 pb-0 d-flex justify-content-between align-items-start">
+                        <span class="badge bg-primary-subtle text-primary fw-semibold px-3 py-2 rounded-pill fs-7">
+                            <i class="fa-solid fa-tags me-1"></i>@test.TestCategory
+                        </span>
+                        <h4 class="fw-bold text-success mb-0">₹@test.Price.ToString("N2")</h4>
+                    </div>
+
+                    <div class="card-body p-4">
+                        <h5 class="card-title fw-bold text-dark mb-2">@test.TestName</h5>
+                        <p class="card-text text-muted fs-7 mb-3 line-clamp-2" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                            @(string.IsNullOrEmpty(test.Description) ? "Comprehensive lab examination and clinical diagnostics." : test.Description)
+                        </p>
+
+                        <div class="p-3 bg-light rounded-3 mb-3 fs-7">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="text-secondary"><i class="fa-solid fa-vial text-info me-1"></i>Sample:</span>
+                                <span class="fw-semibold text-dark">@(string.IsNullOrEmpty(test.SampleType) ? "Blood / Urine" : test.SampleType)</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span class="text-secondary"><i class="fa-solid fa-clock text-warning me-1"></i>Report Time:</span>
+                                <span class="fw-semibold text-dark">@(string.IsNullOrEmpty(test.ReportTime) ? "24 Hours" : test.ReportTime)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-footer bg-white border-top-0 p-4 pt-0 d-flex gap-2">
+                        <a asp-action="LabTestDetails" asp-route-id="@test.LabTestId" class="btn btn-outline-secondary w-50 rounded-3">
+                            <i class="fa-solid fa-eye me-1"></i> Details
+                        </a>
+                        <a asp-action="BookLabTest" asp-route-id="@test.LabTestId" class="btn btn-primary w-50 rounded-3 fw-semibold">
+                            <i class="fa-solid fa-calendar-plus me-1"></i> Book Now
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="text-center py-5 bg-white rounded-4 shadow-sm">
+        <i class="fa-solid fa-vial-circle-check fa-4x text-muted mb-3"></i>
+        <h4 class="fw-bold text-dark">No Lab Tests Found</h4>
+        <p class="text-muted">No diagnostic tests match your current search or filter criteria.</p>
+        <a asp-action="LabTests" class="btn btn-primary rounded-pill px-4"><i class="fa-solid fa-rotate-left me-1"></i> Reset Filters</a>
+    </div>
+}

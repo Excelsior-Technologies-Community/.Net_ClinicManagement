@@ -1,0 +1,89 @@
+@model ClinicManagementSystem.Models.LabReportModel
+@{
+    ViewData["Title"] = "Upload Lab Report";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="mb-0 text-primary"><i class="fas fa-file-upload me-2"></i>Upload Lab Report</h3>
+        <small class="text-muted">Attach PDF diagnostic report to patient lab booking</small>
+    </div>
+    <a asp-action="ManageLabReport" class="btn btn-secondary shadow-sm"><i class="fas fa-arrow-left me-1"></i> Back to List</a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-9">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0"><i class="fas fa-file-pdf me-2"></i>Lab Report PDF Upload</h5>
+            </div>
+            <div class="card-body p-4">
+                @if (ViewBag.Error != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="fas fa-exclamation-triangle me-2"></i>@ViewBag.Error
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+
+                <form asp-action="UploadLabReport" method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="LabTestId" />
+                    <input type="hidden" asp-for="CustomerId" />
+
+                    <div class="mb-3">
+                        <label asp-for="LabBookingId" class="form-label fw-bold">Select Lab Booking <span class="text-danger">*</span></label>
+                        <select asp-for="LabBookingId" asp-items="@ViewBag.BookingList" class="form-select" required>
+                        </select>
+                        <span asp-validation-for="LabBookingId" class="text-danger small"></span>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="ReportTitle" class="form-label fw-bold">Report Title</label>
+                            <input asp-for="ReportTitle" class="form-control" placeholder="e.g. CBC Complete Report" />
+                            <span asp-validation-for="ReportTitle" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="TechnicianName" class="form-label fw-bold">Lab Technician / Doctor</label>
+                            <input asp-for="TechnicianName" class="form-control" placeholder="e.g. Dr. Rajesh Sharma" />
+                            <span asp-validation-for="TechnicianName" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Upload PDF File <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="fas fa-file-pdf text-danger"></i></span>
+                            <input type="file" name="ReportFile" class="form-control" accept=".pdf" required />
+                        </div>
+                        <small class="form-text text-muted">Only PDF files are allowed (.pdf). Max size: 10MB.</small>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="ReportStatus" class="form-label fw-bold">Report Status</label>
+                            <select asp-for="ReportStatus" class="form-select">
+                                <option value="Completed">Completed</option>
+                                <option value="Draft">Draft</option>
+                                <option value="Pending">Pending</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="ReportRemark" class="form-label fw-bold">Technician Remarks / Summary</label>
+                        <textarea asp-for="ReportRemark" class="form-control" rows="3" placeholder="Enter key observations, normal/abnormal findings, or recommendations..."></textarea>
+                        <span asp-validation-for="ReportRemark" class="text-danger small"></span>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <a asp-action="ManageLabReport" class="btn btn-secondary"><i class="fas fa-times me-1"></i> Cancel</a>
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-upload me-1"></i> Upload Lab Report</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

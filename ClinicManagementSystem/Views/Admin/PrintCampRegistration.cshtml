@@ -1,0 +1,1760 @@
+﻿@model CampRegistrationModel
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+
+    <meta charset="utf-8" />
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0" />
+
+    <title>
+        Print Camp Registration -
+        @Model.RegistrationNo
+    </title>
+
+
+    <!-- Bootstrap -->
+
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+
+
+    <!-- Font Awesome -->
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+
+
+    <style>
+
+        /* =====================================================
+           PAGE
+           ===================================================== */
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 30px;
+            background: #f1f5f9;
+            font-family: Arial, Helvetica, sans-serif;
+            color: #263238;
+        }
+
+
+        .print-wrapper {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+
+        /* =====================================================
+           PRINT DOCUMENT
+           ===================================================== */
+
+        .print-document {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+
+
+        /* =====================================================
+           HEADER
+           ===================================================== */
+
+        .document-header {
+            padding: 28px 32px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 25px;
+        }
+
+
+        .brand-area {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+
+        .brand-icon {
+            width: 55px;
+            height: 55px;
+            border-radius: 13px;
+            background: #eaf3ff;
+            color: #0d6efd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 25px;
+        }
+
+
+        .brand-title {
+            margin: 0;
+            font-size: 22px;
+            font-weight: 750;
+            color: #172033;
+        }
+
+
+        .brand-subtitle {
+            margin: 4px 0 0;
+            font-size: 12px;
+            color: #7b8492;
+        }
+
+
+        .document-type {
+            text-align: right;
+        }
+
+
+        .document-type-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #172033;
+        }
+
+
+        .document-type-subtitle {
+            font-size: 11px;
+            color: #8a93a2;
+            margin-top: 4px;
+        }
+
+
+        /* =====================================================
+           REGISTRATION BANNER
+           ===================================================== */
+
+        .registration-banner {
+            margin: 24px 32px 0;
+            padding: 18px 20px;
+            background: #f8fafc;
+            border: 1px solid #e4e9f0;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+
+        .registration-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.7px;
+            color: #8a93a2;
+            margin-bottom: 5px;
+        }
+
+
+        .registration-number {
+            font-size: 19px;
+            font-weight: 750;
+            color: #0d6efd;
+        }
+
+
+        .registration-date {
+            text-align: right;
+        }
+
+
+        .registration-date-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            color: #8a93a2;
+            margin-bottom: 4px;
+        }
+
+
+        .registration-date-value {
+            font-size: 13px;
+            font-weight: 650;
+            color: #263238;
+        }
+
+
+        /* =====================================================
+           SECTION
+           ===================================================== */
+
+        .content-section {
+            padding: 25px 32px 0;
+        }
+
+
+        .section-heading {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+
+        .section-heading-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            background: #eaf3ff;
+            color: #0d6efd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+
+        .section-heading h5 {
+            margin: 0;
+            font-size: 15px;
+            font-weight: 700;
+            color: #172033;
+        }
+
+
+        .section-heading p {
+            margin: 2px 0 0;
+            font-size: 10px;
+            color: #8a93a2;
+        }
+
+
+        /* =====================================================
+           INFO GRID
+           ===================================================== */
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+
+        .info-item {
+            padding: 13px 15px;
+            border: 1px solid #e8edf3;
+            border-radius: 9px;
+            background: #ffffff;
+        }
+
+
+        .info-label {
+            font-size: 10px;
+            color: #8a93a2;
+            margin-bottom: 5px;
+        }
+
+
+        .info-value {
+            font-size: 13px;
+            font-weight: 650;
+            color: #273142;
+            word-break: break-word;
+        }
+
+
+        /* =====================================================
+           STATUS
+           ===================================================== */
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 700;
+        }
+
+
+        .status-pending {
+            background: #fff5d9;
+            color: #996f00;
+        }
+
+
+        .status-confirmed {
+            background: #e7f8ef;
+            color: #137a45;
+        }
+
+
+        .status-cancelled {
+            background: #fdecec;
+            color: #b42318;
+        }
+
+
+        /* =====================================================
+           RESPONSIVE
+           ===================================================== */
+
+        @@media (max-width: 650px) {
+
+            body {
+                padding: 10px;
+            }
+
+            .document-header {
+                padding: 22px;
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .document-type {
+                text-align: left;
+            }
+
+            .registration-banner {
+                margin-left: 22px;
+                margin-right: 22px;
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .registration-date {
+                text-align: left;
+            }
+
+            .content-section {
+                padding-left: 22px;
+                padding-right: 22px;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+
+        }
+
+
+        /* =====================================================
+           PRINT
+           ===================================================== */
+
+        @@media print {
+
+            @@page {
+                size: A4;
+                margin: 12mm;
+            }
+
+            body {
+                padding: 0;
+                background: #ffffff;
+            }
+
+            .print-wrapper {
+                max-width: 100%;
+            }
+
+            .print-document {
+                box-shadow: none;
+                border-radius: 0;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+
+            .content-section,
+            .registration-banner {
+                break-inside: avoid;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<div class="print-wrapper">
+
+    <div class="print-document">
+
+
+        <!-- ================================================= -->
+        <!-- DOCUMENT HEADER                                   -->
+        <!-- ================================================= -->
+
+        <div class="document-header">
+
+
+            <div class="brand-area">
+
+                <div class="brand-icon">
+
+                    <i class="fa-solid fa-heart-pulse"></i>
+
+                </div>
+
+
+                <div>
+
+                    <h1 class="brand-title">
+                        Medical Camp
+                    </h1>
+
+                    <p class="brand-subtitle">
+                        Health & Wellness Registration
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="document-type">
+
+                <div class="document-type-title">
+                    Registration Receipt
+                </div>
+
+                <div class="document-type-subtitle">
+                    Official Camp Registration
+                </div>
+
+            </div>
+
+
+        </div>
+
+
+
+        <!-- ================================================= -->
+        <!-- REGISTRATION NUMBER                               -->
+        <!-- ================================================= -->
+
+        <div class="registration-banner">
+
+
+            <div>
+
+                <div class="registration-label">
+                    Registration Number
+                </div>
+
+                <div class="registration-number">
+
+                    @if (!string.IsNullOrWhiteSpace(
+                        Model.RegistrationNo))
+                    {
+                        @Model.RegistrationNo
+                    }
+                    else
+                    {
+                        <span>Not Available</span>
+                    }
+
+                </div>
+
+            </div>
+
+
+            <div class="registration-date">
+
+                <div class="registration-date-label">
+                    Registration Date
+                </div>
+
+                    <div class="registration-date-value">
+
+                        <span>
+                            @Model.RegistrationDate.ToString("dd MMM yyyy, hh:mm tt")
+                        </span>
+
+                    </div>
+            </div>
+
+
+        </div>
+
+
+
+        <!-- ================================================= -->
+        <!-- PARTICIPANT INFORMATION                           -->
+        <!-- ================================================= -->
+
+        <div class="content-section">
+
+
+            <div class="section-heading">
+
+                <div class="section-heading-icon">
+
+                    <i class="fa-solid fa-user"></i>
+
+                </div>
+
+
+                <div>
+
+                    <h5>
+                        Participant Information
+                    </h5>
+
+                    <p>
+                        Registered participant details
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="info-grid">
+
+
+                <!-- Participant Name -->
+
+                <div class="info-item">
+
+                    <div class="info-label">
+                        Participant Name
+                    </div>
+
+                    <div class="info-value">
+
+                        @if (!string.IsNullOrWhiteSpace(
+                            Model.ParticipantName))
+                        {
+                            @Model.ParticipantName
+                        }
+                        else
+                        {
+                            <span>Not Available</span>
+                        }
+
+                    </div>
+
+                </div>
+
+
+                <!-- Customer Name -->
+
+                <div class="info-item">
+
+                    <div class="info-label">
+                        Customer Name
+                    </div>
+
+                    <div class="info-value">
+
+                        @if (!string.IsNullOrWhiteSpace(
+                            Model.CustomerName))
+                        {
+                            @Model.CustomerName
+                        }
+                        else
+                        {
+                            <span>Not Available</span>
+                        }
+
+                    </div>
+
+                </div>
+
+
+                <!-- Mobile -->
+
+                <div class="info-item">
+
+                    <div class="info-label">
+                        Mobile Number
+                    </div>
+
+                    <div class="info-value">
+
+                        @if (!string.IsNullOrWhiteSpace(
+                            Model.MobileNo))
+                        {
+                            @Model.MobileNo
+                        }
+                        else
+                        {
+                            <span>Not Available</span>
+                        }
+
+                    </div>
+
+                </div>
+
+
+                <!-- Email -->
+
+                <div class="info-item">
+
+                    <div class="info-label">
+                        Email Address
+                    </div>
+
+                    <div class="info-value">
+
+                        @if (!string.IsNullOrWhiteSpace(
+                            Model.Email))
+                        {
+                            @Model.Email
+                        }
+                        else
+                        {
+                            <span>Not Available</span>
+                        }
+
+                    </div>
+
+                </div>
+
+
+                <!-- Age -->
+
+                <div class="info-item">
+
+                    <div class="info-label">
+                        Age
+                    </div>
+
+                    <div class="info-value">
+
+                        @if (Model.Age.HasValue)
+                        {
+                            @Model.Age.Value
+                        }
+                        else
+                        {
+                            <span>Not Available</span>
+                        }
+
+                    </div>
+
+                </div>
+
+
+                <!-- Gender -->
+
+                <div class="info-item">
+
+                    <div class="info-label">
+                        Gender
+                    </div>
+
+                    <div class="info-value">
+
+                        @if (!string.IsNullOrWhiteSpace(
+                            Model.Gender))
+                        {
+                            @Model.Gender
+                        }
+                        else
+                        {
+                            <span>Not Available</span>
+                        }
+
+                    </div>
+
+                </div>
+
+
+            </div>
+
+
+        </div>
+
+
+
+        <!-- ================================================= -->
+        <!-- CAMP INFORMATION                                  -->
+        <!-- ================================================= -->
+
+        <div class="content-section">
+
+            <div class="section-heading">
+
+                <div class="section-heading-icon">
+
+                    <i class="fa-solid fa-hospital"></i>
+
+                </div>
+
+                <div>
+
+                    <h5>
+                        Medical Camp Information
+                    </h5>
+
+                    <p>
+                        Camp details and schedule
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="info-grid">
+
+
+                <div class="info-item">
+
+                    <div class="info-label">
+                        Camp Title
+                    </div>
+
+                    <div class="info-value">
+
+                        @if (!string.IsNullOrWhiteSpace(
+                            Model.CampTitle))
+                        {
+                            @Model.CampTitle
+                        }
+                        else
+                        {
+                            <span>Not Available</span>
+                        }
+
+                    </div>
+
+                </div>
+
+
+                <div class="info-item">
+
+                    <div class="info-label">
+                        Department
+                    </div>
+
+                    <div class="info-value">
+
+                        @if (!string.IsNullOrWhiteSpace(
+                            Model.DepartmentName))
+                        {
+                            @Model.DepartmentName
+                        }
+                        else
+                        {
+                            <span>Not Available</span>
+                        }
+
+                    </div>
+
+                </div>
+
+
+                <div class="info-item">
+
+                    <div class="info-label">
+                        Doctor
+                    </div>
+
+                    <div class="info-value">
+
+                        @if (!string.IsNullOrWhiteSpace(
+                            Model.DoctorName))
+                        {
+                            @Model.DoctorName
+                        }
+                        else
+                        {
+                            <span>Not Available</span>
+                        }
+
+                    </div>
+
+                </div>
+
+
+                <div class="info-item">
+
+                    <div class="info-label">
+                        Venue
+                    </div>
+
+                    <div class="info-value">
+
+                        @if (!string.IsNullOrWhiteSpace(
+                            Model.Venue))
+                        {
+                            @Model.Venue
+                        }
+                        else
+                        {
+                            <span>Not Available</span>
+                        }
+
+                    </div>
+
+                </div>
+
+
+            </div>
+
+        </div>
+                <!-- ================================================= -->
+        <!-- CAMP SCHEDULE                                     -->
+        <!-- ================================================= -->
+
+        <div class="content-section">
+
+            <div class="section-heading">
+
+                <div class="section-heading-icon">
+
+                    <i class="fa-regular fa-calendar-days"></i>
+
+                </div>
+
+                <div>
+
+                    <h5>
+                        Camp Schedule
+                    </h5>
+
+                    <p>
+                        Date and timing of the medical camp
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="info-grid">
+
+
+                <!-- Camp Date -->
+
+                <div class="info-item">
+
+                    <div class="info-label">
+                        Camp Date
+                    </div>
+
+                    <div class="info-value">
+
+                        @if (Model.CampDate != null)
+                        {
+                            @Model.CampDate.Value.ToString(
+                                "dd MMM yyyy")
+                        }
+                        else
+                        {
+                            <span>
+                                Not Available
+                            </span>
+                        }
+
+                    </div>
+
+                </div>
+
+
+                <!-- Camp Time -->
+
+                <div class="info-item">
+
+                    <div class="info-label">
+                        Camp Time
+                    </div>
+
+                        <div class="info-value">
+
+                            @if (Model.StartTime.HasValue)
+                            {
+                                <span>
+                                    @DateTime.Today.Add(Model.StartTime.Value).ToString("hh:mm tt")
+                                </span>
+
+                                @if (Model.EndTime.HasValue)
+                                {
+                                    <span>
+                                        -
+                                        @DateTime.Today.Add(Model.EndTime.Value).ToString("hh:mm tt")
+                                    </span>
+                                }
+                            }
+                            else
+                            {
+                                <span>
+                                    Not Available
+                                </span>
+                            }
+
+                        </div>
+
+                </div>
+
+
+                <!-- Organizer -->
+
+                <div class="info-item">
+
+                    <div class="info-label">
+                        Organizer
+                    </div>
+
+                    <div class="info-value">
+
+                        @if (!string.IsNullOrWhiteSpace(
+                            Model.Organizer))
+                        {
+                            @Model.Organizer
+                        }
+                        else
+                        {
+                            <span>
+                                Not Available
+                            </span>
+                        }
+
+                    </div>
+
+                </div>
+
+
+                <!-- Registration Fee -->
+
+                <div class="info-item">
+
+                    <div class="info-label">
+                        Registration Fee
+                    </div>
+
+                    <div class="info-value">
+
+                        @if (Model.RegistrationFee > 0)
+                        {
+                            <span>
+                                ₹@Model.RegistrationFee.ToString("0.00")
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="text-success">
+                                Free
+                            </span>
+                        }
+
+                    </div>
+
+                </div>
+
+
+            </div>
+
+        </div>
+
+
+
+        <!-- ================================================= -->
+        <!-- REGISTRATION & PAYMENT STATUS                     -->
+        <!-- ================================================= -->
+
+        <div class="content-section">
+
+            <div class="section-heading">
+
+                <div class="section-heading-icon">
+
+                    <i class="fa-solid fa-circle-check"></i>
+
+                </div>
+
+                <div>
+
+                    <h5>
+                        Registration Status
+                    </h5>
+
+                    <p>
+                        Current registration and payment information
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="info-grid">
+
+
+                <!-- Registration Status -->
+
+                <div class="info-item">
+
+                    <div class="info-label">
+                        Registration Status
+                    </div>
+
+                    <div class="info-value">
+
+                        @if (string.Equals(
+                            Model.RegistrationStatus,
+                            "Confirmed",
+                            StringComparison.OrdinalIgnoreCase))
+                        {
+                            <span class="status-badge status-confirmed">
+
+                                <i class="fa-solid fa-circle-check"></i>
+
+                                Confirmed
+
+                            </span>
+                        }
+                        else if (string.Equals(
+                            Model.RegistrationStatus,
+                            "Cancelled",
+                            StringComparison.OrdinalIgnoreCase))
+                        {
+                            <span class="status-badge status-cancelled">
+
+                                <i class="fa-solid fa-circle-xmark"></i>
+
+                                Cancelled
+
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="status-badge status-pending">
+
+                                <i class="fa-solid fa-clock"></i>
+
+                                @(string.IsNullOrWhiteSpace(
+                                    Model.RegistrationStatus)
+                                    ? "Pending"
+                                    : Model.RegistrationStatus)
+
+                            </span>
+                        }
+
+                    </div>
+
+                </div>
+
+
+                <!-- Payment Status -->
+
+                <div class="info-item">
+
+                    <div class="info-label">
+                        Payment Status
+                    </div>
+
+                    <div class="info-value">
+
+                        @if (string.Equals(
+                            Model.PaymentStatus,
+                            "Paid",
+                            StringComparison.OrdinalIgnoreCase))
+                        {
+                            <span class="status-badge status-confirmed">
+
+                                <i class="fa-solid fa-circle-check"></i>
+
+                                Paid
+
+                            </span>
+                        }
+                        else if (string.Equals(
+                            Model.PaymentStatus,
+                            "Failed",
+                            StringComparison.OrdinalIgnoreCase))
+                        {
+                            <span class="status-badge status-cancelled">
+
+                                <i class="fa-solid fa-circle-xmark"></i>
+
+                                Failed
+
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="status-badge status-pending">
+
+                                <i class="fa-solid fa-clock"></i>
+
+                                @(string.IsNullOrWhiteSpace(
+                                    Model.PaymentStatus)
+                                    ? "Pending"
+                                    : Model.PaymentStatus)
+
+                            </span>
+                        }
+
+                    </div>
+
+                </div>
+
+
+                <!-- Amount -->
+
+                <div class="info-item">
+
+                    <div class="info-label">
+                        Registration Amount
+                    </div>
+
+                    <div class="info-value">
+
+                        ₹@Model.Amount.ToString("0.00")
+
+                    </div>
+
+                </div>
+
+
+                <!-- Available Seats -->
+
+                <div class="info-item">
+
+                    <div class="info-label">
+                        Available Seats
+                    </div>
+
+                    <div class="info-value">
+
+                        @Model.AvailableSeats
+
+                    </div>
+
+                </div>
+
+
+            </div>
+
+        </div>
+
+
+
+        <!-- ================================================= -->
+        <!-- HEALTH INFORMATION                                -->
+        <!-- ================================================= -->
+
+        <div class="content-section">
+
+            <div class="section-heading">
+
+                <div class="section-heading-icon">
+
+                    <i class="fa-solid fa-notes-medical"></i>
+
+                </div>
+
+                <div>
+
+                    <h5>
+                        Health Information
+                    </h5>
+
+                    <p>
+                        Health concern provided during registration
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="health-information-box">
+
+                @if (!string.IsNullOrWhiteSpace(
+                    Model.HealthConcern))
+                {
+                    <div class="health-text">
+
+                        @Model.HealthConcern
+
+                    </div>
+                }
+                else
+                {
+                    <div class="health-empty">
+
+                        <i class="fa-solid fa-circle-info"></i>
+
+                        No health concern was provided
+                        during registration.
+
+                    </div>
+                }
+
+            </div>
+
+        </div>
+
+
+
+        <!-- ================================================= -->
+        <!-- ADMIN REMARK                                     -->
+        <!-- ================================================= -->
+
+        @if (!string.IsNullOrWhiteSpace(
+            Model.AdminRemark))
+        {
+            <div class="content-section">
+
+                <div class="section-heading">
+
+                    <div class="section-heading-icon">
+
+                        <i class="fa-solid fa-comment-medical"></i>
+
+                    </div>
+
+                    <div>
+
+                        <h5>
+                            Admin Remark
+                        </h5>
+
+                        <p>
+                            Additional information from administration
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="admin-remark-box">
+
+                    <i class="fa-solid fa-quote-left"></i>
+
+                    <span>
+                        @Model.AdminRemark
+                    </span>
+
+                </div>
+
+            </div>
+        }
+
+
+
+        <!-- ================================================= -->
+        <!-- CONTACT INFORMATION                               -->
+        <!-- ================================================= -->
+
+        <div class="content-section">
+
+            <div class="contact-box">
+
+                <div class="contact-icon">
+
+                    <i class="fa-solid fa-phone"></i>
+
+                </div>
+
+                <div>
+
+                    <div class="contact-title">
+                        Need Help?
+                    </div>
+
+                    <div class="contact-text">
+                        Please contact the medical camp
+                        administration for any registration-related
+                        assistance.
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- ================================================= -->
+        <!-- PART-2 CSS                                        -->
+        <!-- ================================================= -->
+
+        <style>
+
+            .health-information-box {
+                border: 1px solid #e8edf3;
+                background: #f8fafc;
+                border-radius: 9px;
+                padding: 15px 17px;
+                min-height: 65px;
+            }
+
+
+            .health-text {
+                font-size: 12px;
+                line-height: 1.65;
+                color: #465160;
+                white-space: pre-line;
+            }
+
+
+            .health-empty {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                font-size: 11px;
+                color: #8a93a2;
+            }
+
+
+            .health-empty i {
+                color: #0d6efd;
+            }
+
+
+            .admin-remark-box {
+                display: flex;
+                align-items: flex-start;
+                gap: 12px;
+                padding: 15px 17px;
+                background: #f8fafc;
+                border: 1px solid #e8edf3;
+                border-left: 3px solid #0d6efd;
+                border-radius: 9px;
+                font-size: 12px;
+                line-height: 1.6;
+                color: #465160;
+            }
+
+
+            .admin-remark-box > i {
+                color: #0d6efd;
+                font-size: 14px;
+                margin-top: 2px;
+            }
+
+
+            .contact-box {
+                display: flex;
+                align-items: center;
+                gap: 13px;
+                padding: 16px 18px;
+                background: #f8fafc;
+                border: 1px solid #e4e9f0;
+                border-radius: 10px;
+            }
+
+
+            .contact-icon {
+                width: 38px;
+                height: 38px;
+                border-radius: 9px;
+                background: #eaf3ff;
+                color: #0d6efd;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+            }
+
+
+            .contact-title {
+                font-size: 12px;
+                font-weight: 700;
+                color: #273142;
+                margin-bottom: 3px;
+            }
+
+
+            .contact-text {
+                font-size: 10px;
+                color: #8a93a2;
+                line-height: 1.5;
+            }
+
+        </style>
+                <!-- ================================================= -->
+        <!-- DECLARATION                                      -->
+        <!-- ================================================= -->
+
+        <div class="content-section">
+
+            <div class="declaration-box">
+
+                <div class="declaration-icon">
+
+                    <i class="fa-solid fa-shield-heart"></i>
+
+                </div>
+
+                <div>
+
+                    <div class="declaration-title">
+                        Registration Declaration
+                    </div>
+
+                    <div class="declaration-text">
+
+                        The information provided in this
+                        registration is submitted by the
+                        participant/customer and is intended
+                        for medical camp registration purposes.
+                        Please carry this registration receipt
+                        when visiting the camp.
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- ================================================= -->
+        <!-- SIGNATURE AREA                                    -->
+        <!-- ================================================= -->
+
+        <div class="content-section">
+
+            <div class="signature-grid">
+
+
+                <!-- Participant -->
+
+                <div class="signature-item">
+
+                    <div class="signature-space"></div>
+
+                    <div class="signature-line"></div>
+
+                    <div class="signature-label">
+                        Participant / Customer Signature
+                    </div>
+
+                </div>
+
+
+                <!-- Administration -->
+
+                <div class="signature-item">
+
+                    <div class="signature-space"></div>
+
+                    <div class="signature-line"></div>
+
+                    <div class="signature-label">
+                        Camp Administration
+                    </div>
+
+                </div>
+
+
+            </div>
+
+        </div>
+
+
+
+        <!-- ================================================= -->
+        <!-- FOOTER                                           -->
+        <!-- ================================================= -->
+
+        <div class="document-footer">
+
+            <div class="footer-left">
+
+                <i class="fa-solid fa-heart-pulse"></i>
+
+                <span>
+                    Medical Camp Management System
+                </span>
+
+            </div>
+
+
+            <div class="footer-right">
+
+                Generated on:
+
+                @DateTime.Now.ToString(
+                    "dd MMM yyyy, hh:mm tt")
+
+            </div>
+
+        </div>
+
+
+    </div>
+
+
+    <!-- ===================================================== -->
+    <!-- PRINT / CLOSE BUTTONS                                -->
+    <!-- ===================================================== -->
+
+    <div class="print-actions no-print">
+
+        <button type="button"
+                class="btn btn-primary"
+                onclick="window.print();">
+
+            <i class="fa-solid fa-print me-2"></i>
+
+            Print Registration
+
+        </button>
+
+
+        <button type="button"
+                class="btn btn-outline-secondary"
+                onclick="window.close();">
+
+            <i class="fa-solid fa-xmark me-2"></i>
+
+            Close
+
+        </button>
+
+    </div>
+
+
+</div>
+
+
+
+<!-- ========================================================= -->
+<!-- PART-3 CSS                                                -->
+<!-- ========================================================= -->
+
+<style>
+
+    /* =========================================================
+       DECLARATION
+       ========================================================= */
+
+    .declaration-box {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 15px 17px;
+        background: #f8fafc;
+        border: 1px solid #e4e9f0;
+        border-radius: 10px;
+    }
+
+
+    .declaration-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 9px;
+        background: #eaf3ff;
+        color: #0d6efd;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+
+    .declaration-title {
+        font-size: 12px;
+        font-weight: 700;
+        color: #273142;
+        margin-bottom: 4px;
+    }
+
+
+    .declaration-text {
+        font-size: 10px;
+        line-height: 1.6;
+        color: #7d8795;
+    }
+
+
+    /* =========================================================
+       SIGNATURE
+       ========================================================= */
+
+    .signature-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 70px;
+        padding-top: 12px;
+        padding-bottom: 15px;
+    }
+
+
+    .signature-item {
+        text-align: center;
+    }
+
+
+    .signature-space {
+        height: 45px;
+    }
+
+
+    .signature-line {
+        border-top: 1px solid #697586;
+        margin-bottom: 7px;
+    }
+
+
+    .signature-label {
+        font-size: 10px;
+        color: #7d8795;
+        font-weight: 600;
+    }
+
+
+    /* =========================================================
+       DOCUMENT FOOTER
+       ========================================================= */
+
+    .document-footer {
+        margin-top: 20px;
+        padding: 15px 32px;
+        border-top: 1px solid #e5e7eb;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        background: #fafbfc;
+    }
+
+
+    .footer-left {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        font-size: 9px;
+        color: #7d8795;
+        font-weight: 600;
+    }
+
+
+    .footer-left i {
+        color: #0d6efd;
+        font-size: 11px;
+    }
+
+
+    .footer-right {
+        font-size: 9px;
+        color: #9aa3af;
+        text-align: right;
+    }
+
+
+    /* =========================================================
+       ACTION BUTTONS
+       ========================================================= */
+
+    .print-actions {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        padding: 20px 0;
+    }
+
+
+    .print-actions .btn {
+        min-width: 150px;
+        min-height: 42px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 650;
+    }
+
+
+    /* =========================================================
+       PRINT
+       ========================================================= */
+
+    @@media print {
+
+        body {
+            background: #ffffff;
+        }
+
+        .print-actions {
+            display: none !important;
+        }
+
+        .print-document {
+            width: 100%;
+            box-shadow: none;
+        }
+
+        .document-footer {
+            margin-top: 15px;
+        }
+
+        .content-section {
+            break-inside: avoid;
+        }
+
+        .signature-grid {
+            break-inside: avoid;
+        }
+
+    }
+
+
+    /* =========================================================
+       MOBILE
+       ========================================================= */
+
+    @@media (max-width: 650px) {
+
+        .signature-grid {
+            grid-template-columns: 1fr;
+            gap: 25px;
+        }
+
+        .document-footer {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .footer-right {
+            text-align: left;
+        }
+
+    }
+
+</style>
+
+
+<script>
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        function () {
+
+
+            document.title =
+                "Camp Registration - " +
+                "@Model.RegistrationNo";
+
+        }
+    );
+
+</script>
+
+</body>
+
+</html>

@@ -1,0 +1,187 @@
+@model List<ClinicManagementSystem.Models.LabBookingModel>
+@{
+    ViewData["Title"] = "Manage Lab Bookings";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="mb-0 text-primary"><i class="fas fa-calendar-check me-2"></i>Manage Lab Bookings</h3>
+        <small class="text-muted">Monitor patient lab test bookings, payment statuses, and schedule samples</small>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body bg-light rounded">
+        <form method="get" asp-action="ManageLabBooking" class="row g-3">
+            <div class="col-md-4">
+                <div class="input-group">
+                    <span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
+                    <input type="text" name="search" value="@ViewBag.Search" class="form-control" placeholder="Booking No, Patient Name, Mobile..." />
+                </div>
+            </div>
+            <div class="col-md-3">
+                <select name="status" class="form-select">
+                    <option value="">-- All Test Statuses --</option>
+                    <!option value="Pending" @(ViewBag.Status == "Pending" ? "selected" : "")>Pending</!option>
+                    <!option value="Sample Collected" @(ViewBag.Status == "Sample Collected" ? "selected" : "")>Sample Collected</!option>
+                    <!option value="In Progress" @(ViewBag.Status == "In Progress" ? "selected" : "")>In Progress</!option>
+                    <!option value="Completed" @(ViewBag.Status == "Completed" ? "selected" : "")>Completed</!option>
+                    <!option value="Cancelled" @(ViewBag.Status == "Cancelled" ? "selected" : "")>Cancelled</!option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select name="paymentStatus" class="form-select">
+                    <option value="">-- All Payment Statuses --</option>
+                    <!option value="Pending" @(ViewBag.PaymentStatus == "Pending" ? "selected" : "")>Pending</!option>
+                    <!option value="Paid" @(ViewBag.PaymentStatus == "Paid" ? "selected" : "")>Paid</!option>
+                    <!option value="Refunded" @(ViewBag.PaymentStatus == "Refunded" ? "selected" : "")>Refunded</!option>
+                </select>
+            </div>
+            <div class="col-md-2 d-flex gap-2">
+                <button type="submit" class="btn btn-primary w-100"><i class="fas fa-filter me-1"></i> Filter</button>
+                <a asp-action="ManageLabBooking" class="btn btn-outline-secondary"><i class="fas fa-undo"></i></a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0"><i class="fas fa-list me-2"></i>Lab Bookings List</h5>
+        <span class="badge bg-light text-primary">Total: @(Model?.Count ?? 0)</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover table-striped align-middle mb-0" id="labBookingTable">
+                <thead class="table-dark">
+                    <tr>
+                        <th class="ps-3">Booking No</th>
+                        <th>Patient Info</th>
+                        <th>Test Name</th>
+                        <th>Preferred Date/Time</th>
+                        <th>Amount</th>
+                        <th>Test Status</th>
+                        <th>Payment Status</th>
+                        <th class="text-end pe-3">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="ps-3 fw-bold text-primary">
+                                    <div>@item.BookingNo</div>
+                                    <small class="text-muted">@item.BookingDate.ToString("dd MMM yyyy")</small>
+                                </td>
+                                <td>
+                                    <div class="fw-bold text-dark">@item.PatientName</div>
+                                    <small class="text-muted"><i class="fas fa-phone text-secondary me-1"></i>@(string.IsNullOrEmpty(item.MobileNo) ? "N/A" : item.MobileNo)</small>
+                                </td>
+                                <td>
+                                    <div class="fw-bold">@item.TestName</div>
+                                    <span class="badge bg-light text-dark border">@item.TestCategory</span>
+                                </td>
+                                <td>
+                                    @if (item.PreferredDate.HasValue)
+                                    {
+                                        <div><i class="fas fa-calendar text-primary me-1"></i>@item.PreferredDate.Value.ToString("dd MMM yyyy")</div>
+                                    }
+                                    <small class="text-muted"><i class="fas fa-clock me-1"></i>@(string.IsNullOrEmpty(item.PreferredTime) ? "Anytime" : item.PreferredTime)</small>
+                                </td>
+                                <td class="fw-bold text-success">₹@item.Amount.ToString("N2")</td>
+                                <td>
+                                    @if (item.TestStatus == "Completed")
+                                    {
+                                        <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Completed</span>
+                                    }
+                                    else if (item.TestStatus == "In Progress")
+                                    {
+                                        <span class="badge bg-warning text-dark"><i class="fas fa-spinner fa-spin me-1"></i>In Progress</span>
+                                    }
+                                    else if (item.TestStatus == "Sample Collected")
+                                    {
+                                        <span class="badge bg-info text-dark"><i class="fas fa-vial me-1"></i>Sample Collected</span>
+                                    }
+                                    else if (item.TestStatus == "Cancelled")
+                                    {
+                                        <span class="badge bg-danger"><i class="fas fa-times-circle me-1"></i>Cancelled</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary"><i class="fas fa-hourglass-half me-1"></i>Pending</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (item.PaymentStatus == "Paid")
+                                    {
+                                        <span class="badge bg-success"><i class="fas fa-check-double me-1"></i>Paid</span>
+                                    }
+                                    else if (item.PaymentStatus == "Refunded")
+                                    {
+                                        <span class="badge bg-info text-dark"><i class="fas fa-undo me-1"></i>Refunded</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger"><i class="fas fa-exclamation-circle me-1"></i>Pending</span>
+                                    }
+                                </td>
+                                <td class="text-end pe-3">
+                                    <a asp-action="ViewLabBooking" asp-route-id="@item.LabBookingId" class="btn btn-outline-info btn-sm me-1" title="View"><i class="fas fa-eye"></i> View</a>
+                                    <a asp-action="ChangeLabBookingStatus" asp-route-id="@item.LabBookingId" class="btn btn-outline-warning btn-sm me-1" title="Change Status"><i class="fas fa-edit"></i> Status</a>
+                                    <a asp-action="UploadLabReport" asp-route-bookingId="@item.LabBookingId" class="btn btn-outline-success btn-sm me-1" title="Upload Report"><i class="fas fa-file-upload"></i> Report</a>
+                                    <button class="btn btn-outline-danger btn-sm" onclick="confirmDeleteBooking(@item.LabBookingId, '@item.BookingNo')" title="Delete"><i class="fas fa-trash"></i></button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="8" class="text-center py-4 text-muted">
+                                <i class="fas fa-calendar-times fa-3x mb-3 d-block text-secondary"></i>
+                                No Lab Bookings found matching your criteria.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+@if (TempData["Success"] != null)
+{
+    <script>
+        Swal.fire({ icon: 'success', title: 'Success', text: '@TempData["Success"]', timer: 3000, showConfirmButton: false });
+    </script>
+}
+@if (TempData["Error"] != null)
+{
+    <script>
+        Swal.fire({ icon: 'error', title: 'Error', text: '@TempData["Error"]' });
+    </script>
+}
+
+<script>
+    function confirmDeleteBooking(id, bookingNo) {
+        Swal.fire({
+            title: 'Delete Booking?',
+            text: 'Are you sure you want to delete Booking ' + bookingNo + '?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Yes, Delete'
+        }).then((r) => {
+            if (r.isConfirmed) {
+                window.location = '/Admin/DeleteLabBooking/' + id;
+            }
+        });
+    }
+</script>

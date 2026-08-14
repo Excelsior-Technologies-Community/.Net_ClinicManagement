@@ -1,0 +1,92 @@
+@model IEnumerable<ClinicManagementSystem.Models.LabReportModel>
+@{
+    ViewData["Title"] = "My Diagnostic Lab Reports";
+    Layout = "~/Views/Shared/_CustomerLayout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold text-primary mb-1"><i class="fa-solid fa-file-medical-alt text-info me-2"></i>My Lab Reports</h2>
+        <p class="text-muted mb-0">Access and download your verified diagnostic laboratory reports</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-controller="Customer" asp-action="MyLabTests" class="btn btn-outline-primary rounded-pill"><i class="fa-solid fa-calendar-check me-1"></i> My Bookings</a>
+        <a asp-controller="Customer" asp-action="LabTests" class="btn btn-primary rounded-pill"><i class="fa-solid fa-flask me-1"></i> Book Lab Test</a>
+    </div>
+</div>
+
+<!-- Search Bar -->
+<div class="card shadow-sm border-0 mb-4 rounded-4">
+    <div class="card-body p-4 bg-white rounded-4">
+        <form method="get" asp-action="MyLabReports">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-10">
+                    <label class="form-label fw-semibold text-secondary small">Search Diagnostic Reports</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                        <input type="text" name="search" value="@ViewBag.Search" class="form-control bg-light border-start-0" placeholder="Search by report no, booking reference, test name or title..." />
+                    </div>
+                </div>
+
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100 rounded-3"><i class="fa-solid fa-search"></i> Search</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Reports Cards -->
+@if (Model != null && Model.Any())
+{
+    <div class="row g-4 mb-5">
+        @foreach (var report in Model)
+        {
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 shadow-sm border-0 rounded-4 transition-hover overflow-hidden">
+                    <div class="card-header bg-white border-0 pt-4 px-4 pb-0 d-flex justify-content-between align-items-center">
+                        <span class="badge bg-success-subtle text-success px-3 py-1 rounded-pill fw-semibold">
+                            <i class="fa-solid fa-circle-check me-1"></i>Report #@report.ReportNo
+                        </span>
+                        <small class="text-muted"><i class="fa-solid fa-calendar me-1"></i>@(report.ReportDate.HasValue ? report.ReportDate.Value.ToString("dd MMM yyyy") : "N/A")</small>
+                    </div>
+
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold text-dark mb-1">@report.TestName</h5>
+                        <p class="text-primary fw-semibold small mb-2">@(string.IsNullOrEmpty(report.ReportTitle) ? "Diagnostic Report" : report.ReportTitle)</p>
+                        <p class="text-muted small mb-3"><i class="fa-solid fa-user me-1 text-secondary"></i>Patient: <strong>@report.PatientName</strong></p>
+
+                        <div class="p-3 bg-light rounded-3 mb-3 fs-7">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="text-secondary"><i class="fa-solid fa-hashtag me-1"></i>Booking No:</span>
+                                <span class="fw-semibold text-dark">@report.BookingNo</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span class="text-secondary"><i class="fa-solid fa-user-doctor me-1"></i>Technician:</span>
+                                <span class="fw-semibold text-dark">@(string.IsNullOrEmpty(report.TechnicianName) ? "Lab Specialist" : report.TechnicianName)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-footer bg-white border-top-0 p-4 pt-0 d-flex gap-2">
+                        <a asp-action="LabReportDetails" asp-route-id="@report.LabReportId" class="btn btn-outline-primary w-50 rounded-3">
+                            <i class="fa-solid fa-eye me-1"></i> View
+                        </a>
+                        <a asp-action="DownloadLabReport" asp-route-id="@report.LabReportId" target="_blank" class="btn btn-success w-50 rounded-3 fw-semibold">
+                            <i class="fa-solid fa-file-pdf me-1"></i> Download PDF
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="text-center py-5 bg-white rounded-4 shadow-sm">
+        <i class="fa-solid fa-file-circle-xmark fa-4x text-muted mb-3"></i>
+        <h4 class="fw-bold text-dark">No Lab Reports Found</h4>
+        <p class="text-muted">No completed diagnostic reports are available yet. Reports will appear here once finalized by clinic staff.</p>
+        <a asp-action="MyLabTests" class="btn btn-primary rounded-pill px-4"><i class="fa-solid fa-calendar-check me-1"></i> Check My Bookings</a>
+    </div>
+}

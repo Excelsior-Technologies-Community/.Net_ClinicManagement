@@ -1,0 +1,1181 @@
+﻿@model List<ClinicManagementSystem.Models.MedicalCampModel>
+
+@{
+    ViewData["Title"] = "Medical Camps";
+    Layout = "~/Views/Shared/_CustomerLayout.cshtml";
+}
+
+<div class="container-fluid py-4 medical-camp-page">
+
+    <!-- =========================================
+         Page Header
+    ========================================== -->
+
+    <div class="camp-header mb-4">
+
+        <div class="row align-items-center">
+
+            <div class="col-lg-7">
+
+                <div class="header-content">
+
+                    <span class="header-badge">
+
+                        <i class="fa-solid fa-heart-pulse me-2"></i>
+
+                        Healthcare & Wellness
+
+                    </span>
+
+                    <h1 class="fw-bold mt-3 mb-2">
+
+                        Medical Camps
+
+                    </h1>
+
+                    <p class="mb-0">
+
+                        Discover upcoming medical camps, health checkups,
+                        specialist consultations and wellness programs.
+
+                    </p>
+
+                </div>
+
+            </div>
+
+            <div class="col-lg-5 text-lg-end mt-4 mt-lg-0">
+
+                <div class="header-icon">
+
+                    <i class="fa-solid fa-hospital-user"></i>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================
+         Search & Filter
+    ========================================== -->
+
+    <div class="card border-0 shadow-sm filter-card mb-4">
+
+        <div class="card-body p-4">
+
+            <form asp-action="MedicalCamps"
+                  method="get">
+
+                <div class="row g-3 align-items-end">
+
+                    <!-- Search -->
+
+                    <div class="col-lg-6">
+
+                        <label class="form-label fw-semibold">
+
+                            <i class="fa-solid fa-magnifying-glass me-1"></i>
+
+                            Search Medical Camp
+
+                        </label>
+
+                        <div class="input-group">
+
+                            <span class="input-group-text">
+
+                                <i class="fa-solid fa-search"></i>
+
+                            </span>
+
+                            <input type="text"
+                                   name="search"
+                                   value="@ViewBag.Search"
+                                   class="form-control"
+                                   placeholder="Search camp, doctor, department or venue..." />
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Department -->
+
+                    <div class="col-lg-4">
+
+                        <label class="form-label fw-semibold">
+
+                            <i class="fa-solid fa-building-user me-1"></i>
+
+                            Department
+
+                        </label>
+
+                        <select name="departmentId"
+                                class="form-select">
+
+                            <option value="0">
+
+                                All Departments
+
+                            </option>
+
+                            @if (ViewBag.DepartmentList != null)
+                            {
+                                foreach (var dept in ViewBag.DepartmentList)
+                                {
+                                    if (ViewBag.DepartmentId != null &&
+                                        Convert.ToInt64(ViewBag.DepartmentId)
+                                        == dept.DepartmentId)
+                                    {
+                                        <option value="@dept.DepartmentId"
+                                                selected>
+
+                                            @dept.DepartmentName
+
+                                        </option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@dept.DepartmentId">
+
+                                            @dept.DepartmentName
+
+                                        </option>
+                                    }
+                                }
+                            }
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- Buttons -->
+
+                    <div class="col-lg-2">
+
+                        <button type="submit"
+                                class="btn btn-primary w-100 mb-2">
+
+                            <i class="fa-solid fa-filter me-1"></i>
+
+                            Filter
+
+                        </button>
+
+                        <a asp-action="MedicalCamps"
+                           class="btn btn-outline-secondary w-100">
+
+                            <i class="fa-solid fa-rotate-left me-1"></i>
+
+                            Clear
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================
+         Result Header
+    ========================================== -->
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+
+        <div>
+
+            <h4 class="fw-bold mb-1">
+
+                Upcoming Medical Camps
+
+            </h4>
+
+            <p class="text-muted mb-0">
+
+                Find the right health camp for you and your family.
+
+            </p>
+
+        </div>
+
+        <span class="camp-count">
+
+            <i class="fa-solid fa-calendar-check me-1"></i>
+
+            @(Model?.Count ?? 0) Camps
+
+        </span>
+
+    </div>
+
+
+    <!-- =========================================
+         Medical Camp Cards
+    ========================================== -->
+
+    <div class="row g-4">
+
+        @if (Model != null && Model.Count > 0)
+        {
+            foreach (var item in Model)
+            {
+                <div class="col-xl-4 col-lg-6">
+
+                    <div class="camp-card h-100">
+
+                        <!-- Image -->
+
+                        <div class="camp-image-wrapper">
+
+                            @if (!string.IsNullOrWhiteSpace(item.CampImage))
+                            {
+                                <img src="~/MedicalCamp/@item.CampImage"
+                                     class="camp-image"
+                                     alt="@item.CampTitle" />
+                            }
+                            else if (!string.IsNullOrWhiteSpace(item.CampBanner))
+                            {
+                                <img src="~/MedicalCamp/@item.CampBanner"
+                                     class="camp-image"
+                                     alt="@item.CampTitle" />
+                            }
+                            else
+                            {
+                                <div class="camp-placeholder">
+
+                                    <i class="fa-solid fa-kit-medical"></i>
+
+                                </div>
+                            }
+
+
+                            <!-- Featured -->
+
+                            @if (item.IsFeatured)
+                            {
+                                <span class="featured-badge">
+
+                                    <i class="fa-solid fa-star me-1"></i>
+
+                                    Featured
+
+                                </span>
+                            }
+
+
+                            <!-- Date -->
+
+                            <div class="date-badge">
+
+                                <strong>
+
+                                    @item.CampDate?.ToString("dd")
+
+                                </strong>
+
+                                <span>
+
+                                    @item.CampDate?.ToString("MMM")
+
+                                </span>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- Card Body -->
+
+                        <div class="camp-card-body">
+
+                            <h5 class="camp-title">
+
+                                @item.CampTitle
+
+                            </h5>
+
+
+                            <!-- Doctor -->
+
+                            <div class="camp-info">
+
+                                <div class="info-icon doctor-icon">
+
+                                    <i class="fa-solid fa-user-doctor"></i>
+
+                                </div>
+
+                                <div>
+
+                                    <small>
+
+                                        Medical Specialist
+
+                                    </small>
+
+                                    <p>
+
+                                        @item.DoctorName
+
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- Department -->
+
+                            <div class="camp-info">
+
+                                <div class="info-icon department-icon">
+
+                                    <i class="fa-solid fa-building"></i>
+
+                                </div>
+
+                                <div>
+
+                                    <small>
+
+                                        Department
+
+                                    </small>
+
+                                    <p>
+
+                                        @item.DepartmentName
+
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- Date & Time -->
+
+                            <div class="camp-info">
+
+                                <div class="info-icon date-icon">
+
+                                    <i class="fa-solid fa-calendar-days"></i>
+
+                                </div>
+
+                                <div>
+
+                                    <small>
+
+                                        Date & Time
+
+                                    </small>
+
+                                    <p>
+
+                                        @item.CampDate?.ToString("dd MMM yyyy")
+
+                                        <span class="separator">•</span>
+
+                                        @item.StartTime?.ToString(@"hh\:mm")
+
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- Venue -->
+
+                            <div class="camp-info mb-0">
+
+                                <div class="info-icon location-icon">
+
+                                    <i class="fa-solid fa-location-dot"></i>
+
+                                </div>
+
+                                <div>
+
+                                    <small>
+
+                                        Venue
+
+                                    </small>
+
+                                    <p>
+
+                                        @item.Venue
+
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+                        <!-- =========================================
+                             Card Footer Details
+                        ========================================== -->
+
+                        <div class="camp-footer">
+
+                            <div class="row g-2">
+
+                                <!-- Registration Fee -->
+
+                                <div class="col-6">
+
+                                    <div class="footer-info">
+
+                                        <i class="fa-solid fa-indian-rupee-sign"></i>
+
+                                        <div>
+
+                                            <small>Registration Fee</small>
+
+                                            @if (item.RegistrationFee == 0)
+                                            {
+                                                <strong class="text-success">
+                                                    Free
+                                                </strong>
+                                            }
+                                            else
+                                            {
+                                                <strong>
+                                                    ₹ @item.RegistrationFee.ToString("N0")
+                                                </strong>
+                                            }
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+
+                                <!-- Available Seats -->
+
+                                <div class="col-6">
+
+                                    <div class="footer-info">
+
+                                        <i class="fa-solid fa-chair"></i>
+
+                                        <div>
+
+                                            <small>Available Seats</small>
+
+                                            @if (item.AvailableSeats > 0)
+                                            {
+                                                <strong class="text-success">
+
+                                                    @item.AvailableSeats Seats
+
+                                                </strong>
+                                            }
+                                            else
+                                            {
+                                                <strong class="text-danger">
+
+                                                    Full
+
+                                                </strong>
+                                            }
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- Availability Status -->
+                            @if (item.AvailableSeats > 0)
+                            {
+                                <div class="availability available">
+
+                                    <span class="status-dot"></span>
+
+                                    Seats Available
+
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="availability full">
+
+                                    <span class="status-dot"></span>
+
+                                    Registration Full
+
+                                </div>
+                            }
+
+
+                            <!-- Short Description -->
+                            @if (!string.IsNullOrWhiteSpace(item.CampDescription))
+                            {
+                                <p class="camp-description">
+
+                                    @if (item.CampDescription.Length > 100)
+                                    {
+                                        @item.CampDescription.Substring(0, 100)
+                                        <text>...</text>
+                                    }
+                                    else
+                                    {
+                                        @item.CampDescription
+                                    }
+
+                                </p>
+                            }
+
+
+                            <!-- Action Buttons -->
+
+                            <div class="camp-actions">
+
+                                <a asp-action="MedicalCampDetails"
+                                   asp-route-id="@item.CampId"
+                                   class="btn btn-outline-primary">
+
+                                    <i class="fa-solid fa-eye me-1"></i>
+
+                                    View Details
+
+                                </a>
+
+
+                                @if (item.AvailableSeats > 0)
+                                {
+                                    <a href="/Customer/RegisterCamp/@item.CampId"
+                                       class="btn btn-primary">
+
+                                        <i class="fa-solid fa-calendar-check me-2"></i>
+
+                                        Register Now
+
+                                    </a>
+                                }
+                                else
+                                {
+                                    <button type="button"
+                                            class="btn btn-secondary"
+                                            disabled>
+
+                                        <i class="fa-solid fa-ban me-1"></i>
+
+                                        Registration Full
+
+                                    </button>
+                                }
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+    }
+}
+        }
+        else
+        {
+        <!-- =========================================
+             No Medical Camps Found
+        ========================================== -->
+
+        <div class="col-12">
+
+            <div class="empty-state">
+
+                <div class="empty-icon">
+
+                    <i class="fa-solid fa-calendar-xmark"></i>
+
+                </div>
+
+                <h3 class="fw-bold mt-4">
+
+                    No Medical Camps Found
+
+                </h3>
+
+                <p class="text-muted mb-4">
+
+                    We couldn't find any upcoming medical camps
+                    matching your search criteria.
+
+                </p>
+
+                <a asp-action="MedicalCamps"
+                   class="btn btn-primary px-4">
+
+                    <i class="fa-solid fa-rotate-left me-2"></i>
+
+                    View All Camps
+
+                </a>
+
+            </div>
+
+        </div>
+        }
+
+    </div>
+
+</div>
+
+
+@section Styles {
+
+    <style>
+
+        body {
+            background: #f5f8fc;
+        }
+
+
+        /* =========================================
+           Main Header
+        ========================================= */
+
+        .camp-header {
+            position: relative;
+            overflow: hidden;
+            padding: 40px;
+            border-radius: 24px;
+            color: #fff;
+            background: linear-gradient( 135deg, #0d6efd 0%, #2563eb 55%, #0ea5e9 100% );
+            box-shadow: 0 15px 35px rgba(13,110,253,.18);
+        }
+
+            .camp-header::before {
+                content: "";
+                position: absolute;
+                width: 250px;
+                height: 250px;
+                border-radius: 50%;
+                background: rgba(255,255,255,.08);
+                right: -80px;
+                top: -100px;
+            }
+
+            .camp-header::after {
+                content: "";
+                position: absolute;
+                width: 180px;
+                height: 180px;
+                border-radius: 50%;
+                background: rgba(255,255,255,.06);
+                left: 35%;
+                bottom: -120px;
+            }
+
+        .header-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .header-badge {
+            display: inline-block;
+            padding: 8px 15px;
+            border-radius: 30px;
+            background: rgba(255,255,255,.15);
+            border: 1px solid rgba(255,255,255,.25);
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .header-content h1 {
+            font-size: 38px;
+        }
+
+        .header-content p {
+            max-width: 650px;
+            opacity: .92;
+            line-height: 1.7;
+        }
+
+        .header-icon {
+            position: relative;
+            z-index: 2;
+            font-size: 110px;
+            opacity: .15;
+        }
+
+
+        /* =========================================
+           Filter Card
+        ========================================= */
+
+        .filter-card {
+            border-radius: 18px;
+        }
+
+        .form-control,
+        .form-select,
+        .input-group-text {
+            border-radius: 10px;
+        }
+
+        .form-control,
+        .form-select {
+            min-height: 46px;
+        }
+
+        .input-group .input-group-text {
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+
+        .input-group .form-control {
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 .15rem rgba(13,110,253,.15);
+        }
+
+
+        /* =========================================
+           Result Count
+        ========================================= */
+
+        .camp-count {
+            background: #eaf2ff;
+            color: #0d6efd;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+
+        /* =========================================
+           Camp Card
+        ========================================= */
+
+        .camp-card {
+            background: #fff;
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid #edf0f5;
+            box-shadow: 0 8px 25px rgba(0,0,0,.06);
+            transition: all .3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+            .camp-card:hover {
+                transform: translateY(-7px);
+                box-shadow: 0 18px 40px rgba(0,0,0,.12);
+            }
+
+
+        /* =========================================
+           Camp Image
+        ========================================= */
+
+        .camp-image-wrapper {
+            height: 230px;
+            position: relative;
+            overflow: hidden;
+            background: #eef3f8;
+        }
+
+        .camp-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform .5s ease;
+        }
+
+        .camp-card:hover .camp-image {
+            transform: scale(1.06);
+        }
+
+        .camp-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient( 135deg, #e9f2ff, #eef8ff );
+            color: #0d6efd;
+            font-size: 65px;
+        }
+
+
+        /* =========================================
+           Featured Badge
+        ========================================= */
+
+        .featured-badge {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: #ffc107;
+            color: #212529;
+            padding: 7px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            box-shadow: 0 4px 10px rgba(0,0,0,.15);
+        }
+
+
+        /* =========================================
+           Date Badge
+        ========================================= */
+
+        .date-badge {
+            position: absolute;
+            right: 15px;
+            bottom: 15px;
+            width: 58px;
+            height: 62px;
+            border-radius: 12px;
+            background: #fff;
+            color: #0d6efd;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,.15);
+        }
+
+            .date-badge strong {
+                font-size: 21px;
+                line-height: 1;
+            }
+
+            .date-badge span {
+                font-size: 11px;
+                font-weight: 700;
+                text-transform: uppercase;
+                margin-top: 4px;
+            }
+
+
+        /* =========================================
+           Card Body
+        ========================================= */
+
+        .camp-card-body {
+            padding: 22px;
+            flex: 1;
+        }
+
+        .camp-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #172033;
+            margin-bottom: 18px;
+            line-height: 1.4;
+            min-height: 56px;
+        }
+
+
+        /* =========================================
+           Camp Information
+        ========================================= */
+
+        .camp-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .info-icon {
+            width: 40px;
+            height: 40px;
+            min-width: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .doctor-icon {
+            background: #e8f2ff;
+            color: #0d6efd;
+        }
+
+        .department-icon {
+            background: #eafaf1;
+            color: #198754;
+        }
+
+        .date-icon {
+            background: #fff4df;
+            color: #f59e0b;
+        }
+
+        .location-icon {
+            background: #ffe9ec;
+            color: #dc3545;
+        }
+
+        .camp-info small {
+            display: block;
+            color: #8a94a6;
+            font-size: 11px;
+            margin-bottom: 2px;
+        }
+
+        .camp-info p {
+            margin: 0;
+            font-size: 13px;
+            font-weight: 600;
+            color: #343b4a;
+        }
+
+        .separator {
+            margin: 0 4px;
+            color: #adb5bd;
+        }
+
+
+        /* =========================================
+           Camp Footer
+        ========================================= */
+
+        .camp-footer {
+            border-top: 1px solid #edf0f5;
+            padding: 18px 22px 22px;
+        }
+
+        .footer-info {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            background: #f8fafc;
+            padding: 10px;
+            border-radius: 10px;
+            height: 100%;
+        }
+
+            .footer-info > i {
+                color: #0d6efd;
+                font-size: 16px;
+            }
+
+            .footer-info small {
+                display: block;
+                color: #8a94a6;
+                font-size: 10px;
+            }
+
+            .footer-info strong {
+                display: block;
+                font-size: 13px;
+                color: #263143;
+                margin-top: 2px;
+            }
+
+
+        /* =========================================
+           Availability
+        ========================================= */
+
+        .availability {
+            margin-top: 14px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+            .availability.available {
+                color: #198754;
+                background: #eaf8f0;
+            }
+
+            .availability.full {
+                color: #dc3545;
+                background: #fff0f1;
+            }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+
+        /* =========================================
+           Description
+        ========================================= */
+
+        .camp-description {
+            color: #6c757d;
+            font-size: 12px;
+            line-height: 1.6;
+            margin: 14px 0;
+        }
+
+
+        /* =========================================
+           Action Buttons
+        ========================================= */
+
+        .camp-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+            .camp-actions .btn {
+                flex: 1;
+                border-radius: 9px;
+                font-size: 12px;
+                font-weight: 600;
+                padding: 10px 8px;
+            }
+
+        .btn {
+            transition: all .25s ease;
+        }
+
+            .btn:hover {
+                transform: translateY(-2px);
+            }
+
+
+        /* =========================================
+           Empty State
+        ========================================= */
+
+        .empty-state {
+            background: #fff;
+            border: 1px solid #edf0f5;
+            border-radius: 20px;
+            padding: 70px 30px;
+            text-align: center;
+            box-shadow: 0 8px 25px rgba(0,0,0,.05);
+        }
+
+        .empty-icon {
+            width: 90px;
+            height: 90px;
+            margin: auto;
+            border-radius: 50%;
+            background: #eef5ff;
+            color: #0d6efd;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 38px;
+        }
+
+
+        /* =========================================
+           Responsive
+        ========================================= */
+
+        @@media(max-width:991px) {
+
+            .camp-header {
+                padding: 32px;
+            }
+
+            .header-content h1 {
+                font-size: 32px;
+            }
+
+            .header-icon {
+                display: none;
+            }
+        }
+
+
+        @@media(max-width:767px) {
+
+            .medical-camp-page {
+                padding-left: 12px;
+                padding-right: 12px;
+            }
+
+            .camp-header {
+                padding: 25px;
+                border-radius: 18px;
+            }
+
+            .header-content h1 {
+                font-size: 28px;
+            }
+
+            .camp-count {
+                display: none;
+            }
+
+            .camp-image-wrapper {
+                height: 210px;
+            }
+
+            .camp-title {
+                min-height: auto;
+            }
+
+            .camp-actions {
+                flex-direction: column;
+            }
+
+                .camp-actions .btn {
+                    width: 100%;
+                }
+        }
+
+
+        @@media(max-width:480px) {
+
+            .camp-header {
+                padding: 22px 18px;
+            }
+
+            .header-content h1 {
+                font-size: 24px;
+            }
+
+            .filter-card .card-body {
+                padding: 18px !important;
+            }
+
+            .camp-card-body {
+                padding: 18px;
+            }
+
+            .camp-footer {
+                padding: 16px 18px 18px;
+            }
+        }
+
+    </style>
+
+}
