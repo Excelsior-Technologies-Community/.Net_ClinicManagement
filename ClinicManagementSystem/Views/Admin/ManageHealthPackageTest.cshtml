@@ -1,0 +1,441 @@
+﻿@model List<ClinicManagementSystem.Models.HealthPackageTestModel>
+
+@{
+    ViewData["Title"] = "Manage Package Tests";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+
+    long healthPackageId =
+        ViewBag.HealthPackageId != null
+        ? Convert.ToInt64(ViewBag.HealthPackageId)
+        : 0;
+
+    string packageName =
+        ViewBag.PackageName != null
+        ? ViewBag.PackageName.ToString()
+        : "Health Package";
+}
+
+<div class="container-fluid py-4">
+
+    <!-- ================= HEADER ================= -->
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+
+            <h3 class="fw-bold mb-1">
+
+                <i class="fa-solid fa-vials text-primary me-2"></i>
+
+                Package Lab Tests
+
+            </h3>
+
+            <p class="text-muted mb-0">
+
+                Manage laboratory tests included in this health package.
+
+            </p>
+
+        </div>
+
+        <div class="d-flex gap-2">
+
+            <a asp-action="AddHealthPackageTest"
+               asp-route-id="@healthPackageId"
+               class="btn btn-primary">
+
+                <i class="fa-solid fa-plus me-1"></i>
+
+                Add Lab Test
+
+            </a>
+
+            <a asp-action="ManageHealthPackage"
+               class="btn btn-secondary">
+
+                <i class="fa-solid fa-arrow-left me-1"></i>
+
+                Back
+
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================= ALERTS ================= -->
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+
+            <i class="fa-solid fa-circle-check me-2"></i>
+
+            @TempData["Success"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+
+            <i class="fa-solid fa-triangle-exclamation me-2"></i>
+
+            @TempData["Error"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+
+    <!-- ================= PACKAGE INFO ================= -->
+
+    <div class="card border-0 shadow-sm mb-4">
+
+        <div class="card-body p-4">
+
+            <div class="d-flex align-items-center">
+
+                <div class="bg-primary bg-opacity-10
+                            rounded-3 p-3 me-3">
+
+                    <i class="fa-solid fa-heart-pulse
+                              text-primary fs-3">
+                    </i>
+
+                </div>
+
+                <div>
+
+                    <small class="text-muted">
+                        Health Package
+                    </small>
+
+                    <h4 class="fw-bold mb-0">
+                        @packageName
+                    </h4>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================= TEST LIST ================= -->
+
+    <div class="card border-0 shadow-sm">
+
+        <div class="card-header bg-primary text-white py-3">
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <h5 class="mb-0 fw-bold">
+
+                    <i class="fa-solid fa-flask me-2"></i>
+
+                    Included Laboratory Tests
+
+                </h5>
+
+                <span class="badge bg-white text-primary">
+
+                    @Model.Count Tests
+
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <div class="card-body p-0">
+
+            @if (Model != null && Model.Count > 0)
+            {
+                <div class="table-responsive">
+
+                    <table class="table table-hover align-middle mb-0">
+
+                        <thead class="table-light">
+
+                            <tr>
+
+                                <th class="ps-4">
+                                    #
+                                </th>
+
+                                <th>
+                                    Test Name
+                                </th>
+
+                                <th>
+                                    Category
+                                </th>
+
+                                <th>
+                                    Sample Type
+                                </th>
+
+                                <th>
+                                    Price
+                                </th>
+
+                                <th>
+                                    Status
+                                </th>
+
+                                <th class="text-center">
+                                    Action
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            @{
+                                int counter = 1;
+                            }
+
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+
+                                    <td class="ps-4 fw-semibold">
+
+                                        @counter
+
+                                    </td>
+
+                                    <td>
+
+                                        <div class="fw-semibold text-dark">
+
+                                            <i class="fa-solid fa-vial
+                                                      text-primary me-2">
+                                            </i>
+
+                                            @item.TestName
+
+                                        </div>
+
+                                    </td>
+
+                                    <td>
+
+                                        @if (!string.IsNullOrWhiteSpace(
+                                            item.TestCategory))
+                                        {
+                                            <span class="badge
+                                                         bg-info
+                                                         text-dark">
+
+                                                @item.TestCategory
+
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                -
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                    <td>
+
+                                        @if (!string.IsNullOrWhiteSpace(
+                                            item.SampleType))
+                                        {
+                                            <span>
+
+                                                <i class="fa-solid fa-droplet
+                                                          text-danger me-1">
+                                                </i>
+
+                                                @item.SampleType
+
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                -
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                    <td>
+
+                                        <span class="fw-bold text-success">
+
+                                            ₹@item.Price.ToString("N2")
+
+                                        </span>
+
+                                    </td>
+
+                                    <td>
+
+                                        @if (item.IsActive)
+                                        {
+                                            <span class="badge bg-success">
+
+                                                <i class="fa-solid fa-check me-1"></i>
+                                                Active
+
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">
+
+                                                Inactive
+
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                    <td class="text-center">
+                                        <a asp-controller="Admin"
+   asp-action="ViewHealthPackageTest"
+   asp-route-id="@item.PackageTestId"
+   class="btn btn-sm btn-outline-info"
+   title="View Test">
+
+    <i class="fa-solid fa-eye"></i>
+
+</a>
+<a asp-controller="Admin"
+   asp-action="ChangeHealthPackageTestStatus"
+   asp-route-id="@item.PackageTestId"
+   asp-route-packageId="@item.HealthPackageId"
+   class="btn btn-sm btn-outline-warning"
+   title="Change Status">
+
+    <i class="fa-solid fa-power-off"></i>
+
+</a>
+                                        <a asp-action="DeleteHealthPackageTest"
+                                           asp-route-id="@item.PackageTestId"
+                                           asp-route-packageId="@item.HealthPackageId"
+                                           class="btn btn-sm btn-outline-danger"
+                                           onclick="return confirm('Are you sure you want to remove this lab test from the package?');"
+                                           title="Remove Test">
+
+                                            <i class="fa-solid fa-trash"></i>
+
+                                        </a>
+
+                                    </td>
+
+                                </tr>
+
+                                counter++;
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+            }
+            else
+            {
+                <!-- EMPTY STATE -->
+
+                <div class="text-center py-5">
+
+                    <div class="mb-3">
+
+                        <div class="bg-primary bg-opacity-10
+                                    rounded-circle d-inline-flex
+                                    align-items-center
+                                    justify-content-center"
+                             style="width:80px;height:80px;">
+
+                            <i class="fa-solid fa-flask
+                                      text-primary fs-2">
+                            </i>
+
+                        </div>
+
+                    </div>
+
+                    <h5 class="fw-bold">
+                        No Lab Tests Added
+                    </h5>
+
+                    <p class="text-muted mb-4">
+
+                        No laboratory tests have been added
+                        to this health package yet.
+
+                    </p>
+
+                    <a asp-action="AddHealthPackageTest"
+                       asp-route-id="@healthPackageId"
+                       class="btn btn-primary">
+
+                        <i class="fa-solid fa-plus me-1"></i>
+
+                        Add First Lab Test
+
+                    </a>
+
+                </div>
+            }
+
+        </div>
+
+
+        <!-- ================= FOOTER ================= -->
+
+        <div class="card-footer bg-white">
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <small class="text-muted">
+
+                    Package ID:
+                    <strong>
+                        #@healthPackageId
+                    </strong>
+
+                </small>
+
+                <small class="text-muted">
+
+                    Total Tests:
+                    <strong>
+                        @Model.Count
+                    </strong>
+
+                </small>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

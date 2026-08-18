@@ -1,0 +1,330 @@
+﻿@model ClinicManagementSystem.Models.HealthPackageBookingModel
+
+@{
+    ViewData["Title"] = "Book Health Package";
+    Layout = "~/Views/Shared/_CustomerLayout.cshtml";
+}
+
+<div class="container py-5">
+
+    <!-- HEADER -->
+
+    <div class="mb-4">
+
+        <a asp-action="HealthPackages"
+           class="btn btn-outline-secondary rounded-pill">
+
+            <i class="fa-solid fa-arrow-left me-1"></i>
+            Back to Health Packages
+
+        </a>
+
+    </div>
+
+
+    <div class="row justify-content-center">
+
+        <div class="col-lg-9">
+
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+
+                <!-- HEADER -->
+
+                <div class="card-header bg-primary text-white p-4">
+
+                    <h4 class="fw-bold mb-1">
+
+                        <i class="fa-solid fa-heart-pulse me-2"></i>
+
+                        Book Health Package
+
+                    </h4>
+
+                    <small class="text-white-50">
+
+                        Schedule your preventive health checkup.
+
+                    </small>
+
+                </div>
+
+
+                <div class="card-body p-4 p-md-5">
+
+                    <!-- ERROR -->
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger">
+
+                            <i class="fa-solid fa-triangle-exclamation me-2"></i>
+
+                            @TempData["Error"]
+
+                        </div>
+                    }
+
+
+                    <!-- PACKAGE SUMMARY -->
+
+                    <div class="bg-light border rounded-4 p-4 mb-4">
+
+                        <div class="row align-items-center">
+
+                            <div class="col-md-8">
+
+                                <small class="text-muted">
+                                    Selected Health Package
+                                </small>
+
+                                <h4 class="fw-bold mb-1">
+
+                                    @Model.PackageName
+
+                                </h4>
+
+                                <span class="text-muted">
+
+                                    Preventive Health Checkup
+
+                                </span>
+
+                            </div>
+
+
+                            <div class="col-md-4 text-md-end mt-3 mt-md-0">
+
+                                <small class="text-muted d-block">
+                                    Package Amount
+                                </small>
+
+                                <h3 class="fw-bold text-success mb-0">
+
+                                    ₹@Model.Amount.ToString("N2")
+
+                                </h3>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <form asp-action="BookHealthPackage"
+                          method="post">
+
+                        @Html.AntiForgeryToken()
+
+                        <input type="hidden"
+                               asp-for="HealthPackageId" />
+
+                        <input type="hidden"
+                               asp-for="Amount" />
+
+
+                        <!-- PATIENT -->
+
+                        <h5 class="fw-bold border-bottom pb-2 mb-3">
+
+                            <i class="fa-solid fa-user text-primary me-2"></i>
+
+                            Patient Information
+
+                        </h5>
+
+
+                        <div class="row g-3 mb-4">
+
+                            <div class="col-md-6">
+
+                                <label asp-for="PatientName"
+                                       class="form-label fw-semibold">
+
+                                    Patient Name
+
+                                </label>
+
+                                <input asp-for="PatientName"
+                                       class="form-control"
+                                       placeholder="Enter patient name" />
+
+                            </div>
+
+
+                            <div class="col-md-6">
+
+                                <label asp-for="MobileNo"
+                                       class="form-label fw-semibold">
+
+                                    Mobile Number
+
+                                </label>
+
+                                <input asp-for="MobileNo"
+                                       class="form-control"
+                                       placeholder="Enter mobile number" />
+
+                            </div>
+
+
+                            <div class="col-md-12">
+
+                                <label asp-for="Email"
+                                       class="form-label fw-semibold">
+
+                                    Email Address
+
+                                </label>
+
+                                <input asp-for="Email"
+                                       type="email"
+                                       class="form-control"
+                                       placeholder="Enter email address" />
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- SCHEDULE -->
+
+                        <h5 class="fw-bold border-bottom pb-2 mb-3">
+
+                            <i class="fa-solid fa-calendar-days text-primary me-2"></i>
+
+                            Preferred Schedule
+
+                        </h5>
+
+
+                        <div class="row g-3 mb-4">
+
+                            <div class="col-md-6">
+
+                                <label asp-for="PreferredDate"
+                                       class="form-label fw-semibold">
+
+                                    Preferred Date
+
+                                </label>
+
+                                <input asp-for="PreferredDate"
+                                       type="date"
+                                       class="form-control" />
+
+                            </div>
+
+
+                            <div class="col-md-6">
+
+                                <label asp-for="PreferredTime"
+                                       class="form-label fw-semibold">
+
+                                    Preferred Time
+
+                                </label>
+
+                                <select asp-for="PreferredTime"
+                                        class="form-select">
+
+                                    <option value="">
+                                        Select Time
+                                    </option>
+
+                                    <option value="Morning (08:00 AM - 11:00 AM)">
+                                        Morning (08:00 AM - 11:00 AM)
+                                    </option>
+
+                                    <option value="Midday (11:00 AM - 02:00 PM)">
+                                        Midday (11:00 AM - 02:00 PM)
+                                    </option>
+
+                                    <option value="Afternoon (02:00 PM - 05:00 PM)">
+                                        Afternoon (02:00 PM - 05:00 PM)
+                                    </option>
+
+                                    <option value="Evening (05:00 PM - 08:00 PM)">
+                                        Evening (05:00 PM - 08:00 PM)
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- HEALTH CONCERN -->
+
+                        <h5 class="fw-bold border-bottom pb-2 mb-3">
+
+                            <i class="fa-solid fa-notes-medical text-primary me-2"></i>
+
+                            Health Information
+
+                        </h5>
+
+
+                        <div class="mb-4">
+
+                            <label asp-for="HealthConcern"
+                                   class="form-label fw-semibold">
+
+                                Health Concern / Notes
+
+                            </label>
+
+                            <textarea asp-for="HealthConcern"
+                                      class="form-control"
+                                      rows="4"
+                                      placeholder="Enter any health concerns, symptoms or doctor's advice..."></textarea>
+
+                        </div>
+
+
+                        <!-- PAYMENT -->
+
+                        <div class="alert alert-info rounded-3 mb-4">
+
+                            <i class="fa-solid fa-circle-info me-2"></i>
+
+                            Payment status will initially be
+                            <strong>Pending</strong>.
+                            Admin will update the booking after confirmation.
+
+                        </div>
+
+
+                        <!-- BUTTONS -->
+
+                        <div class="d-flex justify-content-end gap-2">
+
+                            <a asp-action="HealthPackages"
+                               class="btn btn-light border rounded-pill px-4">
+
+                                Cancel
+
+                            </a>
+
+                            <button type="submit"
+                                    class="btn btn-primary rounded-pill px-4">
+
+                                <i class="fa-solid fa-calendar-check me-1"></i>
+
+                                Confirm Booking
+
+                            </button>
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

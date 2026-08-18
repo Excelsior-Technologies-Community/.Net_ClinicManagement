@@ -1,0 +1,577 @@
+﻿@model ClinicManagementSystem.Models.HealthPackageBookingModel
+
+@{
+    ViewData["Title"] = "Change Health Package Booking Status";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid py-4">
+
+    <!-- ================= PAGE HEADER ================= -->
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h3 class="fw-bold mb-1">
+                <i class="fa-solid fa-rotate text-primary me-2"></i>
+                Change Booking Status
+            </h3>
+
+            <p class="text-muted mb-0">
+                Update booking, payment status and admin remarks.
+            </p>
+        </div>
+
+        <a asp-controller="Admin"
+           asp-action="ManageHealthPackageBooking"
+           class="btn btn-secondary">
+
+            <i class="fa-solid fa-arrow-left me-1"></i>
+            Back to Bookings
+
+        </a>
+
+    </div>
+
+
+    <!-- ================= ERROR ================= -->
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show"
+             role="alert">
+
+            <i class="fa-solid fa-triangle-exclamation me-2"></i>
+            @TempData["Error"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+
+    <!-- ================= MAIN CARD ================= -->
+
+    <div class="row justify-content-center">
+
+        <div class="col-xl-9 col-lg-10">
+
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+
+                <!-- CARD HEADER -->
+
+                <div class="card-header bg-primary text-white p-4">
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <div>
+
+                            <h4 class="fw-bold mb-1">
+                                <i class="fa-solid fa-calendar-check me-2"></i>
+                                Update Health Package Booking
+                            </h4>
+
+                            <small class="text-white-50">
+                                Manage booking status and payment information
+                            </small>
+
+                        </div>
+
+                        <div class="text-end">
+
+                            <small class="d-block text-white-50">
+                                Booking No
+                            </small>
+
+                            <strong class="fs-5">
+                                @(string.IsNullOrWhiteSpace(Model.BookingNo)
+                                    ? "N/A"
+                                    : Model.BookingNo)
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- CARD BODY -->
+
+                <div class="card-body p-4 p-md-5">
+
+                    <!-- ================= BOOKING SUMMARY ================= -->
+
+                    <div class="booking-summary mb-4">
+
+                        <div class="row g-4">
+
+                            <div class="col-md-4">
+
+                                <div class="summary-item">
+
+                                    <div class="summary-icon package-icon">
+                                        <i class="fa-solid fa-heart-pulse"></i>
+                                    </div>
+
+                                    <div>
+
+                                        <small class="text-muted d-block">
+                                            Health Package
+                                        </small>
+
+                                        <strong>
+                                            @(string.IsNullOrWhiteSpace(Model.PackageName)
+                                                ? "N/A"
+                                                : Model.PackageName)
+                                        </strong>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="col-md-4">
+
+                                <div class="summary-item">
+
+                                    <div class="summary-icon patient-icon">
+                                        <i class="fa-solid fa-user"></i>
+                                    </div>
+
+                                    <div>
+
+                                        <small class="text-muted d-block">
+                                            Patient
+                                        </small>
+
+                                        <strong>
+                                            @(string.IsNullOrWhiteSpace(Model.PatientName)
+                                                ? "N/A"
+                                                : Model.PatientName)
+                                        </strong>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="col-md-4">
+
+                                <div class="summary-item">
+
+                                    <div class="summary-icon amount-icon">
+                                        <i class="fa-solid fa-indian-rupee-sign"></i>
+                                    </div>
+
+                                    <div>
+
+                                        <small class="text-muted d-block">
+                                            Booking Amount
+                                        </small>
+
+                                        <strong class="text-success">
+                                            ₹@Model.Amount.ToString("N2")
+                                        </strong>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- ================= FORM ================= -->
+
+                    <form asp-controller="Admin"
+                          asp-action="ChangeHealthPackageBookingStatus"
+                          method="post">
+
+                        @Html.AntiForgeryToken()
+
+                        <input type="hidden"
+                               asp-for="PackageBookingId" />
+
+
+                        <!-- ================= BOOKING STATUS ================= -->
+
+                        <div class="section-title">
+
+                            <i class="fa-solid fa-calendar-check text-primary"></i>
+
+                            <span>
+                                Booking Status
+                            </span>
+
+                        </div>
+
+                        <div class="mb-4">
+
+                            <label asp-for="BookingStatus"
+                                   class="form-label fw-semibold">
+
+                                Booking Status
+
+                            </label>
+
+                            <select asp-for="BookingStatus"
+                                    class="form-select form-select-lg">
+
+                                <option value="Pending">
+                                    Pending
+                                </option>
+
+                                <option value="Confirmed">
+                                    Confirmed
+                                </option>
+
+                                <option value="Completed">
+                                    Completed
+                                </option>
+
+                                <option value="Cancelled">
+                                    Cancelled
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <!-- ================= PAYMENT STATUS ================= -->
+
+                        <div class="section-title mt-4">
+
+                            <i class="fa-solid fa-credit-card text-primary"></i>
+
+                            <span>
+                                Payment Status
+                            </span>
+
+                        </div>
+
+                        <div class="mb-4">
+
+                            <label asp-for="PaymentStatus"
+                                   class="form-label fw-semibold">
+
+                                Payment Status
+
+                            </label>
+
+                            <select asp-for="PaymentStatus"
+                                    class="form-select form-select-lg">
+
+                                <option value="Pending">
+                                    Pending
+                                </option>
+
+                                <option value="Paid">
+                                    Paid
+                                </option>
+
+                                <option value="Failed">
+                                    Failed
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <!-- ================= ADMIN REMARK ================= -->
+
+                        <div class="section-title mt-4">
+
+                            <i class="fa-solid fa-comment-medical text-primary"></i>
+
+                            <span>
+                                Admin Remark
+                            </span>
+
+                        </div>
+
+                        <div class="mb-4">
+
+                            <label asp-for="AdminRemark"
+                                   class="form-label fw-semibold">
+
+                                Remark
+
+                            </label>
+
+                            <textarea asp-for="AdminRemark"
+                                      class="form-control"
+                                      rows="5"
+                                      placeholder="Enter any remark or instruction for this booking..."></textarea>
+
+                        </div>
+
+
+                        <!-- ================= ACTIVE STATUS ================= -->
+
+                        <div class="section-title mt-4">
+
+                            <i class="fa-solid fa-toggle-on text-primary"></i>
+
+                            <span>
+                                Booking Availability
+                            </span>
+
+                        </div>
+
+                        <div class="form-check form-switch mb-4">
+
+                            <input asp-for="IsActive"
+                                   class="form-check-input"
+                                   role="switch"
+                                   style="width:45px;height:22px;" />
+
+                            <label asp-for="IsActive"
+                                   class="form-check-label ms-2">
+
+                                Active Booking
+
+                            </label>
+
+                        </div>
+
+
+                        <!-- ================= BOOKING INFO ================= -->
+
+                        <div class="info-box mb-4">
+
+                            <div class="row g-3">
+
+                                <div class="col-md-6">
+
+                                    <small class="text-muted d-block">
+                                        Booking Date
+                                    </small>
+
+                                    <strong>
+                                        @if (Model.BookingDate.HasValue)
+                                        {
+                                            @Model.BookingDate.Value.ToString("dd MMM yyyy, hh:mm tt")
+                                        }
+                                        else
+                                        {
+                                            <span>Not Available</span>
+                                        }
+                                    </strong>
+                                </div>
+
+
+                                <div class="col-md-6">
+
+                                    <small class="text-muted d-block">
+                                        Preferred Date
+                                    </small>
+
+                                    <strong>
+                                        @(Model.PreferredDate.HasValue
+                                                                                ? Model.PreferredDate.Value.ToString("dd MMM yyyy")
+                                                                                : "Not Selected")
+                                    </strong>
+
+                                </div>
+
+
+                                <div class="col-md-6">
+
+                                    <small class="text-muted d-block">
+                                        Preferred Time
+                                    </small>
+
+                                    <strong>
+                                        @(string.IsNullOrWhiteSpace(Model.PreferredTime)
+                                            ? "Not Selected"
+                                            : Model.PreferredTime)
+                                    </strong>
+
+                                </div>
+
+
+                                <div class="col-md-6">
+
+                                    <small class="text-muted d-block">
+                                        Patient Mobile
+                                    </small>
+
+                                    <strong>
+                                        @(string.IsNullOrWhiteSpace(Model.MobileNo)
+                                            ? "N/A"
+                                            : Model.MobileNo)
+                                    </strong>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- ================= BUTTONS ================= -->
+
+                        <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+
+                            <a asp-controller="Admin"
+                               asp-action="ViewHealthPackageBooking"
+                               asp-route-id="@Model.PackageBookingId"
+                               class="btn btn-light px-4">
+
+                                <i class="fa-solid fa-eye me-1"></i>
+
+                                View
+
+                            </a>
+
+
+                            <a asp-controller="Admin"
+                               asp-action="ManageHealthPackageBooking"
+                               class="btn btn-secondary px-4">
+
+                                <i class="fa-solid fa-xmark me-1"></i>
+
+                                Cancel
+
+                            </a>
+
+
+                            <button type="submit"
+                                    class="btn btn-primary px-4 fw-semibold">
+
+                                <i class="fa-solid fa-save me-1"></i>
+
+                                Update Booking
+
+                            </button>
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ================= CSS ================= -->
+
+<style>
+
+    .booking-summary {
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 15px;
+        padding: 20px;
+    }
+
+    .summary-item {
+        display: flex;
+        align-items: center;
+        gap: 13px;
+    }
+
+    .summary-icon {
+        width: 48px;
+        height: 48px;
+        min-width: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        font-size: 19px;
+    }
+
+    .package-icon {
+        background: #ffe5e8;
+        color: #dc3545;
+    }
+
+    .patient-icon {
+        background: #e7f1ff;
+        color: #0d6efd;
+    }
+
+    .amount-icon {
+        background: #e6f7ef;
+        color: #198754;
+    }
+
+    .section-title {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        font-size: 17px;
+        font-weight: 700;
+        color: #212529;
+        padding-bottom: 10px;
+        margin-bottom: 15px;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .form-control,
+    .form-select {
+        border-radius: 10px;
+        border-color: #dee2e6;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 .2rem rgba(13, 110, 253, .10);
+    }
+
+    .info-box {
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 12px;
+        padding: 18px;
+    }
+
+    .info-box strong {
+        display: block;
+        margin-top: 4px;
+        color: #212529;
+    }
+
+    .form-check-input {
+        cursor: pointer;
+    }
+
+    .form-check-label {
+        cursor: pointer;
+        font-weight: 600;
+    }
+
+    @@media (max-width: 768px) {
+
+        .summary-item {
+            margin-bottom: 10px;
+        }
+
+        .d-flex.justify-content-end {
+            flex-wrap: wrap;
+        }
+
+    }
+
+</style>

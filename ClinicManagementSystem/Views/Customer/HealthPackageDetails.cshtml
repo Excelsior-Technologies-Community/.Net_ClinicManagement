@@ -1,0 +1,367 @@
+﻿@model ClinicManagementSystem.Models.HealthPackageModel
+
+@{
+    ViewData["Title"] = "Health Package Details";
+    Layout = "~/Views/Shared/_CustomerLayout.cshtml";
+}
+
+<div class="container py-5">
+
+    <!-- ================= BACK ================= -->
+
+    <div class="mb-4">
+
+        <a asp-action="HealthPackages"
+           class="btn btn-outline-secondary rounded-pill px-4">
+
+            <i class="fa-solid fa-arrow-left me-1"></i>
+            Back to Health Packages
+
+        </a>
+
+    </div>
+
+
+    <!-- ================= ALERT ================= -->
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show rounded-3 mb-4">
+
+            <i class="fa-solid fa-triangle-exclamation me-2"></i>
+
+            @TempData["Error"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+
+    <!-- ================= MAIN CARD ================= -->
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+
+        <div class="row g-0">
+
+            <!-- LEFT SIDE -->
+
+            <div class="col-lg-5">
+
+                <div class="package-visual">
+
+                    <div class="large-icon">
+
+                        <i class="fa-solid fa-heart-pulse"></i>
+
+                    </div>
+
+                    <span class="available-badge">
+
+                        <i class="fa-solid fa-circle-check me-1"></i>
+                        Available
+
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <!-- RIGHT SIDE -->
+
+            <div class="col-lg-7">
+
+                <div class="p-4 p-md-5">
+
+                    <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-2 mb-3">
+
+                        Preventive Healthcare
+
+                    </span>
+
+
+                    <h2 class="fw-bold mb-3">
+
+                        @(string.IsNullOrWhiteSpace(Model.PackageName)
+                            ? "Health Package"
+                            : Model.PackageName)
+
+                    </h2>
+
+
+                    <p class="text-muted mb-4">
+
+                        Take a proactive approach to your health with
+                        our preventive health screening package.
+
+                    </p>
+
+
+                    <!-- PRICE -->
+
+                    <div class="price-box mb-4">
+
+                        <small class="text-muted d-block">
+                            Package Price
+                        </small>
+
+                        <span class="price">
+
+                            ₹@Model.DiscountPrice.ToString("N2")
+
+                        </span>
+
+                    </div>
+
+
+                    <!-- FEATURES -->
+
+                    <h5 class="fw-bold mb-3">
+                        What's Included
+                    </h5>
+
+
+                    <div class="features mb-4">
+
+                        <div class="feature-item">
+
+                            <i class="fa-solid fa-circle-check"></i>
+
+                            <span>
+                                Preventive Health Screening
+                            </span>
+
+                        </div>
+
+
+                        <div class="feature-item">
+
+                            <i class="fa-solid fa-circle-check"></i>
+
+                            <span>
+                                Diagnostic Health Testing
+                            </span>
+
+                        </div>
+
+
+                        <div class="feature-item">
+
+                            <i class="fa-solid fa-circle-check"></i>
+
+                            <span>
+                                Professional Health Assessment
+                            </span>
+
+                        </div>
+
+
+                        <div class="feature-item">
+
+                            <i class="fa-solid fa-circle-check"></i>
+
+                            <span>
+                                Detailed Health Report
+                            </span>
+
+                        </div>
+
+
+                        <div class="feature-item">
+
+                            <i class="fa-solid fa-circle-check"></i>
+
+                            <span>
+                                Convenient Appointment Scheduling
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- PACKAGE INFO -->
+
+                    <div class="package-info mb-4">
+
+                        <div>
+
+                            <small class="text-muted d-block">
+                                Package ID
+                            </small>
+
+                            <strong>
+                                @Model.HealthPackageId
+                            </strong>
+
+                        </div>
+
+
+                        <div>
+
+                            <small class="text-muted d-block">
+                                Availability
+                            </small>
+
+                            <strong class="text-success">
+
+                                <i class="fa-solid fa-circle-check me-1"></i>
+                                Available
+
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- BUTTON -->
+
+                    <div class="d-flex gap-2 flex-wrap">
+
+                        <a asp-controller="Customer"
+                           asp-action="BookHealthPackage"
+                           asp-route-id="@Model.HealthPackageId"
+                           class="btn btn-primary rounded-pill px-4">
+
+                            <i class="fa-solid fa-calendar-check me-1"></i>
+                            Book Now
+
+                        </a>
+
+
+                        <a asp-action="HealthPackages"
+                           class="btn btn-light border rounded-pill px-4">
+
+                            Browse Other Packages
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ================= CSS ================= -->
+
+<style>
+
+    .package-visual {
+        min-height: 520px;
+        height: 100%;
+        background: linear-gradient(135deg, #e8f1ff, #f5f9ff);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        padding: 40px;
+    }
+
+    .large-icon {
+        width: 150px;
+        height: 150px;
+        border-radius: 40px;
+        background: #ffffff;
+        color: #0d6efd;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 65px;
+        box-shadow: 0 15px 40px rgba(13, 110, 253, .12);
+    }
+
+    .available-badge {
+        margin-top: 25px;
+        background: #e8f7ef;
+        color: #198754;
+        padding: 9px 18px;
+        border-radius: 50px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .price-box {
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 15px;
+        padding: 18px 20px;
+        display: inline-block;
+        min-width: 200px;
+    }
+
+    .price {
+        display: block;
+        color: #198754;
+        font-size: 32px;
+        font-weight: 700;
+        line-height: 1.2;
+        margin-top: 4px;
+    }
+
+    .features {
+        display: grid;
+        gap: 12px;
+    }
+
+    .feature-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: #495057;
+        font-size: 15px;
+    }
+
+    .feature-item i {
+        color: #198754;
+        font-size: 16px;
+    }
+
+    .package-info {
+        display: flex;
+        gap: 50px;
+        padding: 17px;
+        background: #f8f9fa;
+        border-radius: 14px;
+        border: 1px solid #e9ecef;
+    }
+
+    @@media (max-width: 768px) {
+
+        .package-visual {
+            min-height: 300px;
+        }
+
+        .large-icon {
+            width: 110px;
+            height: 110px;
+            font-size: 45px;
+        }
+
+        .package-info {
+            display: block;
+        }
+
+        .package-info > div {
+            margin-bottom: 15px;
+        }
+
+        .package-info > div:last-child {
+            margin-bottom: 0;
+        }
+
+    }
+
+</style>

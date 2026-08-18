@@ -13902,9 +13902,6 @@ WHERE
             return RedirectToAction("ManageLabBooking");
         }
 
-        // =========================================================
-        // LAB REPORT MODULE
-        // =========================================================
 
         [HttpGet]
         public IActionResult ManageLabReport(string search = "", string status = "")
@@ -14045,113 +14042,211 @@ WHERE
                 return RedirectToAction("Login");
             }
 
-            if (model.LabBookingId <= 0)
-            {
-                ModelState.AddModelError("LabBookingId", "Please select a Lab Booking.");
-            }
-
-            if (ReportFile == null || ReportFile.Length == 0)
-            {
-                ModelState.AddModelError("ReportFile", "Please upload a valid PDF report file.");
-            }
-            else if (!Path.GetExtension(ReportFile.FileName).Equals(".pdf", StringComparison.OrdinalIgnoreCase))
-            {
-                ModelState.AddModelError("ReportFile", "Only PDF files are allowed.");
-            }
-
-            if (!ModelState.IsValid)
-            {
-                List<SelectListItem> bookingList = new List<SelectListItem>();
-                using (SqlConnection con = new SqlConnection(cs))
-                {
-                    con.Open();
-                    SqlCommand cmd = new SqlCommand(@"
-                        SELECT B.LabBookingId, B.BookingNo, B.PatientName, T.TestName
-                        FROM tbl_LabBooking B
-                        INNER JOIN tbl_LabTest T ON B.LabTestId = T.LabTestId
-                        WHERE B.IsDeleted = 0 ORDER BY B.LabBookingId DESC", con);
-                    SqlDataReader dr = cmd.ExecuteReader();
-                    bookingList.Add(new SelectListItem { Text = "-- Select Booking --", Value = "" });
-                    while (dr.Read())
-                    {
-                        bookingList.Add(new SelectListItem
-                        {
-                            Text = $"{dr["BookingNo"]} - {dr["PatientName"]} ({dr["TestName"]})",
-                            Value = dr["LabBookingId"].ToString(),
-                            Selected = (model.LabBookingId.ToString() == dr["LabBookingId"].ToString())
-                        });
-                    }
-                }
-                ViewBag.BookingList = bookingList;
-                return View("~/Views/Admin/LabReport/UploadLabReport.cshtml", model);
-            }
+            string reportNo = "";
 
             try
             {
+
+                if (model.LabBookingId <= 0)
+                {
+                    TempData["Error"] = "Please select a Lab Booking.";
+                    return RedirectToAction("UploadLabReport");
+                }
+
+
+                if (ReportFile == null || ReportFile.Length == 0)
+                {
+                    TempData["Error"] = "Please select a PDF report file.";
+                    return RedirectToAction("UploadLabReport");
+                }
+
+                string extension = Path.GetExtension(ReportFile.FileName);
+
+                if (!extension.Equals(".pdf",
+                    StringComparison.OrdinalIgnoreCase))
+                {
+                    TempData["Error"] = "Only PDF files are allowed.";
+                    return RedirectToAction("UploadLabReport");
+                }
+
+
                 using (SqlConnection con = new SqlConnection(cs))
                 {
                     con.Open();
 
-                    // Get LabTestId and CustomerId from booking if not provided
-                    SqlCommand bCmd = new SqlCommand("SELECT LabTestId, CustomerId FROM tbl_LabBooking WHERE LabBookingId=@LabBookingId", con);
-                    bCmd.Parameters.AddWithValue("@LabBookingId", model.LabBookingId);
-                    SqlDataReader bDr = bCmd.ExecuteReader();
-                    if (bDr.Read())
-                    {
-                        model.LabTestId = Convert.ToInt64(bDr["LabTestId"]);
-                        model.CustomerId = Convert.ToInt64(bDr["CustomerId"]);
-                    }
-                    bDr.Close();
+                    long labTestId = 0;
+                    long customerId = 0;
 
-                    // Save File
-                    string folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "LabReports");
+                 
+                    SqlCommand bookingCmd = new SqlCommand(@"
+                SELECT LabTestId, CustomerId
+                FROM tbl_LabBooking
+                WHERE LabBookingId = @LabBookingId
+                AND IsDeleted = 0",
+                        con);
+
+                    bookingCmd.Parameters.AddWithValue(
+                        "@LabBookingId",
+                        model.LabBookingId);
+
+                    using (SqlDataReader dr = bookingCmd.ExecuteReader())
+                    {
+                        if (dr.Read())
+                        {
+                            labTestId = Convert.ToInt64(dr["LabTestId"]);
+                            customerId = Convert.ToInt64(dr["CustomerId"]);
+                        }
+                        else
+                        {
+                            TempData["Error"] =
+                                "Selected lab booking was not found.";
+
+                            return RedirectToAction("UploadLabReport");
+                        }
+                    }
+
+                    string folderPath = Path.Combine(
+                        Directory.GetCurrentDirectory(),
+                        "wwwroot",
+                        "LabReports");
+
                     if (!Directory.Exists(folderPath))
                     {
                         Directory.CreateDirectory(folderPath);
                     }
 
-                    string fileName = "Report_" + Guid.NewGuid().ToString("N") + Path.GetExtension(ReportFile!.FileName);
-                    string filePath = Path.Combine(folderPath, fileName);
+                    string fileName =
+                        "Report_" +
+                        Guid.NewGuid().ToString("N") +
+                        ".pdf";
 
-                    using (FileStream stream = new FileStream(filePath, FileMode.Create))
+                    string filePath =
+                        Path.Combine(folderPath, fileName);
+
+                    using (FileStream stream =
+                           new FileStream(
+                               filePath,
+                               FileMode.Create))
                     {
                         ReportFile.CopyTo(stream);
                     }
 
-                    string reportNo = "REP" + DateTime.Now.ToString("yyyyMMddHHmmss");
+                    reportNo =
+                        "REP" +
+                        DateTime.Now.ToString("yyyyMMddHHmmssfff");
+
 
                     SqlCommand cmd = new SqlCommand(@"
-                        INSERT INTO tbl_LabReport (LabBookingId, LabTestId, CustomerId, ReportNo, ReportDate, ReportFile, ReportTitle, TechnicianName, ReportStatus, ReportRemark, IsActive, IsDeleted, CreatedDate)
-                        VALUES (@LabBookingId, @LabTestId, @CustomerId, @ReportNo, GETDATE(), @ReportFile, @ReportTitle, @TechnicianName, @ReportStatus, @ReportRemark, 1, 0, GETDATE())", con);
+                INSERT INTO tbl_LabReport
+                (
+                    LabBookingId,
+                    LabTestId,
+                    CustomerId,
+                    ReportNo,
+                    ReportDate,
+                    ReportFile,
+                    ReportTitle,
+                    TechnicianName,
+                    ReportStatus,
+                    ReportRemark,
+                    IsActive,
+                    IsDeleted,
+                    CreatedDate
+                )
+                VALUES
+                (
+                    @LabBookingId,
+                    @LabTestId,
+                    @CustomerId,
+                    @ReportNo,
+                    GETDATE(),
+                    @ReportFile,
+                    @ReportTitle,
+                    @TechnicianName,
+                    @ReportStatus,
+                    @ReportRemark,
+                    1,
+                    0,
+                    GETDATE()
+                )",
+                        con);
 
-                    cmd.Parameters.AddWithValue("@LabBookingId", model.LabBookingId);
-                    cmd.Parameters.AddWithValue("@LabTestId", model.LabTestId);
-                    cmd.Parameters.AddWithValue("@CustomerId", model.CustomerId);
-                    cmd.Parameters.AddWithValue("@ReportNo", reportNo);
-                    cmd.Parameters.AddWithValue("@ReportFile", fileName);
-                    cmd.Parameters.AddWithValue("@ReportTitle", (object)model.ReportTitle ?? "Lab Test Report");
-                    cmd.Parameters.AddWithValue("@TechnicianName", (object)model.TechnicianName ?? DBNull.Value);
-                    cmd.Parameters.AddWithValue("@ReportStatus", string.IsNullOrEmpty(model.ReportStatus) ? "Completed" : model.ReportStatus);
-                    cmd.Parameters.AddWithValue("@ReportRemark", (object)model.ReportRemark ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue(
+                        "@LabBookingId",
+                        model.LabBookingId);
+
+                    cmd.Parameters.AddWithValue(
+                        "@LabTestId",
+                        labTestId);
+
+                    cmd.Parameters.AddWithValue(
+                        "@CustomerId",
+                        customerId);
+
+                    cmd.Parameters.AddWithValue(
+                        "@ReportNo",
+                        reportNo);
+
+                    cmd.Parameters.AddWithValue(
+                        "@ReportFile",
+                        fileName);
+
+                    cmd.Parameters.AddWithValue(
+                        "@ReportTitle",
+                        string.IsNullOrWhiteSpace(model.ReportTitle)
+                            ? "Lab Test Report"
+                            : model.ReportTitle);
+
+                    cmd.Parameters.AddWithValue(
+                        "@TechnicianName",
+                        string.IsNullOrWhiteSpace(model.TechnicianName)
+                            ? (object)DBNull.Value
+                            : model.TechnicianName);
+
+                    cmd.Parameters.AddWithValue(
+                        "@ReportStatus",
+                        string.IsNullOrWhiteSpace(model.ReportStatus)
+                            ? "Completed"
+                            : model.ReportStatus);
+
+                    cmd.Parameters.AddWithValue(
+                        "@ReportRemark",
+                        string.IsNullOrWhiteSpace(model.ReportRemark)
+                            ? (object)DBNull.Value
+                            : model.ReportRemark);
 
                     cmd.ExecuteNonQuery();
 
-                    // Update corresponding booking status to Completed
-                    SqlCommand uCmd = new SqlCommand("UPDATE tbl_LabBooking SET TestStatus = 'Completed', UpdatedDate = GETDATE() WHERE LabBookingId = @LabBookingId", con);
-                    uCmd.Parameters.AddWithValue("@LabBookingId", model.LabBookingId);
-                    uCmd.ExecuteNonQuery();
 
-                    TempData["Success"] = "Lab Report uploaded successfully.";
-                    return RedirectToAction("ManageLabReport");
+                    SqlCommand updateCmd = new SqlCommand(@"
+                UPDATE tbl_LabBooking
+                SET
+                    TestStatus = 'Completed',
+                    UpdatedDate = GETDATE()
+                WHERE LabBookingId = @LabBookingId",
+                        con);
+
+                    updateCmd.Parameters.AddWithValue(
+                        "@LabBookingId",
+                        model.LabBookingId);
+
+                    updateCmd.ExecuteNonQuery();
                 }
+
+                TempData["Success"] =
+                    "Lab Report uploaded successfully. Report No: "
+                    + reportNo;
+
+                return RedirectToAction("ManageLabReport");
             }
             catch (Exception ex)
             {
-                ViewBag.Error = ex.Message;
-                return View("~/Views/Admin/LabReport/UploadLabReport.cshtml", model);
+                TempData["Error"] =
+                    "Unable to upload lab report: " + ex.Message;
+
+                return RedirectToAction("UploadLabReport");
             }
         }
-
         [HttpGet]
         public IActionResult ViewLabReport(long id)
         {
@@ -14480,7 +14575,2786 @@ WHERE
 
             return RedirectToAction("ManageLabReport");
         }
+        [HttpGet]
+        public IActionResult ManageHealthPackage()
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
 
+            List<HealthPackageModel> list =
+                new List<HealthPackageModel>();
+
+            try
+            {
+                using (SqlConnection con =
+                       new SqlConnection(cs))
+                {
+                    con.Open();
+
+                    string query = @"
+                SELECT
+                    HealthPackageId,
+                    PackageName,
+                    Category,
+                    Description,
+                    OriginalPrice,
+                    DiscountPrice,
+                    PackageImage,
+                    Validity,
+                    Benefits,
+                    PreparationInstructions,
+                    IsActive,
+                    IsDeleted,
+                    DisplayOrder,
+                    CreatedDate,
+                    UpdatedDate
+                FROM tbl_HealthPackage
+                WHERE IsDeleted = 0
+                ORDER BY DisplayOrder ASC, CreatedDate DESC";
+
+                    using (SqlCommand cmd =
+                           new SqlCommand(query, con))
+                    {
+                        using (SqlDataReader dr =
+                               cmd.ExecuteReader())
+                        {
+                            while (dr.Read())
+                            {
+                                HealthPackageModel model =
+                                    new HealthPackageModel();
+
+                                model.HealthPackageId =
+                                    Convert.ToInt64(
+                                        dr["HealthPackageId"]);
+
+                                model.PackageName =
+                                    dr["PackageName"] == DBNull.Value
+                                    ? ""
+                                    : dr["PackageName"].ToString();
+
+                                model.Category =
+                                    dr["Category"] == DBNull.Value
+                                    ? ""
+                                    : dr["Category"].ToString();
+
+                                model.Description =
+                                    dr["Description"] == DBNull.Value
+                                    ? ""
+                                    : dr["Description"].ToString();
+
+                                model.OriginalPrice =
+                                    dr["OriginalPrice"] == DBNull.Value
+                                    ? 0
+                                    : Convert.ToDecimal(
+                                        dr["OriginalPrice"]);
+
+                                model.DiscountPrice =
+                                    dr["DiscountPrice"] == DBNull.Value
+                                    ? 0
+                                    : Convert.ToDecimal(
+                                        dr["DiscountPrice"]);
+
+                                model.PackageImage =
+                                    dr["PackageImage"] == DBNull.Value
+                                    ? ""
+                                    : dr["PackageImage"].ToString();
+
+                                model.Validity =
+                                    dr["Validity"] == DBNull.Value
+                                    ? ""
+                                    : dr["Validity"].ToString();
+
+                                model.Benefits =
+                                    dr["Benefits"] == DBNull.Value
+                                    ? ""
+                                    : dr["Benefits"].ToString();
+
+                                model.PreparationInstructions =
+                                    dr["PreparationInstructions"] == DBNull.Value
+                                    ? ""
+                                    : dr["PreparationInstructions"].ToString();
+
+                                model.IsActive =
+                                    dr["IsActive"] != DBNull.Value &&
+                                    Convert.ToBoolean(
+                                        dr["IsActive"]);
+
+                                model.IsDeleted =
+                                    dr["IsDeleted"] != DBNull.Value &&
+                                    Convert.ToBoolean(
+                                        dr["IsDeleted"]);
+
+                                model.DisplayOrder =
+                                    dr["DisplayOrder"] == DBNull.Value
+                                    ? 0
+                                    : Convert.ToInt32(
+                                        dr["DisplayOrder"]);
+
+                                if (dr["CreatedDate"] != DBNull.Value)
+                                {
+                                    model.CreatedDate =
+                                        Convert.ToDateTime(
+                                            dr["CreatedDate"]);
+                                }
+
+                                if (dr["UpdatedDate"] != DBNull.Value)
+                                {
+                                    model.UpdatedDate =
+                                        Convert.ToDateTime(
+                                            dr["UpdatedDate"]);
+                                }
+
+                                list.Add(model);
+                            }
+                        }
+                    }
+                }
+
+                return View(list);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] =
+                    "Unable to load health packages: "
+                    + ex.Message;
+
+                return View(list);
+            }
+        }
+        [HttpGet]
+        public IActionResult AddHealthPackage()
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            HealthPackageModel model =
+                new HealthPackageModel();
+
+            model.IsActive = true;
+            model.IsDeleted = false;
+
+            using (SqlConnection con =
+                   new SqlConnection(cs))
+            {
+                con.Open();
+
+                string query = @"
+            SELECT ISNULL(MAX(DisplayOrder), 0) + 1
+            FROM tbl_HealthPackage
+            WHERE IsDeleted = 0";
+
+                using (SqlCommand cmd =
+                       new SqlCommand(query, con))
+                {
+                    model.DisplayOrder =
+                        Convert.ToInt32(
+                            cmd.ExecuteScalar());
+                }
+            }
+
+            return View(model);
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult AddHealthPackage(
+    HealthPackageModel model)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            try
+            {
+                string imageName = "";
+
+
+                if (model.PackageImageFile != null &&
+                    model.PackageImageFile.Length > 0)
+                {
+                    string folder =
+                        Path.Combine(
+                            Directory.GetCurrentDirectory(),
+                            "wwwroot",
+                            "HealthPackageImages");
+
+                    if (!Directory.Exists(folder))
+                    {
+                        Directory.CreateDirectory(folder);
+                    }
+
+                    imageName =
+                        Guid.NewGuid().ToString()
+                        + Path.GetExtension(
+                            model.PackageImageFile.FileName);
+
+                    string filePath =
+                        Path.Combine(
+                            folder,
+                            imageName);
+
+                    using (FileStream stream =
+                           new FileStream(
+                               filePath,
+                               FileMode.Create))
+                    {
+                        model.PackageImageFile.CopyTo(stream);
+                    }
+                }
+
+                if (model.DisplayOrder <= 0)
+                {
+                    using (SqlConnection con =
+                           new SqlConnection(cs))
+                    {
+                        con.Open();
+
+                        string orderQuery = @"
+                    SELECT ISNULL(MAX(DisplayOrder), 0) + 1
+                    FROM tbl_HealthPackage
+                    WHERE IsDeleted = 0";
+
+                        using (SqlCommand orderCmd =
+                               new SqlCommand(
+                                   orderQuery,
+                                   con))
+                        {
+                            model.DisplayOrder =
+                                Convert.ToInt32(
+                                    orderCmd.ExecuteScalar());
+                        }
+                    }
+                }
+
+
+                using (SqlConnection con =
+                       new SqlConnection(cs))
+                {
+                    con.Open();
+
+                    string query = @"
+                INSERT INTO tbl_HealthPackage
+                (
+                    PackageName,
+                    Category,
+                    Description,
+                    OriginalPrice,
+                    DiscountPrice,
+                    PackageImage,
+                    Validity,
+                    Benefits,
+                    PreparationInstructions,
+                    IsActive,
+                    IsDeleted,
+                    DisplayOrder,
+                    CreatedDate,
+                    UpdatedDate
+                )
+                VALUES
+                (
+                    @PackageName,
+                    @Category,
+                    @Description,
+                    @OriginalPrice,
+                    @DiscountPrice,
+                    @PackageImage,
+                    @Validity,
+                    @Benefits,
+                    @PreparationInstructions,
+                    @IsActive,
+                    @IsDeleted,
+                    @DisplayOrder,
+                    GETDATE(),
+                    NULL
+                )";
+
+                    using (SqlCommand cmd =
+                           new SqlCommand(query, con))
+                    {
+                        cmd.Parameters.Add(
+                            "@PackageName",
+                            SqlDbType.NVarChar, 200).Value =
+                            model.PackageName?.Trim() ?? "";
+
+                        cmd.Parameters.Add(
+                            "@Category",
+                            SqlDbType.NVarChar, 100).Value =
+                            string.IsNullOrWhiteSpace(
+                                model.Category)
+                            ? (object)DBNull.Value
+                            : model.Category.Trim();
+
+                        cmd.Parameters.Add(
+                            "@Description",
+                            SqlDbType.NVarChar, -1).Value =
+                            string.IsNullOrWhiteSpace(
+                                model.Description)
+                            ? (object)DBNull.Value
+                            : model.Description.Trim();
+
+                        SqlParameter originalPrice =
+                            cmd.Parameters.Add(
+                                "@OriginalPrice",
+                                SqlDbType.Decimal);
+
+                        originalPrice.Precision = 18;
+                        originalPrice.Scale = 2;
+                        originalPrice.Value =
+                            model.OriginalPrice;
+
+                        SqlParameter discountPrice =
+                            cmd.Parameters.Add(
+                                "@DiscountPrice",
+                                SqlDbType.Decimal);
+
+                        discountPrice.Precision = 18;
+                        discountPrice.Scale = 2;
+                        discountPrice.Value =
+                            model.DiscountPrice;
+
+                        cmd.Parameters.Add(
+                            "@PackageImage",
+                            SqlDbType.NVarChar, 500).Value =
+                            string.IsNullOrWhiteSpace(imageName)
+                            ? (object)DBNull.Value
+                            : imageName;
+
+                        cmd.Parameters.Add(
+                            "@Validity",
+                            SqlDbType.NVarChar, 100).Value =
+                            string.IsNullOrWhiteSpace(
+                                model.Validity)
+                            ? (object)DBNull.Value
+                            : model.Validity.Trim();
+
+                        cmd.Parameters.Add(
+                            "@Benefits",
+                            SqlDbType.NVarChar, -1).Value =
+                            string.IsNullOrWhiteSpace(
+                                model.Benefits)
+                            ? (object)DBNull.Value
+                            : model.Benefits.Trim();
+
+                        cmd.Parameters.Add(
+                            "@PreparationInstructions",
+                            SqlDbType.NVarChar, -1).Value =
+                            string.IsNullOrWhiteSpace(
+                                model.PreparationInstructions)
+                            ? (object)DBNull.Value
+                            : model.PreparationInstructions.Trim();
+
+                        cmd.Parameters.Add(
+                            "@IsActive",
+                            SqlDbType.Bit).Value =
+                            true;
+
+                        cmd.Parameters.Add(
+                            "@IsDeleted",
+                            SqlDbType.Bit).Value =
+                            false;
+
+                        cmd.Parameters.Add(
+                            "@DisplayOrder",
+                            SqlDbType.Int).Value =
+                            model.DisplayOrder;
+
+                        int rows =
+                            cmd.ExecuteNonQuery();
+
+                        if (rows <= 0)
+                        {
+                            TempData["Error"] =
+                                "Health package was not saved.";
+
+                            return View(model);
+                        }
+                    }
+                }
+
+                TempData["Success"] =
+                    "Health package added successfully.";
+
+                return RedirectToAction(
+                    "ManageHealthPackage");
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] =
+                    "Unable to add health package: "
+                    + ex.Message;
+
+                return View(model);
+            }
+        }
+        [HttpGet]
+        public IActionResult EditHealthPackage(long id)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            HealthPackageModel model = new HealthPackageModel();
+
+            try
+            {
+                using (SqlConnection con = new SqlConnection(cs))
+                {
+                    con.Open();
+
+                    string query = @"
+                SELECT
+                    HealthPackageId,
+                    PackageName,
+                    Category,
+                    Description,
+                    OriginalPrice,
+                    DiscountPrice,
+                    PackageImage,
+                    Validity,
+                    Benefits,
+                    PreparationInstructions,
+                    IsActive,
+                    IsDeleted,
+                    DisplayOrder,
+                    CreatedDate,
+                    UpdatedDate
+                FROM tbl_HealthPackage
+                WHERE HealthPackageId = @HealthPackageId
+                AND IsDeleted = 0";
+
+                    using (SqlCommand cmd = new SqlCommand(query, con))
+                    {
+                        cmd.Parameters.AddWithValue(
+                            "@HealthPackageId", id);
+
+                        using (SqlDataReader dr = cmd.ExecuteReader())
+                        {
+                            if (dr.Read())
+                            {
+                                model.HealthPackageId =
+                                    Convert.ToInt64(
+                                        dr["HealthPackageId"]);
+
+                                model.PackageName =
+                                    dr["PackageName"] == DBNull.Value
+                                    ? ""
+                                    : dr["PackageName"].ToString();
+
+                                model.Category =
+                                    dr["Category"] == DBNull.Value
+                                    ? ""
+                                    : dr["Category"].ToString();
+
+                                model.Description =
+                                    dr["Description"] == DBNull.Value
+                                    ? ""
+                                    : dr["Description"].ToString();
+
+                                model.OriginalPrice =
+                                    dr["OriginalPrice"] == DBNull.Value
+                                    ? 0
+                                    : Convert.ToDecimal(
+                                        dr["OriginalPrice"]);
+
+                                model.DiscountPrice =
+                                    dr["DiscountPrice"] == DBNull.Value
+                                    ? 0
+                                    : Convert.ToDecimal(
+                                        dr["DiscountPrice"]);
+
+                                model.PackageImage =
+                                    dr["PackageImage"] == DBNull.Value
+                                    ? ""
+                                    : dr["PackageImage"].ToString();
+
+                                model.Validity =
+                                    dr["Validity"] == DBNull.Value
+                                    ? ""
+                                    : dr["Validity"].ToString();
+
+                                model.Benefits =
+                                    dr["Benefits"] == DBNull.Value
+                                    ? ""
+                                    : dr["Benefits"].ToString();
+
+                                model.PreparationInstructions =
+                                    dr["PreparationInstructions"] == DBNull.Value
+                                    ? ""
+                                    : dr["PreparationInstructions"].ToString();
+
+                                model.IsActive =
+                                    dr["IsActive"] != DBNull.Value &&
+                                    Convert.ToBoolean(
+                                        dr["IsActive"]);
+
+                                model.IsDeleted =
+                                    dr["IsDeleted"] != DBNull.Value &&
+                                    Convert.ToBoolean(
+                                        dr["IsDeleted"]);
+
+                                model.DisplayOrder =
+                                    dr["DisplayOrder"] == DBNull.Value
+                                    ? 0
+                                    : Convert.ToInt32(
+                                        dr["DisplayOrder"]);
+
+                                if (dr["CreatedDate"] != DBNull.Value)
+                                {
+                                    model.CreatedDate =
+                                        Convert.ToDateTime(
+                                            dr["CreatedDate"]);
+                                }
+
+                                if (dr["UpdatedDate"] != DBNull.Value)
+                                {
+                                    model.UpdatedDate =
+                                        Convert.ToDateTime(
+                                            dr["UpdatedDate"]);
+                                }
+                            }
+                            else
+                            {
+                                TempData["Error"] =
+                                    "Health package not found.";
+
+                                return RedirectToAction(
+                                    "ManageHealthPackage");
+                            }
+                        }
+                    }
+                }
+
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] =
+                    "Unable to load health package: "
+                    + ex.Message;
+
+                return RedirectToAction(
+                    "ManageHealthPackage");
+            }
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult EditHealthPackage(
+    HealthPackageModel model)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            try
+            {
+                string imageName = model.PackageImage;
+
+
+                if (model.PackageImageFile != null &&
+                    model.PackageImageFile.Length > 0)
+                {
+                    string folder =
+                        Path.Combine(
+                            Directory.GetCurrentDirectory(),
+                            "wwwroot",
+                            "HealthPackageImages");
+
+                    if (!Directory.Exists(folder))
+                    {
+                        Directory.CreateDirectory(folder);
+                    }
+
+                    imageName =
+                        Guid.NewGuid().ToString()
+                        + Path.GetExtension(
+                            model.PackageImageFile.FileName);
+
+                    string filePath =
+                        Path.Combine(
+                            folder,
+                            imageName);
+
+                    using (FileStream stream =
+                           new FileStream(
+                               filePath,
+                               FileMode.Create))
+                    {
+                        model.PackageImageFile.CopyTo(stream);
+                    }
+                }
+
+                using (SqlConnection con =
+                       new SqlConnection(cs))
+                {
+                    con.Open();
+
+                    string query = @"
+                UPDATE tbl_HealthPackage
+                SET
+                    PackageName = @PackageName,
+                    Category = @Category,
+                    Description = @Description,
+                    OriginalPrice = @OriginalPrice,
+                    DiscountPrice = @DiscountPrice,
+                    PackageImage = @PackageImage,
+                    Validity = @Validity,
+                    Benefits = @Benefits,
+                    PreparationInstructions =
+                        @PreparationInstructions,
+                    IsActive = @IsActive,
+                    DisplayOrder = @DisplayOrder,
+                    UpdatedDate = GETDATE()
+                WHERE HealthPackageId =
+                    @HealthPackageId
+                AND IsDeleted = 0";
+
+                    using (SqlCommand cmd =
+                           new SqlCommand(query, con))
+                    {
+                        cmd.Parameters.Add(
+                            "@HealthPackageId",
+                            SqlDbType.BigInt).Value =
+                            model.HealthPackageId;
+
+                        cmd.Parameters.Add(
+                            "@PackageName",
+                            SqlDbType.NVarChar, 200).Value =
+                            model.PackageName?.Trim() ?? "";
+
+                        cmd.Parameters.Add(
+                            "@Category",
+                            SqlDbType.NVarChar, 100).Value =
+                            string.IsNullOrWhiteSpace(
+                                model.Category)
+                            ? (object)DBNull.Value
+                            : model.Category.Trim();
+
+                        cmd.Parameters.Add(
+                            "@Description",
+                            SqlDbType.NVarChar, -1).Value =
+                            string.IsNullOrWhiteSpace(
+                                model.Description)
+                            ? (object)DBNull.Value
+                            : model.Description.Trim();
+
+                        SqlParameter originalPrice =
+                            cmd.Parameters.Add(
+                                "@OriginalPrice",
+                                SqlDbType.Decimal);
+
+                        originalPrice.Precision = 18;
+                        originalPrice.Scale = 2;
+                        originalPrice.Value =
+                            model.OriginalPrice;
+
+                        SqlParameter discountPrice =
+                            cmd.Parameters.Add(
+                                "@DiscountPrice",
+                                SqlDbType.Decimal);
+
+                        discountPrice.Precision = 18;
+                        discountPrice.Scale = 2;
+                        discountPrice.Value =
+                            model.DiscountPrice;
+
+                        cmd.Parameters.Add(
+                            "@PackageImage",
+                            SqlDbType.NVarChar, 500).Value =
+                            string.IsNullOrWhiteSpace(
+                                imageName)
+                            ? (object)DBNull.Value
+                            : imageName;
+
+                        cmd.Parameters.Add(
+                            "@Validity",
+                            SqlDbType.NVarChar, 100).Value =
+                            string.IsNullOrWhiteSpace(
+                                model.Validity)
+                            ? (object)DBNull.Value
+                            : model.Validity.Trim();
+
+                        cmd.Parameters.Add(
+                            "@Benefits",
+                            SqlDbType.NVarChar, -1).Value =
+                            string.IsNullOrWhiteSpace(
+                                model.Benefits)
+                            ? (object)DBNull.Value
+                            : model.Benefits.Trim();
+
+                        cmd.Parameters.Add(
+                            "@PreparationInstructions",
+                            SqlDbType.NVarChar, -1).Value =
+                            string.IsNullOrWhiteSpace(
+                                model.PreparationInstructions)
+                            ? (object)DBNull.Value
+                            : model.PreparationInstructions.Trim();
+
+                        cmd.Parameters.Add(
+                            "@IsActive",
+                            SqlDbType.Bit).Value =
+                            model.IsActive;
+
+                        cmd.Parameters.Add(
+                            "@DisplayOrder",
+                            SqlDbType.Int).Value =
+                            model.DisplayOrder;
+
+                        int rows =
+                            cmd.ExecuteNonQuery();
+
+                        if (rows == 0)
+                        {
+                            TempData["Error"] =
+                                "Health package was not updated.";
+
+                            return View(model);
+                        }
+                    }
+                }
+
+                TempData["Success"] =
+                    "Health package updated successfully.";
+
+                return RedirectToAction(
+                    "ManageHealthPackage");
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] =
+                    "Unable to update health package: "
+                    + ex.Message;
+
+                return View(model);
+            }
+        }
+        [HttpGet]
+        public IActionResult ViewHealthPackage(long id)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            HealthPackageModel model =
+                new HealthPackageModel();
+
+            try
+            {
+                using (SqlConnection con =
+                       new SqlConnection(cs))
+                {
+                    con.Open();
+
+                    string query = @"
+                SELECT
+                    HealthPackageId,
+                    PackageName,
+                    Category,
+                    Description,
+                    OriginalPrice,
+                    DiscountPrice,
+                    PackageImage,
+                    Validity,
+                    Benefits,
+                    PreparationInstructions,
+                    IsActive,
+                    IsDeleted,
+                    DisplayOrder,
+                    CreatedDate,
+                    UpdatedDate
+                FROM tbl_HealthPackage
+                WHERE HealthPackageId = @HealthPackageId
+                AND IsDeleted = 0";
+
+                    using (SqlCommand cmd =
+                           new SqlCommand(query, con))
+                    {
+                        cmd.Parameters.AddWithValue(
+                            "@HealthPackageId", id);
+
+                        using (SqlDataReader dr =
+                               cmd.ExecuteReader())
+                        {
+                            if (!dr.Read())
+                            {
+                                TempData["Error"] =
+                                    "Health package not found.";
+
+                                return RedirectToAction(
+                                    "ManageHealthPackage");
+                            }
+
+                            model.HealthPackageId =
+                                Convert.ToInt64(
+                                    dr["HealthPackageId"]);
+
+                            model.PackageName =
+                                dr["PackageName"]?.ToString() ?? "";
+
+                            model.Category =
+                                dr["Category"] == DBNull.Value
+                                ? ""
+                                : dr["Category"].ToString();
+
+                            model.Description =
+                                dr["Description"] == DBNull.Value
+                                ? ""
+                                : dr["Description"].ToString();
+
+                            model.OriginalPrice =
+                                Convert.ToDecimal(
+                                    dr["OriginalPrice"]);
+
+                            model.DiscountPrice =
+                                Convert.ToDecimal(
+                                    dr["DiscountPrice"]);
+
+                            model.PackageImage =
+                                dr["PackageImage"] == DBNull.Value
+                                ? ""
+                                : dr["PackageImage"].ToString();
+
+                            model.Validity =
+                                dr["Validity"] == DBNull.Value
+                                ? ""
+                                : dr["Validity"].ToString();
+
+                            model.Benefits =
+                                dr["Benefits"] == DBNull.Value
+                                ? ""
+                                : dr["Benefits"].ToString();
+
+                            model.PreparationInstructions =
+                                dr["PreparationInstructions"] == DBNull.Value
+                                ? ""
+                                : dr["PreparationInstructions"].ToString();
+
+                            model.IsActive =
+                                Convert.ToBoolean(
+                                    dr["IsActive"]);
+
+                            model.IsDeleted =
+                                Convert.ToBoolean(
+                                    dr["IsDeleted"]);
+
+                            model.DisplayOrder =
+                                dr["DisplayOrder"] == DBNull.Value
+                                ? 0
+                                : Convert.ToInt32(
+                                    dr["DisplayOrder"]);
+
+                            if (dr["CreatedDate"] != DBNull.Value)
+                            {
+                                model.CreatedDate =
+                                    Convert.ToDateTime(
+                                        dr["CreatedDate"]);
+                            }
+
+                            if (dr["UpdatedDate"] != DBNull.Value)
+                            {
+                                model.UpdatedDate =
+                                    Convert.ToDateTime(
+                                        dr["UpdatedDate"]);
+                            }
+                        }
+                    }
+                }
+
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] =
+                    "Unable to load package: "
+                    + ex.Message;
+
+                return RedirectToAction(
+                    "ManageHealthPackage");
+            }
+        }
+        [HttpGet]
+        public IActionResult ChangeHealthPackageStatus(long id)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            try
+            {
+                using (SqlConnection con =
+                       new SqlConnection(cs))
+                {
+                    con.Open();
+
+                    string query = @"
+                UPDATE tbl_HealthPackage
+                SET
+                    IsActive =
+                        CASE
+                            WHEN IsActive = 1 THEN 0
+                            ELSE 1
+                        END,
+                    UpdatedDate = GETDATE()
+                WHERE HealthPackageId =
+                    @HealthPackageId
+                AND IsDeleted = 0";
+
+                    using (SqlCommand cmd =
+                           new SqlCommand(query, con))
+                    {
+                        cmd.Parameters.AddWithValue(
+                            "@HealthPackageId", id);
+
+                        int rows =
+                            cmd.ExecuteNonQuery();
+
+                        if (rows > 0)
+                        {
+                            TempData["Success"] =
+                                "Health package status updated.";
+                        }
+                        else
+                        {
+                            TempData["Error"] =
+                                "Health package not found.";
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] =
+                    "Unable to change status: "
+                    + ex.Message;
+            }
+
+            return RedirectToAction(
+                "ManageHealthPackage");
+        }
+        [HttpGet]
+        public IActionResult DeleteHealthPackage(long id)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            try
+            {
+                using (SqlConnection con =
+                       new SqlConnection(cs))
+                {
+                    con.Open();
+
+                    string query = @"
+                UPDATE tbl_HealthPackage
+                SET
+                    IsDeleted = 1,
+                    IsActive = 0,
+                    UpdatedDate = GETDATE()
+                WHERE HealthPackageId =
+                    @HealthPackageId";
+
+                    using (SqlCommand cmd =
+                           new SqlCommand(query, con))
+                    {
+                        cmd.Parameters.AddWithValue(
+                            "@HealthPackageId", id);
+
+                        int rows =
+                            cmd.ExecuteNonQuery();
+
+                        if (rows > 0)
+                        {
+                            TempData["Success"] =
+                                "Health package deleted successfully.";
+                        }
+                        else
+                        {
+                            TempData["Error"] =
+                                "Health package not found.";
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] =
+                    "Unable to delete package: "
+                    + ex.Message;
+            }
+
+            return RedirectToAction(
+                "ManageHealthPackage");
+        }
+        [HttpGet]
+        public IActionResult ManageHealthPackageTest(long id)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            List<HealthPackageTestModel> list =
+                new List<HealthPackageTestModel>();
+
+            try
+            {
+                using (SqlConnection con = new SqlConnection(cs))
+                {
+                    con.Open();
+
+                    string query = @"
+                SELECT
+                    pt.PackageTestId,
+                    pt.HealthPackageId,
+                    pt.LabTestId,
+                    pt.IsActive,
+                    pt.IsDeleted,
+                    pt.CreatedDate,
+
+                    hp.PackageName,
+
+                    lt.TestName,
+                    lt.TestCategory,
+                    lt.Price,
+                    lt.SampleType
+
+                FROM tbl_HealthPackageTest pt
+
+                INNER JOIN tbl_HealthPackage hp
+                    ON pt.HealthPackageId = hp.HealthPackageId
+
+                INNER JOIN tbl_LabTest lt
+                    ON pt.LabTestId = lt.LabTestId
+
+                WHERE
+                    pt.HealthPackageId = @HealthPackageId
+                    AND pt.IsDeleted = 0
+                    AND hp.IsDeleted = 0
+                    AND lt.IsDeleted = 0
+
+                ORDER BY
+                    pt.CreatedDate DESC";
+
+                    using (SqlCommand cmd =
+                           new SqlCommand(query, con))
+                    {
+                        cmd.Parameters.AddWithValue(
+                            "@HealthPackageId", id);
+
+                        using (SqlDataReader dr =
+                               cmd.ExecuteReader())
+                        {
+                            while (dr.Read())
+                            {
+                                HealthPackageTestModel model =
+                                    new HealthPackageTestModel();
+
+                                model.PackageTestId =
+                                    Convert.ToInt64(
+                                        dr["PackageTestId"]);
+
+                                model.HealthPackageId =
+                                    Convert.ToInt64(
+                                        dr["HealthPackageId"]);
+
+                                model.LabTestId =
+                                    Convert.ToInt64(
+                                        dr["LabTestId"]);
+
+                                model.PackageName =
+                                    dr["PackageName"] == DBNull.Value
+                                    ? ""
+                                    : dr["PackageName"].ToString();
+
+                                model.TestName =
+                                    dr["TestName"] == DBNull.Value
+                                    ? ""
+                                    : dr["TestName"].ToString();
+
+                                model.TestCategory =
+                                    dr["TestCategory"] == DBNull.Value
+                                    ? ""
+                                    : dr["TestCategory"].ToString();
+
+                                model.Price =
+                                    dr["Price"] == DBNull.Value
+                                    ? 0
+                                    : Convert.ToDecimal(
+                                        dr["Price"]);
+
+                                model.SampleType =
+                                    dr["SampleType"] == DBNull.Value
+                                    ? ""
+                                    : dr["SampleType"].ToString();
+
+                                model.IsActive =
+                                    dr["IsActive"] != DBNull.Value &&
+                                    Convert.ToBoolean(
+                                        dr["IsActive"]);
+
+                                model.IsDeleted =
+                                    dr["IsDeleted"] != DBNull.Value &&
+                                    Convert.ToBoolean(
+                                        dr["IsDeleted"]);
+
+                                if (dr["CreatedDate"] != DBNull.Value)
+                                {
+                                    model.CreatedDate =
+                                        Convert.ToDateTime(
+                                            dr["CreatedDate"]);
+                                }
+
+                                list.Add(model);
+                            }
+                        }
+                    }
+                }
+
+                ViewBag.HealthPackageId = id;
+
+                if (list.Count > 0)
+                {
+                    ViewBag.PackageName =
+                        list[0].PackageName;
+                }
+                else
+                {
+                    using (SqlConnection con =
+                           new SqlConnection(cs))
+                    {
+                        con.Open();
+
+                        SqlCommand cmd =
+                            new SqlCommand(@"
+                        SELECT PackageName
+                        FROM tbl_HealthPackage
+                        WHERE HealthPackageId = @HealthPackageId
+                        AND IsDeleted = 0", con);
+
+                        cmd.Parameters.AddWithValue(
+                            "@HealthPackageId", id);
+
+                        object result =
+                            cmd.ExecuteScalar();
+
+                        ViewBag.PackageName =
+                            result == null
+                            ? "Health Package"
+                            : result.ToString();
+                    }
+                }
+
+                return View(list);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] =
+                    "Unable to load package tests: "
+                    + ex.Message;
+
+                return RedirectToAction(
+                    "ManageHealthPackage");
+            }
+        }
+        [HttpGet]
+        public IActionResult AddHealthPackageTest(long id)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            HealthPackageTestModel model =
+                new HealthPackageTestModel();
+
+            model.HealthPackageId = id;
+
+            try
+            {
+                using (SqlConnection con = new SqlConnection(cs))
+                {
+                    con.Open();
+
+
+                    SqlCommand packageCmd = new SqlCommand(@"
+                SELECT PackageName
+                FROM tbl_HealthPackage
+                WHERE HealthPackageId = @HealthPackageId
+                AND IsDeleted = 0", con);
+
+                    packageCmd.Parameters.AddWithValue(
+                        "@HealthPackageId", id);
+
+                    object packageResult =
+                        packageCmd.ExecuteScalar();
+
+                    if (packageResult == null)
+                    {
+                        TempData["Error"] =
+                            "Health package not found.";
+
+                        return RedirectToAction(
+                            "ManageHealthPackage");
+                    }
+
+                    ViewBag.PackageName =
+                        packageResult.ToString();
+
+
+                    List<SelectListItem> testList =
+                        new List<SelectListItem>();
+
+                    SqlCommand testCmd = new SqlCommand(@"
+                SELECT
+                    LabTestId,
+                    TestName,
+                    TestCategory,
+                    Price
+                FROM tbl_LabTest
+                WHERE IsDeleted = 0
+                AND IsActive = 1
+                AND LabTestId NOT IN
+                (
+                    SELECT LabTestId
+                    FROM tbl_HealthPackageTest
+                    WHERE HealthPackageId = @HealthPackageId
+                    AND IsDeleted = 0
+                )
+                ORDER BY TestName", con);
+
+                    testCmd.Parameters.AddWithValue(
+                        "@HealthPackageId", id);
+
+                    using (SqlDataReader dr =
+                           testCmd.ExecuteReader())
+                    {
+                        while (dr.Read())
+                        {
+                            string testName =
+                                dr["TestName"] == DBNull.Value
+                                ? ""
+                                : dr["TestName"].ToString();
+
+                            string category =
+                                dr["TestCategory"] == DBNull.Value
+                                ? ""
+                                : dr["TestCategory"].ToString();
+
+                            decimal price =
+                                dr["Price"] == DBNull.Value
+                                ? 0
+                                : Convert.ToDecimal(
+                                    dr["Price"]);
+
+                            testList.Add(
+                                new SelectListItem
+                                {
+                                    Value =
+                                        dr["LabTestId"].ToString(),
+
+                                    Text =
+                                        testName
+                                        + " - "
+                                        + category
+                                        + " (₹"
+                                        + price.ToString("N2")
+                                        + ")"
+                                });
+                        }
+                    }
+
+                    ViewBag.TestList = testList;
+                }
+
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] =
+                    "Unable to load lab tests: "
+                    + ex.Message;
+
+                return RedirectToAction(
+                    "ManageHealthPackageTest",
+                    new { id = id });
+            }
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult AddHealthPackageTest(
+    HealthPackageTestModel model)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            try
+            {
+                using (SqlConnection con =
+                       new SqlConnection(cs))
+                {
+                    con.Open();
+
+
+                    SqlCommand packageCmd =
+                        new SqlCommand(@"
+                    SELECT PackageName
+                    FROM tbl_HealthPackage
+                    WHERE HealthPackageId =
+                        @HealthPackageId
+                    AND IsDeleted = 0", con);
+
+                    packageCmd.Parameters.AddWithValue(
+                        "@HealthPackageId",
+                        model.HealthPackageId);
+
+                    object packageResult =
+                        packageCmd.ExecuteScalar();
+
+                    if (packageResult == null)
+                    {
+                        TempData["Error"] =
+                            "Health package not found.";
+
+                        return RedirectToAction(
+                            "ManageHealthPackage");
+                    }
+
+                    SqlCommand testCmd =
+                        new SqlCommand(@"
+                    SELECT LabTestId
+                    FROM tbl_LabTest
+                    WHERE LabTestId = @LabTestId
+                    AND IsDeleted = 0
+                    AND IsActive = 1", con);
+
+                    testCmd.Parameters.AddWithValue(
+                        "@LabTestId",
+                        model.LabTestId);
+
+                    object testResult =
+                        testCmd.ExecuteScalar();
+
+                    if (testResult == null)
+                    {
+                        TempData["Error"] =
+                            "Selected lab test is not available.";
+
+                        return RedirectToAction(
+                            "AddHealthPackageTest",
+                            new
+                            {
+                                id = model.HealthPackageId
+                            });
+                    }
+
+                    SqlCommand duplicateCmd =
+                        new SqlCommand(@"
+                    SELECT COUNT(*)
+                    FROM tbl_HealthPackageTest
+                    WHERE HealthPackageId =
+                        @HealthPackageId
+                    AND LabTestId = @LabTestId
+                    AND IsDeleted = 0", con);
+
+                    duplicateCmd.Parameters.AddWithValue(
+                        "@HealthPackageId",
+                        model.HealthPackageId);
+
+                    duplicateCmd.Parameters.AddWithValue(
+                        "@LabTestId",
+                        model.LabTestId);
+
+                    int duplicateCount =
+                        Convert.ToInt32(
+                            duplicateCmd.ExecuteScalar());
+
+                    if (duplicateCount > 0)
+                    {
+                        TempData["Error"] =
+                            "This lab test is already added to this package.";
+
+                        return RedirectToAction(
+                            "ManageHealthPackageTest",
+                            new
+                            {
+                                id = model.HealthPackageId
+                            });
+                    }
+
+                    string query = @"
+                INSERT INTO tbl_HealthPackageTest
+                (
+                    HealthPackageId,
+                    LabTestId,
+                    IsActive,
+                    IsDeleted,
+                    CreatedDate
+                )
+                VALUES
+                (
+                    @HealthPackageId,
+                    @LabTestId,
+                    1,
+                    0,
+                    GETDATE()
+                )";
+
+                    using (SqlCommand cmd =
+                           new SqlCommand(query, con))
+                    {
+                        cmd.Parameters.AddWithValue(
+                            "@HealthPackageId",
+                            model.HealthPackageId);
+
+                        cmd.Parameters.AddWithValue(
+                            "@LabTestId",
+                            model.LabTestId);
+
+                        int rows =
+                            cmd.ExecuteNonQuery();
+
+                        if (rows > 0)
+                        {
+                            TempData["Success"] =
+                                "Lab test added to health package successfully.";
+
+                            return RedirectToAction(
+                                "ManageHealthPackageTest",
+                                new
+                                {
+                                    id = model.HealthPackageId
+                                });
+                        }
+                    }
+
+                    TempData["Error"] =
+                        "Lab test could not be added.";
+
+                    return RedirectToAction(
+                        "AddHealthPackageTest",
+                        new
+                        {
+                            id = model.HealthPackageId
+                        });
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] =
+                    "Unable to add lab test: "
+                    + ex.Message;
+
+                return RedirectToAction(
+                    "AddHealthPackageTest",
+                    new
+                    {
+                        id = model.HealthPackageId
+                    });
+            }
+        }
+        [HttpGet]
+        public IActionResult DeleteHealthPackageTest(
+    long id,
+    long packageId)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            try
+            {
+                using (SqlConnection con =
+                       new SqlConnection(cs))
+                {
+                    con.Open();
+
+                    string query = @"
+                UPDATE tbl_HealthPackageTest
+                SET
+                    IsDeleted = 1
+                WHERE PackageTestId = @PackageTestId";
+
+                    using (SqlCommand cmd =
+                           new SqlCommand(query, con))
+                    {
+                        cmd.Parameters.AddWithValue(
+                            "@PackageTestId", id);
+
+                        int rows =
+                            cmd.ExecuteNonQuery();
+
+                        if (rows > 0)
+                        {
+                            TempData["Success"] =
+                                "Lab test removed from package successfully.";
+                        }
+                        else
+                        {
+                            TempData["Error"] =
+                                "Package test mapping not found.";
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] =
+                    "Unable to remove lab test: "
+                    + ex.Message;
+            }
+
+            return RedirectToAction(
+                "ManageHealthPackageTest",
+                new
+                {
+                    id = packageId
+                });
+        }
+        [HttpGet]
+        public IActionResult ViewHealthPackageTest(long id)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            HealthPackageTestModel model =
+                new HealthPackageTestModel();
+
+            try
+            {
+                using (SqlConnection con = new SqlConnection(cs))
+                {
+                    con.Open();
+
+                    string query = @"
+                SELECT
+                    pt.PackageTestId,
+                    pt.HealthPackageId,
+                    pt.LabTestId,
+                    pt.IsActive,
+                    pt.IsDeleted,
+                    pt.CreatedDate,
+
+                    hp.PackageName,
+
+                    lt.TestName,
+                    lt.TestCategory,
+                    lt.Price,
+                    lt.SampleType
+
+                FROM tbl_HealthPackageTest pt
+
+                INNER JOIN tbl_HealthPackage hp
+                    ON pt.HealthPackageId =
+                       hp.HealthPackageId
+
+                INNER JOIN tbl_LabTest lt
+                    ON pt.LabTestId =
+                       lt.LabTestId
+
+                WHERE
+                    pt.PackageTestId = @PackageTestId
+                    AND pt.IsDeleted = 0
+                    AND hp.IsDeleted = 0
+                    AND lt.IsDeleted = 0";
+
+                    using (SqlCommand cmd =
+                           new SqlCommand(query, con))
+                    {
+                        cmd.Parameters.AddWithValue(
+                            "@PackageTestId", id);
+
+                        using (SqlDataReader dr =
+                               cmd.ExecuteReader())
+                        {
+                            if (!dr.Read())
+                            {
+                                TempData["Error"] =
+                                    "Package test not found.";
+
+                                return RedirectToAction(
+                                    "ManageHealthPackage");
+                            }
+
+                            model.PackageTestId =
+                                Convert.ToInt64(
+                                    dr["PackageTestId"]);
+
+                            model.HealthPackageId =
+                                Convert.ToInt64(
+                                    dr["HealthPackageId"]);
+
+                            model.LabTestId =
+                                Convert.ToInt64(
+                                    dr["LabTestId"]);
+
+                            model.PackageName =
+                                dr["PackageName"] == DBNull.Value
+                                ? ""
+                                : dr["PackageName"].ToString();
+
+                            model.TestName =
+                                dr["TestName"] == DBNull.Value
+                                ? ""
+                                : dr["TestName"].ToString();
+
+                            model.TestCategory =
+                                dr["TestCategory"] == DBNull.Value
+                                ? ""
+                                : dr["TestCategory"].ToString();
+
+                            model.Price =
+                                dr["Price"] == DBNull.Value
+                                ? 0
+                                : Convert.ToDecimal(
+                                    dr["Price"]);
+
+                            model.SampleType =
+                                dr["SampleType"] == DBNull.Value
+                                ? ""
+                                : dr["SampleType"].ToString();
+
+                            model.IsActive =
+                                dr["IsActive"] != DBNull.Value &&
+                                Convert.ToBoolean(
+                                    dr["IsActive"]);
+
+                            model.IsDeleted =
+                                dr["IsDeleted"] != DBNull.Value &&
+                                Convert.ToBoolean(
+                                    dr["IsDeleted"]);
+
+                            if (dr["CreatedDate"] != DBNull.Value)
+                            {
+                                model.CreatedDate =
+                                    Convert.ToDateTime(
+                                        dr["CreatedDate"]);
+                            }
+                        }
+                    }
+                }
+
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] =
+                    "Unable to load package test: "
+                    + ex.Message;
+
+                return RedirectToAction(
+                    "ManageHealthPackageTest",
+                    new
+                    {
+                        id = model.HealthPackageId
+                    });
+            }
+        }
+        [HttpGet]
+        public IActionResult ChangeHealthPackageTestStatus(
+    long id,
+    long packageId)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            try
+            {
+                using (SqlConnection con =
+                       new SqlConnection(cs))
+                {
+                    con.Open();
+
+                    string query = @"
+                UPDATE tbl_HealthPackageTest
+                SET
+                    IsActive =
+                        CASE
+                            WHEN IsActive = 1 THEN 0
+                            ELSE 1
+                        END
+                WHERE PackageTestId = @PackageTestId
+                AND IsDeleted = 0";
+
+                    using (SqlCommand cmd =
+                           new SqlCommand(query, con))
+                    {
+                        cmd.Parameters.AddWithValue(
+                            "@PackageTestId", id);
+
+                        int rows =
+                            cmd.ExecuteNonQuery();
+
+                        if (rows > 0)
+                        {
+                            TempData["Success"] =
+                                "Lab test status updated successfully.";
+                        }
+                        else
+                        {
+                            TempData["Error"] =
+                                "Package test not found.";
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] =
+                    "Unable to change status: "
+                    + ex.Message;
+            }
+
+            return RedirectToAction(
+                "ManageHealthPackageTest",
+                new
+                {
+                    id = packageId
+                });
+        }
+        [HttpGet]
+        public IActionResult ManageHealthPackageBooking()
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            List<HealthPackageBookingModel> list =
+                new List<HealthPackageBookingModel>();
+
+            try
+            {
+                using (SqlConnection con = new SqlConnection(cs))
+                {
+                    con.Open();
+
+                    string query = @"
+                SELECT
+                    pb.PackageBookingId,
+                    pb.HealthPackageId,
+                    pb.CustomerId,
+                    pb.BookingNo,
+                    pb.BookingDate,
+                    pb.PatientName,
+                    pb.MobileNo,
+                    pb.Email,
+                    pb.PreferredDate,
+                    pb.PreferredTime,
+                    pb.HealthConcern,
+                    pb.Amount,
+                    pb.PaymentStatus,
+                    pb.BookingStatus,
+                    pb.AdminRemark,
+                    pb.IsActive,
+                    pb.IsDeleted,
+                    pb.CreatedDate,
+                    pb.UpdatedDate,
+
+                    hp.PackageName,
+
+                    c.FullName AS CustomerName
+
+                FROM tbl_HealthPackageBooking pb
+
+                INNER JOIN tbl_HealthPackage hp
+                    ON pb.HealthPackageId =
+                       hp.HealthPackageId
+
+                INNER JOIN tbl_Customer c
+                    ON pb.CustomerId =
+                       c.CustomerId
+
+                WHERE pb.IsDeleted = 0
+
+                ORDER BY pb.BookingDate DESC";
+
+                    using (SqlCommand cmd =
+                           new SqlCommand(query, con))
+                    {
+                        using (SqlDataReader dr =
+                               cmd.ExecuteReader())
+                        {
+                            while (dr.Read())
+                            {
+                                HealthPackageBookingModel model =
+                                    new HealthPackageBookingModel();
+
+                                model.PackageBookingId =
+                                    Convert.ToInt64(
+                                        dr["PackageBookingId"]);
+
+                                model.HealthPackageId =
+                                    Convert.ToInt64(
+                                        dr["HealthPackageId"]);
+
+                                model.CustomerId =
+                                    Convert.ToInt64(
+                                        dr["CustomerId"]);
+
+                                model.BookingNo =
+                                    dr["BookingNo"] == DBNull.Value
+                                    ? ""
+                                    : dr["BookingNo"].ToString();
+
+                                if (dr["BookingDate"] != DBNull.Value)
+                                {
+                                    model.BookingDate =
+                                        Convert.ToDateTime(
+                                            dr["BookingDate"]);
+                                }
+
+                                model.PatientName =
+                                    dr["PatientName"] == DBNull.Value
+                                    ? ""
+                                    : dr["PatientName"].ToString();
+
+                                model.MobileNo =
+                                    dr["MobileNo"] == DBNull.Value
+                                    ? ""
+                                    : dr["MobileNo"].ToString();
+
+                                model.Email =
+                                    dr["Email"] == DBNull.Value
+                                    ? ""
+                                    : dr["Email"].ToString();
+
+                                if (dr["PreferredDate"] != DBNull.Value)
+                                {
+                                    model.PreferredDate =
+                                        Convert.ToDateTime(
+                                            dr["PreferredDate"]);
+                                }
+
+                                model.PreferredTime =
+                                    dr["PreferredTime"] == DBNull.Value
+                                    ? ""
+                                    : dr["PreferredTime"].ToString();
+
+                                model.HealthConcern =
+                                    dr["HealthConcern"] == DBNull.Value
+                                    ? ""
+                                    : dr["HealthConcern"].ToString();
+
+                                model.Amount =
+                                    dr["Amount"] == DBNull.Value
+                                    ? 0
+                                    : Convert.ToDecimal(
+                                        dr["Amount"]);
+
+                                model.PaymentStatus =
+                                    dr["PaymentStatus"] == DBNull.Value
+                                    ? ""
+                                    : dr["PaymentStatus"].ToString();
+
+                                model.BookingStatus =
+                                    dr["BookingStatus"] == DBNull.Value
+                                    ? ""
+                                    : dr["BookingStatus"].ToString();
+
+                                model.AdminRemark =
+                                    dr["AdminRemark"] == DBNull.Value
+                                    ? ""
+                                    : dr["AdminRemark"].ToString();
+
+                                model.IsActive =
+                                    dr["IsActive"] != DBNull.Value &&
+                                    Convert.ToBoolean(
+                                        dr["IsActive"]);
+
+                                model.IsDeleted =
+                                    dr["IsDeleted"] != DBNull.Value &&
+                                    Convert.ToBoolean(
+                                        dr["IsDeleted"]);
+
+                                if (dr["CreatedDate"] != DBNull.Value)
+                                {
+                                    model.CreatedDate =
+                                        Convert.ToDateTime(
+                                            dr["CreatedDate"]);
+                                }
+
+                                if (dr["UpdatedDate"] != DBNull.Value)
+                                {
+                                    model.UpdatedDate =
+                                        Convert.ToDateTime(
+                                            dr["UpdatedDate"]);
+                                }
+
+                                model.PackageName =
+                                    dr["PackageName"] == DBNull.Value
+                                    ? ""
+                                    : dr["PackageName"].ToString();
+
+                                model.CustomerName =
+                                    dr["CustomerName"] == DBNull.Value
+                                    ? ""
+                                    : dr["CustomerName"].ToString();
+
+                                list.Add(model);
+                            }
+                        }
+                    }
+                }
+
+                return View(list);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] =
+                    "Unable to load package bookings: "
+                    + ex.Message;
+
+                return View(list);
+            }
+        }
+        [HttpGet]
+        public IActionResult ViewHealthPackageBooking(long id)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            HealthPackageBookingModel model =
+                new HealthPackageBookingModel();
+
+            try
+            {
+                using (SqlConnection con = new SqlConnection(cs))
+                {
+                    con.Open();
+
+                    string query = @"
+                SELECT
+                    pb.PackageBookingId,
+                    pb.HealthPackageId,
+                    pb.CustomerId,
+                    pb.BookingNo,
+                    pb.BookingDate,
+                    pb.PatientName,
+                    pb.MobileNo,
+                    pb.Email,
+                    pb.PreferredDate,
+                    pb.PreferredTime,
+                    pb.HealthConcern,
+                    pb.Amount,
+                    pb.PaymentStatus,
+                    pb.BookingStatus,
+                    pb.AdminRemark,
+                    pb.IsActive,
+                    pb.IsDeleted,
+                    pb.CreatedDate,
+                    pb.UpdatedDate,
+
+                    hp.PackageName,
+
+                    c.FullName AS CustomerName
+
+                FROM tbl_HealthPackageBooking pb
+
+                INNER JOIN tbl_HealthPackage hp
+                    ON pb.HealthPackageId = hp.HealthPackageId
+
+                INNER JOIN tbl_Customer c
+                    ON pb.CustomerId = c.CustomerId
+
+                WHERE
+                    pb.PackageBookingId = @PackageBookingId
+                    AND pb.IsDeleted = 0";
+
+                    using (SqlCommand cmd =
+                           new SqlCommand(query, con))
+                    {
+                        cmd.Parameters.AddWithValue(
+                            "@PackageBookingId", id);
+
+                        using (SqlDataReader dr =
+                               cmd.ExecuteReader())
+                        {
+                            if (!dr.Read())
+                            {
+                                TempData["Error"] =
+                                    "Health package booking not found.";
+
+                                return RedirectToAction(
+                                    "ManageHealthPackageBooking");
+                            }
+
+                            model.PackageBookingId =
+                                Convert.ToInt64(
+                                    dr["PackageBookingId"]);
+
+                            model.HealthPackageId =
+                                Convert.ToInt64(
+                                    dr["HealthPackageId"]);
+
+                            model.CustomerId =
+                                Convert.ToInt64(
+                                    dr["CustomerId"]);
+
+
+                            model.BookingNo =
+                                dr["BookingNo"] == DBNull.Value
+                                ? ""
+                                : dr["BookingNo"].ToString();
+
+                            if (dr["BookingDate"] != DBNull.Value)
+                            {
+                                model.BookingDate =
+                                    Convert.ToDateTime(
+                                        dr["BookingDate"]);
+                            }
+
+                            model.PatientName =
+                                dr["PatientName"] == DBNull.Value
+                                ? ""
+                                : dr["PatientName"].ToString();
+
+                            model.MobileNo =
+                                dr["MobileNo"] == DBNull.Value
+                                ? ""
+                                : dr["MobileNo"].ToString();
+
+                            model.Email =
+                                dr["Email"] == DBNull.Value
+                                ? ""
+                                : dr["Email"].ToString();
+
+
+
+                            if (dr["PreferredDate"] != DBNull.Value)
+                            {
+                                model.PreferredDate =
+                                    Convert.ToDateTime(
+                                        dr["PreferredDate"]);
+                            }
+
+                            model.PreferredTime =
+                                dr["PreferredTime"] == DBNull.Value
+                                ? ""
+                                : dr["PreferredTime"].ToString();
+
+                            model.HealthConcern =
+                                dr["HealthConcern"] == DBNull.Value
+                                ? ""
+                                : dr["HealthConcern"].ToString();
+
+
+                            model.Amount =
+                                dr["Amount"] == DBNull.Value
+                                ? 0
+                                : Convert.ToDecimal(
+                                    dr["Amount"]);
+
+                            model.PaymentStatus =
+                                dr["PaymentStatus"] == DBNull.Value
+                                ? ""
+                                : dr["PaymentStatus"].ToString();
+
+
+
+                            model.BookingStatus =
+                                dr["BookingStatus"] == DBNull.Value
+                                ? ""
+                                : dr["BookingStatus"].ToString();
+
+                            model.AdminRemark =
+                                dr["AdminRemark"] == DBNull.Value
+                                ? ""
+                                : dr["AdminRemark"].ToString();
+
+
+
+                            model.IsActive =
+                                dr["IsActive"] != DBNull.Value &&
+                                Convert.ToBoolean(
+                                    dr["IsActive"]);
+
+                            model.IsDeleted =
+                                dr["IsDeleted"] != DBNull.Value &&
+                                Convert.ToBoolean(
+                                    dr["IsDeleted"]);
+
+
+                            if (dr["CreatedDate"] != DBNull.Value)
+                            {
+                                model.CreatedDate =
+                                    Convert.ToDateTime(
+                                        dr["CreatedDate"]);
+                            }
+
+                            if (dr["UpdatedDate"] != DBNull.Value)
+                            {
+                                model.UpdatedDate =
+                                    Convert.ToDateTime(
+                                        dr["UpdatedDate"]);
+                            }
+
+
+                            model.PackageName =
+                                dr["PackageName"] == DBNull.Value
+                                ? ""
+                                : dr["PackageName"].ToString();
+
+                            model.CustomerName =
+                                dr["CustomerName"] == DBNull.Value
+                                ? ""
+                                : dr["CustomerName"].ToString();
+                        }
+                    }
+                }
+
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] =
+                    "Unable to load booking details: "
+                    + ex.Message;
+
+                return RedirectToAction(
+                    "ManageHealthPackageBooking");
+            }
+        }
+        [HttpGet]
+        public IActionResult ChangeHealthPackageBookingStatus(long id)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            HealthPackageBookingModel model =
+                new HealthPackageBookingModel();
+
+            try
+            {
+                using (SqlConnection con = new SqlConnection(cs))
+                {
+                    con.Open();
+
+                    string query = @"
+                SELECT
+                    pb.PackageBookingId,
+                    pb.HealthPackageId,
+                    pb.CustomerId,
+                    pb.BookingNo,
+                    pb.BookingDate,
+                    pb.PatientName,
+                    pb.MobileNo,
+                    pb.Email,
+                    pb.PreferredDate,
+                    pb.PreferredTime,
+                    pb.HealthConcern,
+                    pb.Amount,
+                    pb.PaymentStatus,
+                    pb.BookingStatus,
+                    pb.AdminRemark,
+                    pb.IsActive,
+                    pb.IsDeleted,
+                    pb.CreatedDate,
+                    pb.UpdatedDate,
+                    hp.PackageName
+                FROM tbl_HealthPackageBooking pb
+                INNER JOIN tbl_HealthPackage hp
+                    ON pb.HealthPackageId = hp.HealthPackageId
+                WHERE
+                    pb.PackageBookingId = @PackageBookingId
+                    AND pb.IsDeleted = 0";
+
+                    using (SqlCommand cmd =
+                           new SqlCommand(query, con))
+                    {
+                        cmd.Parameters.AddWithValue(
+                            "@PackageBookingId", id);
+
+                        using (SqlDataReader dr =
+                               cmd.ExecuteReader())
+                        {
+                            if (!dr.Read())
+                            {
+                                TempData["Error"] =
+                                    "Health package booking not found.";
+
+                                return RedirectToAction(
+                                    "ManageHealthPackageBooking");
+                            }
+
+                            model.PackageBookingId =
+                                Convert.ToInt64(
+                                    dr["PackageBookingId"]);
+
+                            model.HealthPackageId =
+                                Convert.ToInt64(
+                                    dr["HealthPackageId"]);
+
+                            model.CustomerId =
+                                Convert.ToInt64(
+                                    dr["CustomerId"]);
+
+                            model.BookingNo =
+                                dr["BookingNo"] == DBNull.Value
+                                ? ""
+                                : dr["BookingNo"].ToString();
+
+                            if (dr["BookingDate"] != DBNull.Value)
+                            {
+                                model.BookingDate =
+                                    Convert.ToDateTime(
+                                        dr["BookingDate"]);
+                            }
+
+                            model.PatientName =
+                                dr["PatientName"] == DBNull.Value
+                                ? ""
+                                : dr["PatientName"].ToString();
+
+                            model.MobileNo =
+                                dr["MobileNo"] == DBNull.Value
+                                ? ""
+                                : dr["MobileNo"].ToString();
+
+                            model.Email =
+                                dr["Email"] == DBNull.Value
+                                ? ""
+                                : dr["Email"].ToString();
+
+                            if (dr["PreferredDate"] != DBNull.Value)
+                            {
+                                model.PreferredDate =
+                                    Convert.ToDateTime(
+                                        dr["PreferredDate"]);
+                            }
+
+                            model.PreferredTime =
+                                dr["PreferredTime"] == DBNull.Value
+                                ? ""
+                                : dr["PreferredTime"].ToString();
+
+                            model.HealthConcern =
+                                dr["HealthConcern"] == DBNull.Value
+                                ? ""
+                                : dr["HealthConcern"].ToString();
+
+                            model.Amount =
+                                dr["Amount"] == DBNull.Value
+                                ? 0
+                                : Convert.ToDecimal(
+                                    dr["Amount"]);
+
+                            model.PaymentStatus =
+                                dr["PaymentStatus"] == DBNull.Value
+                                ? ""
+                                : dr["PaymentStatus"].ToString();
+
+                            model.BookingStatus =
+                                dr["BookingStatus"] == DBNull.Value
+                                ? "Pending"
+                                : dr["BookingStatus"].ToString();
+
+                            model.AdminRemark =
+                                dr["AdminRemark"] == DBNull.Value
+                                ? ""
+                                : dr["AdminRemark"].ToString();
+
+                            model.IsActive =
+                                dr["IsActive"] != DBNull.Value &&
+                                Convert.ToBoolean(
+                                    dr["IsActive"]);
+
+                            model.IsDeleted =
+                                dr["IsDeleted"] != DBNull.Value &&
+                                Convert.ToBoolean(
+                                    dr["IsDeleted"]);
+
+                            model.PackageName =
+                                dr["PackageName"] == DBNull.Value
+                                ? ""
+                                : dr["PackageName"].ToString();
+                        }
+                    }
+                }
+
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] =
+                    "Unable to load booking status: "
+                    + ex.Message;
+
+                return RedirectToAction(
+                    "ManageHealthPackageBooking");
+            }
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult ChangeHealthPackageBookingStatus(
+    HealthPackageBookingModel model)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            try
+            {
+                using (SqlConnection con = new SqlConnection(cs))
+                {
+                    con.Open();
+
+                    string query = @"
+                UPDATE tbl_HealthPackageBooking
+                SET
+                    BookingStatus = @BookingStatus,
+                    PaymentStatus = @PaymentStatus,
+                    AdminRemark = @AdminRemark,
+                    IsActive = @IsActive,
+                    UpdatedDate = GETDATE()
+                WHERE
+                    PackageBookingId = @PackageBookingId
+                    AND IsDeleted = 0";
+
+                    using (SqlCommand cmd =
+                           new SqlCommand(query, con))
+                    {
+                        cmd.Parameters.AddWithValue(
+                            "@PackageBookingId",
+                            model.PackageBookingId);
+
+                        cmd.Parameters.AddWithValue(
+                            "@BookingStatus",
+                            string.IsNullOrWhiteSpace(
+                                model.BookingStatus)
+                                ? "Pending"
+                                : model.BookingStatus);
+
+                        cmd.Parameters.AddWithValue(
+                            "@PaymentStatus",
+                            string.IsNullOrWhiteSpace(
+                                model.PaymentStatus)
+                                ? "Pending"
+                                : model.PaymentStatus);
+
+                        cmd.Parameters.AddWithValue(
+                            "@AdminRemark",
+                            string.IsNullOrWhiteSpace(
+                                model.AdminRemark)
+                                ? (object)DBNull.Value
+                                : model.AdminRemark);
+
+                        cmd.Parameters.AddWithValue(
+                            "@IsActive",
+                            model.IsActive);
+
+                        int rows =
+                            cmd.ExecuteNonQuery();
+
+                        if (rows == 0)
+                        {
+                            TempData["Error"] =
+                                "Booking was not found or already deleted.";
+
+                            return RedirectToAction(
+                                "ManageHealthPackageBooking");
+                        }
+                    }
+                }
+
+                TempData["Success"] =
+                    "Health package booking status updated successfully.";
+
+                return RedirectToAction(
+                    "ManageHealthPackageBooking");
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] =
+                    "Unable to update booking status: "
+                    + ex.Message;
+
+                return RedirectToAction(
+                    "ManageHealthPackageBooking");
+            }
+        }
+        [HttpGet]
+        public IActionResult DeleteHealthPackageBooking(long id)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            try
+            {
+                using (SqlConnection con = new SqlConnection(cs))
+                {
+                    con.Open();
+
+                    string query = @"
+                UPDATE tbl_HealthPackageBooking
+                SET
+                    IsDeleted = 1,
+                    IsActive = 0,
+                    UpdatedDate = GETDATE()
+                WHERE
+                    PackageBookingId = @PackageBookingId
+                    AND IsDeleted = 0";
+
+                    using (SqlCommand cmd = new SqlCommand(query, con))
+                    {
+                        cmd.Parameters.AddWithValue(
+                            "@PackageBookingId", id);
+
+                        int rows = cmd.ExecuteNonQuery();
+
+                        if (rows == 0)
+                        {
+                            TempData["Error"] =
+                                "Health package booking not found.";
+                        }
+                        else
+                        {
+                            TempData["Success"] =
+                                "Health package booking deleted successfully.";
+                        }
+                    }
+                }
+
+                return RedirectToAction(
+                    "ManageHealthPackageBooking");
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] =
+                    "Unable to delete booking: " + ex.Message;
+
+                return RedirectToAction(
+                    "ManageHealthPackageBooking");
+            }
+        }
+        [HttpGet]
+        public IActionResult MyProfile()
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            AdminModel model = new AdminModel();
+
+            try
+            {
+                long adminId = Convert.ToInt64(
+                    HttpContext.Session.GetString("AdminId"));
+
+                using (SqlConnection con = new SqlConnection(cs))
+                {
+                    con.Open();
+
+                    string query = @"
+                SELECT
+                    AdminId,
+                    FullName,
+                    Email,
+                    MobileNo,
+                    ProfileImage,
+                    IsActive,
+                    IsDeleted,
+                    CreatedDate,
+                    UpdatedDate
+                FROM tbl_Admin
+                WHERE AdminId = @AdminId
+                AND IsDeleted = 0";
+
+                    using (SqlCommand cmd =
+                           new SqlCommand(query, con))
+                    {
+                        cmd.Parameters.AddWithValue(
+                            "@AdminId",
+                            adminId);
+
+                        using (SqlDataReader dr =
+                               cmd.ExecuteReader())
+                        {
+                            if (dr.Read())
+                            {
+                                model.AdminId =
+                                    Convert.ToInt64(
+                                        dr["AdminId"]);
+
+                                model.FullName =
+                                    dr["FullName"] == DBNull.Value
+                                    ? ""
+                                    : dr["FullName"].ToString();
+
+                                model.Email =
+                                    dr["Email"] == DBNull.Value
+                                    ? ""
+                                    : dr["Email"].ToString();
+
+                                model.MobileNo =
+                                    dr["MobileNo"] == DBNull.Value
+                                    ? ""
+                                    : dr["MobileNo"].ToString();
+
+                                model.ProfileImage =
+                                    dr["ProfileImage"] == DBNull.Value
+                                    ? ""
+                                    : dr["ProfileImage"].ToString();
+
+                                model.IsActive =
+                                    dr["IsActive"] != DBNull.Value &&
+                                    Convert.ToBoolean(
+                                        dr["IsActive"]);
+
+                                model.IsDeleted =
+                                    dr["IsDeleted"] != DBNull.Value &&
+                                    Convert.ToBoolean(
+                                        dr["IsDeleted"]);
+
+                                if (dr["CreatedDate"] != DBNull.Value)
+                                {
+                                    model.CreatedDate =
+                                        Convert.ToDateTime(
+                                            dr["CreatedDate"]);
+                                }
+
+                                if (dr["UpdatedDate"] != DBNull.Value)
+                                {
+                                    model.UpdatedDate =
+                                        Convert.ToDateTime(
+                                            dr["UpdatedDate"]);
+                                }
+                            }
+                            else
+                            {
+                                TempData["Error"] =
+                                    "Admin profile not found.";
+
+                                return RedirectToAction("Dashboard");
+                            }
+                        }
+                    }
+                }
+
+                return View("~/Views/Admin/MyProfile.cshtml", model);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] =
+                    "Unable to load profile: " + ex.Message;
+
+                return RedirectToAction("Dashboard");
+            }
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult UpdateProfile(
+     AdminModel model,
+     IFormFile? ProfileFile)
+        {
+            if (HttpContext.Session.GetString("AdminId") == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            try
+            {
+                long adminId = Convert.ToInt64(
+                    HttpContext.Session.GetString("AdminId"));
+
+                string oldProfileImage = "";
+
+                using (SqlConnection con = new SqlConnection(cs))
+                {
+                    con.Open();
+
+
+                    SqlCommand oldCmd = new SqlCommand(@"
+                SELECT ProfileImage
+                FROM tbl_Admin
+                WHERE AdminId = @AdminId
+                AND IsDeleted = 0",
+                        con);
+
+                    oldCmd.Parameters.AddWithValue(
+                        "@AdminId",
+                        adminId);
+
+                    object oldImage =
+                        oldCmd.ExecuteScalar();
+
+                    if (oldImage != null &&
+                        oldImage != DBNull.Value)
+                    {
+                        oldProfileImage =
+                            oldImage.ToString();
+                    }
+
+                    string profileImage =
+                        oldProfileImage;
+
+                    if (ProfileFile != null &&
+                        ProfileFile.Length > 0)
+                    {
+                        string extension =
+                            Path.GetExtension(
+                                ProfileFile.FileName)
+                            .ToLower();
+
+                        string[] allowedExtensions =
+                        {
+                    ".jpg",
+                    ".jpeg",
+                    ".png",
+                    ".webp"
+                };
+
+                        if (!allowedExtensions.Contains(extension))
+                        {
+                            TempData["Error"] =
+                                "Only JPG, JPEG, PNG and WEBP images are allowed.";
+
+                            return RedirectToAction("MyProfile");
+                        }
+
+
+                        string folderPath =
+                            Path.Combine(
+                                Directory.GetCurrentDirectory(),
+                                "wwwroot",
+                                "AdminImages",
+                                "Profile");
+
+                        if (!Directory.Exists(folderPath))
+                        {
+                            Directory.CreateDirectory(folderPath);
+                        }
+
+
+                        string newFileName =
+                            "Admin_" +
+                            Guid.NewGuid().ToString("N") +
+                            extension;
+
+                        string filePath =
+                            Path.Combine(
+                                folderPath,
+                                newFileName);
+
+
+                        using (FileStream stream =
+                               new FileStream(
+                                   filePath,
+                                   FileMode.Create))
+                        {
+                            ProfileFile.CopyTo(stream);
+                        }
+
+
+                        if (!string.IsNullOrWhiteSpace(
+                            oldProfileImage))
+                        {
+                            string oldPath =
+                                Path.Combine(
+                                    folderPath,
+                                    oldProfileImage);
+
+                            if (System.IO.File.Exists(oldPath))
+                            {
+                                System.IO.File.Delete(oldPath);
+                            }
+                        }
+
+
+                        profileImage = newFileName;
+                    }
+
+                    SqlCommand cmd = new SqlCommand(@"
+                UPDATE tbl_Admin
+                SET
+                    FullName = @FullName,
+                    Email = @Email,
+                    MobileNo = @MobileNo,
+                    ProfileImage = @ProfileImage,
+                    UpdatedDate = GETDATE()
+                WHERE AdminId = @AdminId
+                AND IsDeleted = 0",
+                        con);
+
+
+                    cmd.Parameters.AddWithValue(
+                        "@AdminId",
+                        adminId);
+
+                    cmd.Parameters.AddWithValue(
+                        "@FullName",
+                        string.IsNullOrWhiteSpace(model.FullName)
+                            ? ""
+                            : model.FullName);
+
+                    cmd.Parameters.AddWithValue(
+                        "@Email",
+                        string.IsNullOrWhiteSpace(model.Email)
+                            ? ""
+                            : model.Email);
+
+                    cmd.Parameters.AddWithValue(
+                        "@MobileNo",
+                        string.IsNullOrWhiteSpace(model.MobileNo)
+                            ? (object)DBNull.Value
+                            : model.MobileNo);
+
+                    cmd.Parameters.AddWithValue(
+                        "@ProfileImage",
+                        string.IsNullOrWhiteSpace(profileImage)
+                            ? (object)DBNull.Value
+                            : profileImage);
+
+                    int rows =
+                        cmd.ExecuteNonQuery();
+
+
+                    if (rows > 0)
+                    {
+                        TempData["Success"] =
+                            "Admin profile updated successfully.";
+
+                        return RedirectToAction("MyProfile");
+                    }
+
+                    TempData["Error"] =
+                        "Profile update failed.";
+
+                    return RedirectToAction("MyProfile");
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] =
+                    "Unable to update profile: " +
+                    ex.Message;
+
+                return RedirectToAction("MyProfile");
+            }
+        }
         // ===========================
         // Logout
         // ===========================

@@ -1,0 +1,403 @@
+﻿@model ClinicManagementSystem.Models.AdminModel
+
+@{
+    ViewData["Title"] = "My Profile";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid py-4">
+
+    <!-- HEADER -->
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h3 class="fw-bold mb-1">
+                <i class="fa-solid fa-user-shield text-primary me-2"></i>
+                My Profile
+            </h3>
+
+            <p class="text-muted mb-0">
+                Manage your administrator profile information.
+            </p>
+        </div>
+
+    </div>
+
+
+    <!-- ALERT -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show rounded-3">
+
+            <i class="fa-solid fa-circle-check me-2"></i>
+            @TempData["Success"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show rounded-3">
+
+            <i class="fa-solid fa-triangle-exclamation me-2"></i>
+            @TempData["Error"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+
+    <div class="row g-4">
+
+        <!-- PROFILE CARD -->
+
+        <div class="col-lg-4">
+
+            <div class="card border-0 shadow-sm rounded-4 text-center">
+
+                <div class="card-body p-4">
+
+                    <!-- PROFILE IMAGE -->
+                    @if (!string.IsNullOrWhiteSpace(Model.ProfileImage))
+                    {
+                        <img src="~/AdminImages/Profile/@Model.ProfileImage"
+                             class="profile-image"
+                             alt="Admin Profile"
+                             onerror="this.style.display='none'; document.getElementById('defaultProfile').style.display='flex';" />
+
+                        <div id="defaultProfile"
+                             class="profile-placeholder"
+                             style="display:none;">
+
+                            <i class="fa-solid fa-user-shield"></i>
+
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="profile-placeholder">
+
+                            <i class="fa-solid fa-user-shield"></i>
+
+                        </div>
+                    }
+
+
+                    <h4 class="fw-bold mt-3 mb-1">
+                        @Model.FullName
+                    </h4>
+
+                    <p class="text-muted mb-3">
+                        Administrator
+                    </p>
+
+
+                    @if (Model.IsActive)
+                    {
+                        <span class="badge bg-success rounded-pill px-3 py-2">
+
+                            <i class="fa-solid fa-circle-check me-1"></i>
+                            Active
+
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-danger rounded-pill px-3 py-2">
+
+                            <i class="fa-solid fa-circle-xmark me-1"></i>
+                            Inactive
+
+                        </span>
+                    }
+
+
+                    <hr class="my-4">
+
+
+                    <div class="text-start">
+
+                        <div class="info-item">
+
+                            <i class="fa-solid fa-envelope text-primary"></i>
+
+                            <div>
+                                <small class="text-muted d-block">
+                                    Email
+                                </small>
+
+                                <span>
+                                    @Model.Email
+                                </span>
+                            </div>
+
+                        </div>
+
+
+                        <div class="info-item">
+
+                            <i class="fa-solid fa-phone text-primary"></i>
+
+                            <div>
+                                <small class="text-muted d-block">
+                                    Mobile
+                                </small>
+
+                                <span>
+                                    @(string.IsNullOrWhiteSpace(Model.MobileNo)
+                                                                        ? "Not Available"
+                                                                        : Model.MobileNo)
+                                </span>
+                            </div>
+
+                        </div>
+
+
+                        <div class="info-item">
+
+                            <i class="fa-solid fa-calendar text-primary"></i>
+
+                            <div>
+                                <small class="text-muted d-block">
+                                    Member Since
+                                </small>
+
+                                <span>
+                                    @Model.CreatedDate.ToString("dd MMM yyyy")
+                                </span>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- EDIT PROFILE -->
+
+        <div class="col-lg-8">
+
+            <div class="card border-0 shadow-sm rounded-4">
+
+                <div class="card-header bg-white border-0 p-4">
+
+                    <h5 class="fw-bold mb-1">
+
+                        <i class="fa-solid fa-user-pen text-primary me-2"></i>
+                        Edit Profile
+
+                    </h5>
+
+                    <small class="text-muted">
+                        Update your personal information and profile photo.
+                    </small>
+
+                </div>
+
+
+                <div class="card-body p-4">
+
+                    <form asp-action="UpdateProfile"
+                          method="post"
+                          enctype="multipart/form-data">
+
+                        @Html.AntiForgeryToken()
+
+                        <input type="hidden"
+                               asp-for="AdminId" />
+
+
+                        <!-- NAME -->
+
+                        <div class="mb-4">
+
+                            <label asp-for="FullName"
+                                   class="form-label fw-semibold">
+
+                                Full Name
+
+                            </label>
+
+                            <input asp-for="FullName"
+                                   class="form-control"
+                                   placeholder="Enter full name" />
+
+                        </div>
+
+
+                        <div class="row g-3">
+
+
+                            <!-- EMAIL -->
+
+                            <div class="col-md-6">
+
+                                <label asp-for="Email"
+                                       class="form-label fw-semibold">
+
+                                    Email Address
+
+                                </label>
+
+                                <input asp-for="Email"
+                                       type="email"
+                                       class="form-control"
+                                       placeholder="Enter email address" />
+
+                            </div>
+
+
+                            <!-- MOBILE -->
+
+                            <div class="col-md-6">
+
+                                <label asp-for="MobileNo"
+                                       class="form-label fw-semibold">
+
+                                    Mobile Number
+
+                                </label>
+
+                                <input asp-for="MobileNo"
+                                       class="form-control"
+                                       placeholder="Enter mobile number" />
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- PROFILE IMAGE -->
+
+                        <div class="mt-4">
+
+                            <label class="form-label fw-semibold">
+                                Profile Image
+                            </label>
+
+                            <input type="file"
+                                   name="ProfileFile"
+                                   class="form-control"
+                                   accept=".jpg,.jpeg,.png,.webp" />
+
+                            <small class="text-muted">
+                                Allowed: JPG, JPEG, PNG, WEBP
+                            </small>
+
+                        </div>
+
+
+                        <!-- CURRENT IMAGE -->
+                        @if (!string.IsNullOrWhiteSpace(Model.ProfileImage))
+                        {
+                            <div class="mt-3">
+
+                                <small class="text-muted d-block mb-2">
+                                    Current Profile Image
+                                </small>
+
+                                <img src="~/AdminImages/Profile/@Model.ProfileImage"
+                                     class="current-image"
+                                     alt="Current Profile Image" />
+
+                            </div>
+                        }
+
+
+                        <!-- BUTTON -->
+
+                        <div class="border-top mt-4 pt-4">
+
+                            <button type="submit"
+                                    class="btn btn-primary rounded-pill px-4">
+
+                                <i class="fa-solid fa-floppy-disk me-1"></i>
+                                Save Changes
+
+                            </button>
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<style>
+
+    .profile-image,
+    .profile-placeholder {
+        width: 125px;
+        height: 125px;
+        border-radius: 50%;
+        margin: auto;
+    }
+
+    .profile-image {
+        object-fit: cover;
+        border: 5px solid #e9f2ff;
+    }
+
+    .profile-placeholder {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #e9f2ff;
+        color: #0d6efd;
+        font-size: 45px;
+    }
+
+    .info-item {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 13px 0;
+        border-bottom: 1px solid #edf0f2;
+    }
+
+    .info-item:last-child {
+        border-bottom: 0;
+    }
+
+    .info-item > i {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        background: #edf4ff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .current-image {
+        width: 80px;
+        height: 80px;
+        border-radius: 15px;
+        object-fit: cover;
+        border: 2px solid #e9ecef;
+    }
+
+</style>

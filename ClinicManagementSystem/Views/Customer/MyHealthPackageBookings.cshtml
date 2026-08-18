@@ -1,0 +1,254 @@
+﻿@model List<ClinicManagementSystem.Models.HealthPackageBookingModel>
+
+@{
+    ViewData["Title"] = "My Health Package Bookings";
+    Layout = "~/Views/Shared/_CustomerLayout.cshtml";
+}
+
+<div class="container py-5">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+
+            <h3 class="fw-bold mb-1">
+                <i class="fa-solid fa-calendar-check text-primary me-2"></i>
+                My Health Package Bookings
+            </h3>
+
+            <p class="text-muted mb-0">
+                View and track your health package bookings.
+            </p>
+
+        </div>
+
+        <a asp-action="HealthPackages"
+           class="btn btn-primary rounded-pill">
+
+            <i class="fa-solid fa-plus me-1"></i>
+            Book Package
+
+        </a>
+
+    </div>
+
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">
+
+            <i class="fa-solid fa-circle-check me-2"></i>
+
+            @TempData["Success"]
+
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">
+
+            <i class="fa-solid fa-triangle-exclamation me-2"></i>
+
+            @TempData["Error"]
+
+        </div>
+    }
+
+
+    @if (Model != null && Model.Any())
+    {
+        <div class="row g-4">
+
+            @foreach (var item in Model)
+            {
+                <div class="col-lg-6">
+
+                    <div class="card border-0 shadow-sm rounded-4 h-100">
+
+                        <div class="card-body p-4">
+
+                            <div class="d-flex justify-content-between mb-3">
+
+                                <div>
+
+                                    <small class="text-muted">
+                                        Booking No
+                                    </small>
+
+                                    <h5 class="fw-bold text-primary mb-0">
+                                        @item.BookingNo
+                                    </h5>
+
+                                </div>
+
+                                @if (item.BookingStatus == "Confirmed")
+                                {
+                                    <span class="badge bg-success rounded-pill px-3 py-2">
+                                        Confirmed
+                                    </span>
+                                }
+                                else if (item.BookingStatus == "Completed")
+                                {
+                                    <span class="badge bg-info text-dark rounded-pill px-3 py-2">
+                                        Completed
+                                    </span>
+                                }
+                                else if (item.BookingStatus == "Cancelled")
+                                {
+                                    <span class="badge bg-danger rounded-pill px-3 py-2">
+                                        Cancelled
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-warning text-dark rounded-pill px-3 py-2">
+                                        Pending
+                                    </span>
+                                }
+
+                            </div>
+
+
+                            <h5 class="fw-bold mb-3">
+
+                                <i class="fa-solid fa-heart-pulse text-danger me-2"></i>
+
+                                @item.PackageName
+
+                            </h5>
+
+
+                            <div class="row g-3">
+
+                                <div class="col-6">
+
+                                    <small class="text-muted d-block">
+                                        Patient
+                                    </small>
+
+                                    <strong>
+                                        @item.PatientName
+                                    </strong>
+
+                                </div>
+
+
+                                <div class="col-6">
+
+                                    <small class="text-muted d-block">
+                                        Amount
+                                    </small>
+
+                                    <strong class="text-success">
+                                        ₹@item.Amount.ToString("N2")
+                                    </strong>
+
+                                </div>
+
+
+                                <div class="col-6">
+
+                                    <small class="text-muted d-block">
+                                        Preferred Date
+                                    </small>
+
+                                    <strong>
+
+                                        @if (item.PreferredDate.HasValue)
+                                        {
+                                            @item.PreferredDate.Value.ToString("dd MMM yyyy")
+                                        }
+                                        else
+                                        {
+                                            <span>Not Selected</span>
+                                        }
+
+                                </strong>
+
+                            </div>
+
+
+                            <div class="col-6">
+
+                                <small class="text-muted d-block">
+                                    Payment
+                                </small>
+
+                                <strong>
+                                    @(string.IsNullOrWhiteSpace(item.PaymentStatus)
+                                                                    ? "Pending"
+                                                                    : item.PaymentStatus)
+                            </strong>
+
+                                </div>
+
+                            </div>
+
+
+                            <hr />
+
+
+                            <div class="d-flex justify-content-between align-items-center">
+
+                                <small class="text-muted">
+
+                            @if (item.BookingDate.HasValue)
+                                    {
+                                        @item.BookingDate.Value.ToString("dd MMM yyyy")
+                                    }
+
+                                </small>
+
+
+                                <a asp-action="HealthPackageBookingDetails"
+                                   asp-route-id="@item.PackageBookingId"
+                                   class="btn btn-outline-primary btn-sm rounded-pill px-3">
+
+                                    <i class="fa-solid fa-eye me-1"></i>
+                                    View Details
+
+                                </a>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+            }
+
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5">
+
+            <div class="mb-3">
+
+                <i class="fa-solid fa-calendar-xmark text-muted"
+                   style="font-size:60px;">
+                </i>
+
+            </div>
+
+            <h5 class="fw-bold">
+                No Health Package Bookings
+            </h5>
+
+            <p class="text-muted">
+                You have not booked any health package yet.
+            </p>
+
+            <a asp-action="HealthPackages"
+               class="btn btn-primary rounded-pill">
+
+                Explore Health Packages
+
+            </a>
+
+        </div>
+    }
+
+</div>

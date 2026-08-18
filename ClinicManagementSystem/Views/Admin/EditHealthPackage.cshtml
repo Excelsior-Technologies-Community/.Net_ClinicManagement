@@ -1,0 +1,289 @@
+﻿@model ClinicManagementSystem.Models.HealthPackageModel
+
+@{
+    ViewData["Title"] = "Edit Health Package";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h3 class="fw-bold mb-1">
+                <i class="fa-solid fa-pen-to-square text-primary me-2"></i>
+                Edit Health Package
+            </h3>
+
+            <p class="text-muted mb-0">
+                Update health package information.
+            </p>
+        </div>
+
+        <a asp-action="ManageHealthPackage"
+           class="btn btn-secondary">
+
+            <i class="fa-solid fa-arrow-left me-1"></i>
+            Back
+
+        </a>
+
+    </div>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">
+            @TempData["Error"]
+        </div>
+    }
+
+    <div class="card border-0 shadow-sm">
+
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">
+                Health Package Details
+            </h5>
+        </div>
+
+        <div class="card-body p-4">
+
+            <form asp-action="EditHealthPackage"
+                  method="post"
+                  enctype="multipart/form-data">
+
+                @Html.AntiForgeryToken()
+
+                <input type="hidden"
+                       asp-for="HealthPackageId" />
+
+                <input type="hidden"
+                       asp-for="PackageImage" />
+
+                <div class="row g-4">
+
+                    <div class="col-md-6">
+
+                        <label class="form-label fw-semibold">
+                            Package Name
+                        </label>
+
+                        <input asp-for="PackageName"
+                               class="form-control" />
+
+                    </div>
+
+                    <div class="col-md-6">
+
+                        <label class="form-label fw-semibold">
+                            Category
+                        </label>
+
+                        <select asp-for="Category"
+                                class="form-select">
+
+                            <option value="">
+                                Select Category
+                            </option>
+
+                            <option value="General Health">
+                                General Health
+                            </option>
+
+                            <option value="Heart Care">
+                                Heart Care
+                            </option>
+
+                            <option value="Diabetes Care">
+                                Diabetes Care
+                            </option>
+
+                            <option value="Women Wellness">
+                                Women Wellness
+                            </option>
+
+                            <option value="Senior Citizen">
+                                Senior Citizen
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="col-md-6">
+
+                        <label class="form-label fw-semibold">
+                            Original Price
+                        </label>
+
+                        <div class="input-group">
+
+                            <span class="input-group-text">₹</span>
+
+                            <input asp-for="OriginalPrice"
+                                   type="number"
+                                   step="0.01"
+                                   class="form-control" />
+
+                        </div>
+
+                    </div>
+
+                    <div class="col-md-6">
+
+                        <label class="form-label fw-semibold">
+                            Discount Price
+                        </label>
+
+                        <div class="input-group">
+
+                            <span class="input-group-text">₹</span>
+
+                            <input asp-for="DiscountPrice"
+                                   type="number"
+                                   step="0.01"
+                                   class="form-control" />
+
+                        </div>
+
+                    </div>
+
+                    <div class="col-md-6">
+
+                        <label class="form-label fw-semibold">
+                            Validity
+                        </label>
+
+                        <input asp-for="Validity"
+                               class="form-control" />
+
+                    </div>
+
+                    <div class="col-md-6">
+
+                        <label class="form-label fw-semibold">
+                            Display Order
+                        </label>
+
+                        <input asp-for="DisplayOrder"
+                               type="number"
+                               class="form-control" />
+
+                    </div>
+
+                    <div class="col-md-12">
+
+                        <label class="form-label fw-semibold">
+                            Current Package Image
+                        </label>
+
+                        <div class="mb-2">
+
+                            @if (!string.IsNullOrWhiteSpace(Model.PackageImage))
+                            {
+                                <img src="~/HealthPackageImages/@Model.PackageImage"
+                                     style="width:120px;
+                                            height:80px;
+                                            object-fit:cover;
+                                            border-radius:10px;"
+                                     class="border" />
+                            }
+                            else
+                            {
+                                <span class="text-muted">
+                                    No image available
+                                </span>
+                            }
+
+                        </div>
+
+                        <label class="form-label fw-semibold">
+                            Change Image
+                        </label>
+
+                        <input asp-for="PackageImageFile"
+                               type="file"
+                               class="form-control"
+                               accept="image/*" />
+
+                    </div>
+
+                    <div class="col-md-12">
+
+                        <label class="form-label fw-semibold">
+                            Description
+                        </label>
+
+                        <textarea asp-for="Description"
+                                  class="form-control"
+                                  rows="4"></textarea>
+
+                    </div>
+
+                    <div class="col-md-12">
+
+                        <label class="form-label fw-semibold">
+                            Benefits
+                        </label>
+
+                        <textarea asp-for="Benefits"
+                                  class="form-control"
+                                  rows="4"></textarea>
+
+                    </div>
+
+                    <div class="col-md-12">
+
+                        <label class="form-label fw-semibold">
+                            Preparation Instructions
+                        </label>
+
+                        <textarea asp-for="PreparationInstructions"
+                                  class="form-control"
+                                  rows="4"></textarea>
+
+                    </div>
+
+                    <div class="col-md-12">
+
+                        <div class="form-check form-switch">
+
+                            <input asp-for="IsActive"
+                                   class="form-check-input"
+                                   type="checkbox" />
+
+                            <label class="form-check-label fw-semibold">
+                                Active Package
+                            </label>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <hr class="my-4" />
+
+                <div class="d-flex justify-content-end gap-2">
+
+                    <a asp-action="ManageHealthPackage"
+                       class="btn btn-secondary px-4">
+                        Cancel
+                    </a>
+
+                    <button type="submit"
+                            class="btn btn-primary px-4">
+
+                        <i class="fa-solid fa-save me-1"></i>
+                        Update Health Package
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>

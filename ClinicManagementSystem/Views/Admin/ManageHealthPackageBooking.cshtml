@@ -1,0 +1,784 @@
+﻿@model List<ClinicManagementSystem.Models.HealthPackageBookingModel>
+
+@{
+    ViewData["Title"] = "Manage Health Package Bookings";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid py-4">
+
+    <!-- ================= HEADER ================= -->
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h3 class="fw-bold mb-1">
+                <i class="fa-solid fa-calendar-check text-primary me-2"></i>
+                Health Package Bookings
+            </h3>
+
+            <p class="text-muted mb-0">
+                Manage customer health package bookings and appointments.
+            </p>
+        </div>
+
+        <a asp-controller="Admin"
+           asp-action="ManageHealthPackage"
+           class="btn btn-secondary">
+
+            <i class="fa-solid fa-heart-pulse me-1"></i>
+            Health Packages
+
+        </a>
+
+    </div>
+
+
+    <!-- ================= ALERTS ================= -->
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show"
+             role="alert">
+
+            <i class="fa-solid fa-circle-check me-2"></i>
+
+            @TempData["Success"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show"
+             role="alert">
+
+            <i class="fa-solid fa-triangle-exclamation me-2"></i>
+
+            @TempData["Error"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+
+    <!-- ================= SUMMARY CARDS ================= -->
+
+    <div class="row g-3 mb-4">
+
+        <!-- TOTAL -->
+
+        <div class="col-xl-3 col-md-6">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-body d-flex align-items-center">
+
+                    <div class="rounded-circle bg-primary bg-opacity-10
+                                text-primary p-3 me-3">
+
+                        <i class="fa-solid fa-calendar-check fa-lg"></i>
+
+                    </div>
+
+                    <div>
+
+                        <small class="text-muted">
+                            Total Bookings
+                        </small>
+
+                        <h4 class="fw-bold mb-0">
+                            @(Model?.Count ?? 0)
+                        </h4>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- PENDING -->
+
+        <div class="col-xl-3 col-md-6">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-body d-flex align-items-center">
+
+                    <div class="rounded-circle bg-warning bg-opacity-10
+                                text-warning p-3 me-3">
+
+                        <i class="fa-solid fa-clock fa-lg"></i>
+
+                    </div>
+
+                    <div>
+
+                        <small class="text-muted">
+                            Pending
+                        </small>
+
+                        <h4 class="fw-bold mb-0">
+
+                            @(Model?.Count(x =>
+                                string.Equals(
+                                    x.BookingStatus,
+                                    "Pending",
+                                    StringComparison.OrdinalIgnoreCase)) ?? 0)
+
+                        </h4>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- CONFIRMED -->
+
+        <div class="col-xl-3 col-md-6">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-body d-flex align-items-center">
+
+                    <div class="rounded-circle bg-success bg-opacity-10
+                                text-success p-3 me-3">
+
+                        <i class="fa-solid fa-circle-check fa-lg"></i>
+
+                    </div>
+
+                    <div>
+
+                        <small class="text-muted">
+                            Confirmed
+                        </small>
+
+                        <h4 class="fw-bold mb-0">
+
+                            @(Model?.Count(x =>
+                                string.Equals(
+                                    x.BookingStatus,
+                                    "Confirmed",
+                                    StringComparison.OrdinalIgnoreCase)) ?? 0)
+
+                        </h4>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- COMPLETED -->
+
+        <div class="col-xl-3 col-md-6">
+
+            <div class="card border-0 shadow-sm h-100">
+
+                <div class="card-body d-flex align-items-center">
+
+                    <div class="rounded-circle bg-info bg-opacity-10
+                                text-info p-3 me-3">
+
+                        <i class="fa-solid fa-flag-checkered fa-lg"></i>
+
+                    </div>
+
+                    <div>
+
+                        <small class="text-muted">
+                            Completed
+                        </small>
+
+                        <h4 class="fw-bold mb-0">
+
+                            @(Model?.Count(x =>
+                                string.Equals(
+                                    x.BookingStatus,
+                                    "Completed",
+                                    StringComparison.OrdinalIgnoreCase)) ?? 0)
+
+                        </h4>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================= MAIN CARD ================= -->
+
+    <div class="card border-0 shadow-sm">
+
+        <!-- CARD HEADER -->
+
+        <div class="card-header bg-white border-0 py-3">
+
+            <div class="row align-items-center g-3">
+
+                <div class="col-md-6">
+
+                    <h5 class="fw-bold mb-1">
+
+                        <i class="fa-solid fa-list text-primary me-2"></i>
+
+                        Booking List
+
+                    </h5>
+
+                    <small class="text-muted">
+                        View and manage all health package bookings.
+                    </small>
+
+                </div>
+
+                <div class="col-md-6">
+
+                    <div class="input-group">
+
+                        <span class="input-group-text bg-white">
+                            <i class="fa-solid fa-search text-muted"></i>
+                        </span>
+
+                        <input type="text"
+                               id="bookingSearch"
+                               class="form-control"
+                               placeholder="Search booking, customer, patient or package..." />
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ================= TABLE ================= -->
+
+        <div class="card-body p-0">
+
+            @if (Model != null && Model.Any())
+            {
+                <div class="table-responsive">
+
+                    <table class="table table-hover align-middle mb-0"
+                           id="bookingTable">
+
+                        <thead class="table-light">
+
+                            <tr>
+
+                                <th class="px-4">
+                                    #
+                                </th>
+
+                                <th>
+                                    Booking
+                                </th>
+
+                                <th>
+                                    Customer
+                                </th>
+
+                                <th>
+                                    Package
+                                </th>
+
+                                <th>
+                                    Appointment
+                                </th>
+
+                                <th>
+                                    Amount
+                                </th>
+
+                                <th>
+                                    Payment
+                                </th>
+
+                                <th>
+                                    Status
+                                </th>
+
+                                <th class="text-center">
+                                    Actions
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+                            @{
+                                int srNo = 1;
+                            }
+
+                            @foreach (var item in Model)
+                            {
+                                <tr class="booking-row">
+
+                                    <!-- ================= NUMBER ================= -->
+
+                                    <td class="px-4 fw-semibold">
+                                        @srNo
+                                    </td>
+
+
+                                    <!-- ================= BOOKING ================= -->
+
+                                    <td>
+
+                                        <div class="fw-bold text-primary">
+
+                                            @item.BookingNo
+
+                                        </div>
+
+                                        <small class="text-muted">
+                                            @if (item.BookingDate.HasValue)
+                                            {
+                                                @item.BookingDate.Value.ToString("dd MMM yyyy")
+                                            }
+                                            else
+                                            {
+                                                <span>Date not available</span>
+                                            }
+                                        </small>
+
+                                    </td>
+
+
+                                    <!-- ================= CUSTOMER ================= -->
+
+                                    <td>
+
+                                        <div class="fw-semibold text-dark">
+
+                                            <i class="fa-solid fa-user
+                                                      text-primary me-1">
+                                            </i>
+
+                                            @item.CustomerName
+
+                                        </div>
+
+                                        @if (!string.IsNullOrWhiteSpace(
+                                            item.MobileNo))
+                                        {
+                                            <small class="text-muted">
+
+                                                <i class="fa-solid fa-phone me-1"></i>
+
+                                                @item.MobileNo
+
+                                            </small>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- ================= PACKAGE ================= -->
+
+                                    <td>
+
+                                        <div class="fw-semibold">
+
+                                            <i class="fa-solid fa-heart-pulse
+                                                      text-danger me-1">
+                                            </i>
+
+                                            @item.PackageName
+
+                                        </div>
+
+                                        <small class="text-muted">
+
+                                            Patient:
+                                            @item.PatientName
+
+                                        </small>
+
+                                    </td>
+
+
+                                    <!-- ================= APPOINTMENT ================= -->
+
+                                    <td>
+
+                                        @if (item.PreferredDate.HasValue)
+                                        {
+                                            <div class="fw-semibold">
+                                                <i class="fa-regular fa-calendar text-primary me-1"></i>
+                                                @item.PreferredDate.Value.ToString("dd MMM yyyy")
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <div class="text-muted">
+                                                Date not selected
+                                            </div>
+                                        }
+
+                                        @if (!string.IsNullOrWhiteSpace(
+                                            item.PreferredTime))
+                                        {
+                                            <small class="text-muted">
+
+                                                <i class="fa-regular fa-clock me-1"></i>
+
+                                                @item.PreferredTime
+
+                                            </small>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- ================= AMOUNT ================= -->
+
+                                    <td>
+
+                                        <span class="fw-bold text-success">
+
+                                            ₹@item.Amount.ToString("N2")
+
+                                        </span>
+
+                                    </td>
+
+
+                                    <!-- ================= PAYMENT ================= -->
+
+                                    <td>
+
+                                        @{
+                                            string paymentStatus =
+                                                item.PaymentStatus ?? "";
+                                        }
+
+                                        @if (paymentStatus.Equals(
+                                            "Paid",
+                                            StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            <span class="badge bg-success rounded-pill px-3 py-2">
+
+                                                <i class="fa-solid fa-check me-1"></i>
+
+                                                Paid
+
+                                            </span>
+                                        }
+                                        else if (paymentStatus.Equals(
+                                            "Pending",
+                                            StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            <span class="badge bg-warning text-dark rounded-pill px-3 py-2">
+
+                                                <i class="fa-solid fa-clock me-1"></i>
+
+                                                Pending
+
+                                            </span>
+                                        }
+                                        else if (paymentStatus.Equals(
+                                            "Failed",
+                                            StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            <span class="badge bg-danger rounded-pill px-3 py-2">
+
+                                                Failed
+
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary rounded-pill px-3 py-2">
+
+                                                @(string.IsNullOrWhiteSpace(
+                                                    paymentStatus)
+                                                    ? "N/A"
+                                                    : paymentStatus)
+
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- ================= BOOKING STATUS ================= -->
+
+                                    <td>
+
+                                        @{
+                                            string bookingStatus =
+                                                item.BookingStatus ?? "";
+                                        }
+
+                                        @if (bookingStatus.Equals(
+                                            "Confirmed",
+                                            StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            <span class="badge bg-success rounded-pill px-3 py-2">
+
+                                                <i class="fa-solid fa-circle-check me-1"></i>
+
+                                                Confirmed
+
+                                            </span>
+                                        }
+                                        else if (bookingStatus.Equals(
+                                            "Pending",
+                                            StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            <span class="badge bg-warning text-dark rounded-pill px-3 py-2">
+
+                                                <i class="fa-solid fa-clock me-1"></i>
+
+                                                Pending
+
+                                            </span>
+                                        }
+                                        else if (bookingStatus.Equals(
+                                            "Completed",
+                                            StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            <span class="badge bg-info text-dark rounded-pill px-3 py-2">
+
+                                                <i class="fa-solid fa-flag-checkered me-1"></i>
+
+                                                Completed
+
+                                            </span>
+                                        }
+                                        else if (bookingStatus.Equals(
+                                            "Cancelled",
+                                            StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            <span class="badge bg-danger rounded-pill px-3 py-2">
+
+                                                <i class="fa-solid fa-xmark me-1"></i>
+
+                                                Cancelled
+
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary rounded-pill px-3 py-2">
+
+                                                @(string.IsNullOrWhiteSpace(
+                                                    bookingStatus)
+                                                    ? "N/A"
+                                                    : bookingStatus)
+
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- ================= ACTIONS ================= -->
+
+                                    <td>
+
+                                        <div class="d-flex justify-content-center gap-1">
+
+                                            <!-- VIEW -->
+
+                                            <a asp-controller="Admin"
+                                               asp-action="ViewHealthPackageBooking"
+                                               asp-route-id="@item.PackageBookingId"
+                                               class="btn btn-sm btn-outline-info"
+                                               title="View Booking">
+
+                                                <i class="fa-solid fa-eye"></i>
+
+                                            </a>
+
+
+                                            <!-- STATUS -->
+
+                                            <a asp-controller="Admin"
+                                               asp-action="ChangeHealthPackageBookingStatus"
+                                               asp-route-id="@item.PackageBookingId"
+                                               class="btn btn-sm btn-outline-warning"
+                                               title="Change Status">
+
+                                                <i class="fa-solid fa-rotate"></i>
+
+                                            </a>
+
+
+                                            <!-- DELETE -->
+
+                                            <a asp-controller="Admin"
+                                               asp-action="DeleteHealthPackageBooking"
+                                               asp-route-id="@item.PackageBookingId"
+                                               class="btn btn-sm btn-outline-danger"
+                                               title="Delete Booking"
+                                               onclick="return confirm('Are you sure you want to delete this booking?');">
+
+                                                <i class="fa-solid fa-trash"></i>
+
+                                            </a>
+
+                                        </div>
+
+                                    </td>
+
+                                </tr>
+
+                                srNo++;
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+            }
+            else
+            {
+                <!-- ================= EMPTY STATE ================= -->
+
+                <div class="text-center py-5">
+
+                    <div class="mb-3">
+
+                        <div class="d-inline-flex align-items-center
+                                    justify-content-center
+                                    bg-primary bg-opacity-10
+                                    text-primary rounded-circle"
+                             style="width:85px;height:85px;">
+
+                            <i class="fa-solid fa-calendar-xmark fa-2x"></i>
+
+                        </div>
+
+                    </div>
+
+                    <h5 class="fw-bold">
+                        No Health Package Bookings Found
+                    </h5>
+
+                    <p class="text-muted mb-4">
+
+                        No customers have booked a health package yet.
+
+                    </p>
+
+                    <a asp-controller="Admin"
+                       asp-action="ManageHealthPackage"
+                       class="btn btn-primary">
+
+                        <i class="fa-solid fa-heart-pulse me-1"></i>
+
+                        View Health Packages
+
+                    </a>
+
+                </div>
+            }
+
+        </div>
+
+
+        <!-- ================= FOOTER ================= -->
+
+        @if (Model != null && Model.Any())
+        {
+            <div class="card-footer bg-white border-0 py-3">
+
+                <div class="d-flex justify-content-between align-items-center">
+
+                    <small class="text-muted">
+
+                        <i class="fa-solid fa-circle-info me-1"></i>
+
+                        Showing
+                        <strong>@Model.Count</strong>
+                        booking(s)
+
+                    </small>
+
+                    <small class="text-muted">
+
+                        Total Amount:
+                        <strong class="text-success">
+
+                            ₹@Model.Sum(x => x.Amount).ToString("N2")
+
+                        </strong>
+
+                    </small>
+
+                </div>
+
+            </div>
+        }
+
+    </div>
+
+</div>
+
+
+<!-- ================= SEARCH SCRIPT ================= -->
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+        const searchBox = document.getElementById("bookingSearch");
+        const rows = document.querySelectorAll(".booking-row");
+
+        if (searchBox) {
+
+            searchBox.addEventListener("keyup", function () {
+
+                const search = this.value.toLowerCase().trim();
+
+                rows.forEach(function (row) {
+
+                    const text = row.innerText.toLowerCase();
+
+                    if (text.includes(search)) {
+                        row.style.display = "";
+                    }
+                    else {
+                        row.style.display = "none";
+                    }
+
+                });
+
+            });
+        }
+
+    });
+</script>

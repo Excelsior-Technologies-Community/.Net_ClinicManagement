@@ -1,0 +1,309 @@
+﻿@model List<ClinicManagementSystem.Models.HealthPackageModel>
+
+@{
+    ViewData["Title"] = "Health Packages";
+    Layout = "~/Views/Shared/_CustomerLayout.cshtml";
+}
+
+<div class="container py-5">
+
+    <!-- ================= HEADER ================= -->
+
+    <div class="text-center mb-5">
+
+        <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-2 mb-2">
+            <i class="fa-solid fa-heart-pulse me-1"></i>
+            Preventive Healthcare
+        </span>
+
+        <h2 class="fw-bold mb-2">
+            Health Packages
+        </h2>
+
+        <p class="text-muted mb-0">
+            Choose a health package for complete preventive health screening.
+        </p>
+
+    </div>
+
+
+    <!-- ================= ALERT ================= -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show rounded-3 mb-4">
+
+            <i class="fa-solid fa-circle-check me-2"></i>
+            @TempData["Success"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show rounded-3 mb-4">
+
+            <i class="fa-solid fa-triangle-exclamation me-2"></i>
+            @TempData["Error"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+
+    <!-- ================= PACKAGES ================= -->
+    @if (Model != null && Model.Any())
+    {
+        <div class="row g-4">
+
+            @foreach (var item in Model)
+            {
+                <div class="col-xl-4 col-lg-6 col-md-6">
+
+                    <div class="package-card h-100">
+
+                        <!-- ICON -->
+
+                        <div class="package-top">
+
+                            <div class="package-icon">
+
+                                <i class="fa-solid fa-heart-pulse"></i>
+
+                            </div>
+
+                            <span class="available-badge">
+
+                                <i class="fa-solid fa-circle-check me-1"></i>
+                                Available
+
+                            </span>
+
+                        </div>
+
+
+                        <!-- PACKAGE NAME -->
+
+                        <div class="package-content">
+
+                            <h4 class="fw-bold mb-3">
+
+                                @(string.IsNullOrWhiteSpace(item.PackageName)
+                                                        ? "Health Package"
+                                                        : item.PackageName)
+
+                    </h4>
+
+
+                            <!-- PRICE -->
+
+                            <div class="price-box mb-4">
+
+                                <small class="text-muted d-block">
+                                    Package Price
+                                </small>
+
+                                <span class="price">
+
+                                    ₹@item.DiscountPrice.ToString("N2")
+
+                                </span>
+
+                            </div>
+
+
+                            <!-- FEATURES -->
+
+                            <div class="feature-list mb-4">
+
+                                <div>
+                                    <i class="fa-solid fa-check"></i>
+                                    Preventive Health Screening
+                                </div>
+
+                                <div>
+                                    <i class="fa-solid fa-check"></i>
+                                    Professional Lab Testing
+                                </div>
+
+                                <div>
+                                    <i class="fa-solid fa-check"></i>
+                                    Health Assessment
+                                </div>
+
+                                <div>
+                                    <i class="fa-solid fa-check"></i>
+                                    Detailed Health Report
+                                </div>
+
+                            </div>
+
+
+                            <!-- BUTTONS -->
+
+                            <div class="d-flex gap-2">
+
+                                <a asp-controller="Customer"
+                                   asp-action="HealthPackageDetails"
+                                   asp-route-id="@item.HealthPackageId"
+                                   class="btn btn-outline-primary rounded-pill flex-grow-1">
+
+                                    <i class="fa-solid fa-eye me-1"></i>
+                                    View Details
+
+                                </a>
+
+
+                                <a asp-controller="Customer"
+                                   asp-action="BookHealthPackage"
+                                   asp-route-id="@item.HealthPackageId"
+                                   class="btn btn-primary rounded-pill flex-grow-1">
+
+                                    <i class="fa-solid fa-calendar-check me-1"></i>
+                                    Book Now
+
+                                </a>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+                }
+
+        </div>
+    }
+    else
+    {
+        <!-- ================= EMPTY ================= -->
+
+        <div class="empty-state text-center">
+
+            <div class="empty-icon">
+
+                <i class="fa-solid fa-heart-pulse"></i>
+
+            </div>
+
+            <h4 class="fw-bold mt-3">
+                No Health Packages Available
+            </h4>
+
+            <p class="text-muted mb-4">
+                Health packages are currently unavailable.
+                Please check again later.
+            </p>
+
+        </div>
+    }
+
+</div>
+
+
+<!-- ================= CSS ================= -->
+
+<style>
+
+    .package-card {
+        background: #ffffff;
+        border: 1px solid #e9ecef;
+        border-radius: 22px;
+        overflow: hidden;
+        padding: 25px;
+        box-shadow: 0 5px 20px rgba(0,0,0,.05);
+        transition: all .25s ease;
+    }
+
+        .package-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(0,0,0,.10);
+            border-color: #cfe2ff;
+        }
+
+    .package-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 22px;
+    }
+
+    .package-icon {
+        width: 58px;
+        height: 58px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #e8f1ff;
+        color: #0d6efd;
+        font-size: 24px;
+    }
+
+    .available-badge {
+        background: #e8f7ef;
+        color: #198754;
+        padding: 7px 12px;
+        border-radius: 50px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .price-box {
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 14px;
+    }
+
+    .price {
+        display: block;
+        color: #198754;
+        font-size: 28px;
+        font-weight: 700;
+        margin-top: 2px;
+    }
+
+    .feature-list > div {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        margin-bottom: 11px;
+        color: #495057;
+        font-size: 14px;
+    }
+
+    .feature-list i {
+        color: #198754;
+        font-size: 13px;
+    }
+
+    .empty-state {
+        background: #f8f9fa;
+        border: 1px dashed #ced4da;
+        border-radius: 20px;
+        padding: 60px 20px;
+    }
+
+    .empty-icon {
+        width: 80px;
+        height: 80px;
+        margin: auto;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #e9ecef;
+        color: #6c757d;
+        font-size: 32px;
+    }
+
+</style>
